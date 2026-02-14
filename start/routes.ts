@@ -6220,8 +6220,22 @@ router
           'codigoIbge', 'nome', 'uf', 'slug', 'logoUrl',
           'corPrimaria', 'corSecundaria', 'status'
         ])
-        // dbSchema é sempre igual ao slug (nome do schema no banco)
-        data.dbSchema = data.slug
+
+        // dbSchema precisa ser um identificador SQL valido (schema no Postgres).
+        // Ex: "nova-floresta" -> "nova_floresta"
+        const normalizeSchemaName = (input: string) => {
+          const base = String(input || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '')
+          if (!base) return 'tenant'
+          if (/^[0-9]/.test(base)) return `m_${base}`
+          return base
+        }
+
+        data.dbSchema = normalizeSchemaName(data.slug)
 
         // Cria o registro do município
         const municipio = await Municipio.create(data)
