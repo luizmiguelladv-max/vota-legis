@@ -1,0 +1,907 @@
+@component('layouts/main')
+  @slot('content')
+    <!-- Select2 e Flatpickr -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    
+    <style>
+      .select2-container { width: 100% !important; }
+      .select2-container--bootstrap-5 .select2-selection { min-height: 38px; }
+      .escala-preview { max-height: 450px; overflow-y: auto; }
+      .dia-escala { border: 1px solid var(--bs-border-color); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+      .dia-escala .data { font-weight: 600; color: var(--bs-primary); }
+      .funcionario-badge { display: inline-block; padding: 4px 10px; margin: 2px; border-radius: 20px; font-size: 0.85rem; background: var(--bs-success); color: white; }
+      .resumo-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 12px; display: inline-block; }
+      .resumo-card h3 { font-size: 1rem; margin: 0; font-weight: 700; color: #495057; display: inline; }
+      .resumo-card small { font-size: 0.75rem; color: #6c757d; margin-left: 4px; }
+      .filtro-section { background: var(--bs-tertiary-bg); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+      .filtro-section label.form-label { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; }
+      .funcionario-item { padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); }
+      .funcionario-item:hover { background: var(--bs-tertiary-bg); }
+      .funcionario-item .cargo { font-size: 0.75rem; color: var(--bs-secondary); }
+      .badge-jornada { background: #198754; font-size: 0.65rem; }
+      .select-actions { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+      .select-actions button { font-size: 0.75rem; padding: 2px 8px; }
+      .filtro-numero { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--bs-primary); color: white; border-radius: 50%; font-size: 0.7rem; margin-right: 5px; }
+      .flatpickr-input { background: white !important; }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1"><i class="bi bi-calendar-plus me-2"></i>Gerador de Escalas</h4>
+        <p class="text-muted mb-0">Gere escalas de plantão automaticamente</p>
+      </div>
+      <a href="/escalas" class="btn btn-outline-secondary">
+        <i class="bi bi-calendar3 me-2"></i>Ver Calendário
+      </a>
+    </div>
+
+    <div class="row">
+      <!-- Configuração -->
+      <div class="col-lg-5">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtros</h5>
+          </div>
+          <div class="card-body">
+            
+            <!-- 1. Unidade Gestora -->
+            <div class="filtro-section">
+              <label class="form-label">
+                <span class="filtro-numero">1</span>
+                <i class="bi bi-building me-1"></i>Unidade Gestora <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="unidadeGestoraId">
+                <option value="">Carregando...</option>
+              </select>
+            </div>
+
+            <!-- 2. Secretaria/Órgão -->
+            <div class="filtro-section">
+              <label class="form-label">
+                <span class="filtro-numero">2</span>
+                <i class="bi bi-bank me-1"></i>Secretaria / Órgão
+              </label>
+              <select class="form-select" id="secretariaId" disabled>
+                <option value="">Selecione a unidade gestora primeiro</option>
+              </select>
+            </div>
+
+            <!-- 3. Lotação -->
+            <div class="filtro-section">
+              <label class="form-label">
+                <span class="filtro-numero">3</span>
+                <i class="bi bi-geo-alt me-1"></i>Lotação / Setor <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="lotacaoId" disabled>
+                <option value="">Selecione a secretaria primeiro</option>
+              </select>
+            </div>
+
+            <!-- 4. Cargo -->
+            <div class="filtro-section">
+              <label class="form-label">
+                <span class="filtro-numero">4</span>
+                <i class="bi bi-person-badge me-1"></i>Cargo
+              </label>
+              <select class="form-select" id="cargoId" disabled>
+                <option value="">Selecione a lotação primeiro</option>
+              </select>
+            </div>
+
+            <!-- Funcionários -->
+            <div class="filtro-section">
+              <label class="form-label"><i class="bi bi-people me-1"></i>Funcionários</label>
+              <div class="select-actions">
+                <button class="btn btn-sm btn-outline-primary" onclick="selecionarTodos()">
+                  <i class="bi bi-check-all"></i> Todos
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="deselecionarTodos()">
+                  <i class="bi bi-x-lg"></i> Nenhum
+                </button>
+                <span class="badge bg-primary ms-auto" id="contadorSelecionados">0/0</span>
+              </div>
+              <div class="border rounded" style="max-height: 150px; overflow-y: auto; background: var(--bs-body-bg);">
+                <div id="listaFuncionarios" class="text-muted text-center py-3">
+                  <i class="bi bi-arrow-up-circle"></i> Selecione uma lotação
+                </div>
+              </div>
+            </div>
+
+            <!-- Período -->
+            <div class="filtro-section">
+              <label class="form-label"><i class="bi bi-calendar-range me-1"></i>Período</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="text" class="form-control" id="dataInicio" placeholder="Data início">
+                </div>
+                <div class="col-6">
+                  <input type="text" class="form-control" id="dataFim" placeholder="Data fim">
+                </div>
+              </div>
+            </div>
+
+            <!-- Configuração -->
+            <div class="filtro-section">
+              <label class="form-label"><i class="bi bi-gear me-1"></i>Configuração</label>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label small">Funcionários/Turno</label>
+                  <div id="infoEquipes" class="form-control-plaintext small text-muted">
+                    Selecione funcionários...
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Tipo Escala</label>
+                  <select class="form-select form-select-sm" id="tipoEscala" onchange="atualizarTurnos()">
+                    <option value="12X36">12x36 (2 turnos)</option>
+                    <option value="24X72">24x72 (72h folga)</option>
+                    <option value="24X48">24x48 (48h folga)</option>
+                    <option value="DIARIO">Diário (1 turno)</option>
+                  </select>
+                </div>
+              </div>
+              <div id="turnosConfig">
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <label class="form-label small"><i class="bi bi-sun me-1"></i>Turno Diurno</label>
+                  </div>
+                  <div class="col-6">
+                    <input type="time" class="form-control form-control-sm" id="turnoDiurnoInicio" value="07:00">
+                  </div>
+                  <div class="col-6">
+                    <input type="time" class="form-control form-control-sm" id="turnoDiurnoFim" value="19:00">
+                  </div>
+                </div>
+                <div class="row g-2 mb-2" id="turnoNoturnoRow">
+                  <div class="col-12">
+                    <label class="form-label small"><i class="bi bi-moon me-1"></i>Turno Noturno</label>
+                  </div>
+                  <div class="col-6">
+                    <input type="time" class="form-control form-control-sm" id="turnoNoturnoInicio" value="19:00">
+                  </div>
+                  <div class="col-6">
+                    <input type="time" class="form-control form-control-sm" id="turnoNoturnoFim" value="07:00">
+                  </div>
+                </div>
+              </div>
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="atualizarJornada" checked>
+                <label class="form-check-label small" for="atualizarJornada">
+                  Atualizar jornada dos funcionários
+                </label>
+              </div>
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-primary" onclick="gerarPreview()">
+                <i class="bi bi-lightning me-2"></i>Gerar Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="col-lg-7">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Preview</h5>
+            <button class="btn btn-success btn-sm" id="btnSalvar" onclick="salvarEscalas()" disabled>
+              <i class="bi bi-check-lg me-2"></i>Salvar
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="resumoArea" style="display: none;" class="mb-3">
+              <span class="badge bg-light text-dark border me-1" style="font-size: 0.85rem;"><strong id="resumoDias">0</strong> dias</span>
+              <span class="badge bg-light text-dark border me-1" style="font-size: 0.85rem;"><strong id="resumoPlantoes">0</strong> plantões</span>
+              <span class="badge bg-light text-dark border" style="font-size: 0.85rem;"><strong id="resumoFuncionarios">0</strong> func.</span>
+            </div>
+
+            <div id="distribuicaoArea" style="display: none;" class="mb-3">
+              <h6 class="mb-2"><i class="bi bi-bar-chart me-2"></i>Distribuição</h6>
+              <div id="distribuicaoLista"></div>
+            </div>
+
+            <div class="escala-preview" id="previewArea">
+              <div class="text-center text-muted py-5">
+                <i class="bi bi-calendar-plus" style="font-size: 3rem;"></i>
+                <p class="mt-3">Configure os filtros e clique em "Gerar Preview"</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    
+    <script>
+      let funcionarios = [];
+      let escalasExistentes = {};
+      let escalasGeradas = [];
+      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+      
+      // Funções globais de Modal
+      let confirmCallback = null;
+      
+      function showConfirm(title, message, onConfirm) {
+        document.getElementById('modalConfirmTitle').textContent = title;
+        document.getElementById('modalConfirmBody').innerHTML = message;
+        confirmCallback = onConfirm;
+        new bootstrap.Modal(document.getElementById('modalConfirm')).show();
+      }
+      
+      function showAlert(title, message, type = 'info') {
+        if (type === 'success') {
+          toastr.success(message, title);
+        } else if (type === 'error') {
+          toastr.error(message, title);
+        } else {
+          toastr.info(message, title);
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+      
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+          bootstrap.Modal.getInstance(document.getElementById('modalConfirm')).hide();
+          if (confirmCallback) confirmCallback();
+        });
+      }
+
+
+        // Inicializar Select2
+        $('#unidadeGestoraId').select2({ theme: 'bootstrap-5', placeholder: 'Selecione a unidade gestora...' });
+        $('#secretariaId').select2({ theme: 'bootstrap-5', placeholder: 'Selecione a secretaria...' });
+        $('#lotacaoId').select2({ theme: 'bootstrap-5', placeholder: 'Selecione a lotação...' });
+        $('#cargoId').select2({ theme: 'bootstrap-5', placeholder: 'Selecione o cargo...' });
+        
+        // Eventos Select2
+        $('#unidadeGestoraId').on('change', carregarSecretarias);
+        $('#secretariaId').on('change', carregarLotacoes);
+        $('#lotacaoId').on('change', () => { carregarCargos(); carregarFuncionarios(); });
+        $('#cargoId').on('change', function(e, data) {
+          // Não recarrega se foi chamado pelo reset do select
+          if (data && data.skipFuncionarios) return;
+          carregarFuncionarios();
+        });
+        
+        // Inicializar Flatpickr (Datepicker)
+        const fpConfig = {
+          locale: 'pt',
+          dateFormat: 'd/m/Y',
+          allowInput: true
+        };
+        
+        const hoje = new Date();
+        const inicioProxMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+        const fimProxMes = new Date(hoje.getFullYear(), hoje.getMonth() + 2, 0);
+        
+        flatpickr('#dataInicio', { ...fpConfig, defaultDate: inicioProxMes, onChange: () => verificarEscalasExistentes() });
+        flatpickr('#dataFim', { ...fpConfig, defaultDate: fimProxMes, onChange: () => verificarEscalasExistentes() });
+        
+        carregarUnidadesGestoras();
+      });
+
+      
+      function atualizarTurnos() {
+        const tipo = $('#tipoEscala').val();
+        const turnoNoturno = document.getElementById('turnoNoturnoRow');
+        if (tipo === '12X36') {
+          turnoNoturno.style.display = 'flex';
+        } else {
+          turnoNoturno.style.display = 'none';
+        }
+      }
+      
+async function carregarUnidadesGestoras() {
+        try {
+          const res = await fetch('/api/unidades-gestoras');
+          const data = await res.json();
+          const ugs = data.data || [];
+          
+          const select = $('#unidadeGestoraId');
+          select.empty();
+          
+          if (ugs.length === 0) {
+            select.append('<option value="">Nenhuma unidade gestora</option>');
+            return;
+          }
+          
+          select.append('<option value="">Selecione a unidade gestora...</option>');
+          ugs.forEach(u => {
+            select.append(`<option value="${u.id}">${u.nome}</option>`);
+          });
+          
+          if (ugs.length === 1) {
+            select.val(ugs[0].id).trigger('change');
+          }
+        } catch (e) {
+          console.error('Erro ao carregar UGs:', e);
+        }
+      }
+
+      async function carregarSecretarias() {
+        const ugId = $('#unidadeGestoraId').val();
+        const select = $('#secretariaId');
+        
+        // Reset dependentes
+        $('#lotacaoId').empty().append('<option value="">Selecione a secretaria primeiro</option>').prop('disabled', true).trigger('change.select2');
+        $('#cargoId').empty().append('<option value="">Selecione a lotação primeiro</option>').prop('disabled', true).trigger('change.select2');
+        $('#listaFuncionarios').html('<div class="text-muted text-center py-3"><i class="bi bi-arrow-up-circle"></i> Selecione uma lotação</div>');
+        funcionarios = [];
+        atualizarContador();
+        
+        if (!ugId) {
+          select.empty().append('<option value="">Selecione a unidade gestora primeiro</option>').prop('disabled', true).trigger('change.select2');
+          return;
+        }
+
+        select.empty().append('<option value="">Carregando...</option>');
+
+        try {
+          const res = await fetch(`/api/secretarias/por-ug?unidade_gestora_id=${ugId}`);
+          const data = await res.json();
+          const secretarias = data.data || [];
+          
+          select.empty().prop('disabled', false);
+          select.append('<option value="">Todas as secretarias</option>');
+          secretarias.forEach(s => {
+            select.append(`<option value="${s.id}">${s.nome} (${s.total_funcionarios || 0})</option>`);
+          });
+          select.trigger('change.select2');
+          
+          // Carrega lotações automaticamente
+          carregarLotacoes();
+        } catch (e) {
+          console.error('Erro:', e);
+          select.empty().append('<option value="">Erro ao carregar</option>');
+        }
+      }
+
+      async function carregarLotacoes() {
+        const ugId = $('#unidadeGestoraId').val();
+        const secretariaId = $('#secretariaId').val();
+        const select = $('#lotacaoId');
+        
+        // Reset dependentes
+        $('#cargoId').empty().append('<option value="">Selecione a lotação primeiro</option>').prop('disabled', true).trigger('change.select2');
+        $('#listaFuncionarios').html('<div class="text-muted text-center py-3"><i class="bi bi-arrow-up-circle"></i> Selecione uma lotação</div>');
+        funcionarios = [];
+        atualizarContador();
+        
+        if (!ugId) {
+          select.empty().append('<option value="">Selecione a unidade gestora primeiro</option>').prop('disabled', true).trigger('change.select2');
+          return;
+        }
+
+        select.empty().append('<option value="">Carregando...</option>');
+
+        try {
+          let url = `/api/lotacoes/por-ug?unidade_gestora_id=${ugId}`;
+          if (secretariaId) url += `&secretaria_id=${secretariaId}`;
+          
+          const res = await fetch(url);
+          const data = await res.json();
+          const lotacoes = data.data || [];
+          
+          select.empty().prop('disabled', false);
+          
+          if (lotacoes.length === 0) {
+            select.append('<option value="">Nenhuma lotação encontrada</option>');
+            return;
+          }
+          
+          select.append('<option value="">Selecione a lotação...</option>');
+          lotacoes.forEach(l => {
+            select.append(`<option value="${l.id}">${l.nome} (${l.total_funcionarios || 0})</option>`);
+          });
+          select.trigger('change.select2');
+        } catch (e) {
+          console.error('Erro:', e);
+        }
+      }
+
+      async function carregarCargos() {
+        const lotacaoId = $('#lotacaoId').val();
+        const select = $('#cargoId');
+        
+        if (!lotacaoId) {
+          select.empty().append('<option value="">Selecione a lotação primeiro</option>').prop('disabled', true).trigger('change.select2');
+          return;
+        }
+
+        select.empty().append('<option value="">Carregando...</option>');
+
+        try {
+          const res = await fetch(`/api/cargos/por-lotacao?lotacao_id=${lotacaoId}`);
+          const data = await res.json();
+          const cargos = data.data || [];
+          
+          select.empty().prop('disabled', false);
+          select.append('<option value="">Todos os cargos</option>');
+          cargos.forEach(c => {
+            select.append(`<option value="${c.id}">${c.nome} (${c.total_funcionarios || 0})</option>`);
+          });
+          // Não dispara change para não recarregar funcionários (já foi carregado pela lotação)
+          select.trigger('change.select2', { skipFuncionarios: true });
+        } catch (e) {
+          console.error('Erro:', e);
+        }
+      }
+
+      async function carregarFuncionarios() {
+        const lotacaoId = $('#lotacaoId').val();
+        const cargoId = $('#cargoId').val();
+        const lista = document.getElementById('listaFuncionarios');
+        
+        console.log('carregarFuncionarios - lotacaoId:', lotacaoId, 'cargoId:', cargoId);
+        
+        if (!lotacaoId) {
+          lista.innerHTML = '<div class="text-muted text-center py-3"><i class="bi bi-arrow-up-circle"></i> Selecione uma lotação</div>';
+          funcionarios = [];
+          atualizarContador();
+          return;
+        }
+
+        lista.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>';
+
+        try {
+          let url = `/api/funcionarios/por-lotacao?lotacao_id=${lotacaoId}`;
+          if (cargoId && cargoId !== '') url += `&cargo_id=${cargoId}`;
+          
+          console.log('Fetching:', url);
+          const res = await fetch(url);
+          const data = await res.json();
+          console.log('Response:', data);
+          funcionarios = data.data || [];
+          
+          if (funcionarios.length === 0) {
+            lista.innerHTML = '<div class="text-muted text-center py-3">Nenhum funcionário encontrado</div>';
+            atualizarContador();
+            return;
+          }
+
+          lista.innerHTML = funcionarios.map(f => `
+            <div class="funcionario-item">
+              <div class="form-check mb-0">
+                <input class="form-check-input func-check" type="checkbox" value="${f.id}" id="func${f.id}" checked onchange="atualizarContador()">
+                <label class="form-check-label w-100" for="func${f.id}">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="fw-semibold">${f.nome}</span>
+                      <span id="badge-escalas-${f.id}" class="badge bg-warning text-dark ms-2" style="display:none; font-size:0.65rem;">0</span>
+                      <div class="cargo">${f.cargo_nome || 'Sem cargo'} | ${f.matricula || '-'}</div>
+                    </div>
+                    <span class="badge badge-jornada" title="${f.jornada_nome || ''}">${f.horas_folga ? f.horas_plantao + 'x' + f.horas_folga : (f.jornada_tipo || '-')}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          `).join('');
+          
+          // Verificar escalas existentes após carregar funcionários
+          verificarEscalasExistentes();
+
+          atualizarContador();
+        } catch (e) {
+          console.error('Erro ao carregar funcionarios:', e);
+          lista.innerHTML = '<div class="text-danger text-center py-3">Erro ao carregar</div>';
+        }
+      }
+
+      function selecionarTodos() {
+        document.querySelectorAll('.func-check').forEach(cb => cb.checked = true);
+        atualizarContador();
+      }
+
+      function deselecionarTodos() {
+        document.querySelectorAll('.func-check').forEach(cb => cb.checked = false);
+        atualizarContador();
+      }
+
+      function atualizarContador() {
+        const contadorEl = document.getElementById('contadorSelecionados');
+        const infoEl = document.getElementById('infoEquipes');
+        
+        // Se elementos não existem ainda, sair
+        if (!contadorEl) return;
+        
+        const checks = document.querySelectorAll('.func-check:checked');
+        const total = document.querySelectorAll('.func-check').length;
+        contadorEl.textContent = `${checks.length}/${total} selecionados`;
+        
+        // Mostrar info das equipes
+        if (infoEl) {
+          const tipoEscala = $('#tipoEscala').val();
+          let numEquipes = 4;
+          if (tipoEscala === '12X36') numEquipes = 4;
+          else if (tipoEscala === '24X48') numEquipes = 3;
+          else if (tipoEscala === '24X72') numEquipes = 4;
+          else numEquipes = 1;
+          
+          const funcPorEquipe = Math.floor(checks.length / numEquipes);
+          const resto = checks.length % numEquipes;
+          
+          if (checks.length > 0) {
+            infoEl.innerHTML = `<strong>${numEquipes} equipes</strong> • ~${funcPorEquipe}${resto > 0 ? '-' + (funcPorEquipe+1) : ''} func/turno`;
+          } else {
+            infoEl.textContent = 'Selecione funcionários...';
+          }
+        }
+      }
+
+      function parseDataBR(str) {
+        if (!str) return null;
+        const [d, m, y] = str.split('/');
+        return new Date(y, m - 1, d);
+      }
+
+      
+      async function verificarEscalasExistentes() {
+        if (funcionarios.length === 0) return;
+        
+        const dataInicio = parseDataBR($('#dataInicio').val());
+        const dataFim = parseDataBR($('#dataFim').val());
+        
+        if (!dataInicio || !dataFim) return;
+        
+        const ids = funcionarios.map(f => f.id).join(',');
+        const inicio = dataInicio.toISOString().split('T')[0];
+        const fim = dataFim.toISOString().split('T')[0];
+        
+        try {
+          const res = await fetch(`/api/escalas/verificar-periodo?funcionario_ids=${ids}&data_inicio=${inicio}&data_fim=${fim}`);
+          const data = await res.json();
+          escalasExistentes = data.data || {};
+          
+          // Atualizar badges na lista
+          funcionarios.forEach(f => {
+            const badge = document.getElementById(`badge-escalas-${f.id}`);
+            const escalas = escalasExistentes[f.id] || [];
+            if (badge) {
+              if (escalas.length > 0) {
+                badge.textContent = `${escalas.length} escalas`;
+                badge.className = 'badge bg-warning text-dark ms-2';
+                badge.style.display = 'inline';
+              } else {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+              }
+            }
+          });
+          
+          console.log('Escalas existentes:', escalasExistentes);
+        } catch (e) {
+          console.error('Erro ao verificar escalas:', e);
+        }
+      }
+
+function gerarPreview() {
+        // Verificar conflitos antes de gerar
+        let funcionariosComEscalas = [];
+        funcionarios.forEach(f => {
+          const escalas = escalasExistentes[f.id] || [];
+          if (escalas.length > 0) {
+            funcionariosComEscalas.push({ nome: f.nome, qtd: escalas.length });
+          }
+        });
+        
+        if (funcionariosComEscalas.length > 0) {
+          const lista = funcionariosComEscalas.map(f => `• ${f.nome}: ${f.qtd} escalas`).join('\n');
+          showConfirm('<i class="bi bi-exclamation-triangle text-warning"></i> Escalas Existentes', 
+            '<p>Os seguintes funcionários já possuem escalas no período:</p><pre class="bg-light p-2 small">' + lista + '</pre><p class="mb-0">Deseja continuar? (escalas existentes serão substituídas)</p>', 
+            () => { gerarPreviewReal(); });
+          return;
+        }
+        
+        const lotacaoId = $('#lotacaoId').val();
+        const dataInicio = parseDataBR($('#dataInicio').val());
+        const dataFim = parseDataBR($('#dataFim').val());
+        const tipoEscala = $('#tipoEscala').val();
+        const horarioInicio = $('#horarioInicio').val();
+        const horarioFim = $('#horarioFim').val();
+
+        if (!lotacaoId) { showAlert('Atenção', 'Selecione uma lotação', 'error'); return; }
+        if (!dataInicio || !dataFim) { showAlert('Atenção', 'Informe o período', 'error'); return; }
+        
+
+        const funcsSelecionados = [];
+        document.querySelectorAll('.func-check:checked').forEach(cb => {
+          const func = funcionarios.find(f => f.id == cb.value);
+          if (func) funcsSelecionados.push(func);
+        });
+
+        if (funcsSelecionados.length === 0) { showAlert('Atenção', 'Selecione pelo menos um funcionário', 'error'); return; }
+        
+
+        // Configurar turnos
+        const turnos = [
+          { nome: 'DIURNO', inicio: $('#turnoDiurnoInicio').val(), fim: $('#turnoDiurnoFim').val() }
+        ];
+        if (tipoEscala === '12X36') {
+          turnos.push({ nome: 'NOTURNO', inicio: $('#turnoNoturnoInicio').val(), fim: $('#turnoNoturnoFim').val() });
+        }
+        
+        // Gerar escalas com equipes
+        escalasGeradas = gerarEscalas(funcsSelecionados, dataInicio, dataFim, tipoEscala, turnos, escalasExistentes);
+        renderizarPreview();
+      }
+
+      function gerarEscalas(funcs, inicio, fim, tipoEscala, turnos, escalasExistentesParam = {}) {
+        const escalas = [];
+        const contagem = {};
+        
+        // Configuração por tipo de escala
+        let temTurnoNoturno = false;
+        let diasCiclo = 2;
+        
+        if (tipoEscala === '12X36') {
+          temTurnoNoturno = true;
+          diasCiclo = 2; // Equipe trabalha dia 1, folga dia 2, volta dia 3
+        } else if (tipoEscala === '24X48') {
+          diasCiclo = 3;
+        } else if (tipoEscala === '24X72') {
+          diasCiclo = 4;
+        } else {
+          diasCiclo = 1;
+        }
+        
+        // Definir turnos do dia
+        const turnosDia = [];
+        if (temTurnoNoturno) {
+          turnosDia.push({ nome: 'DIURNO', inicio: turnos[0]?.inicio || '07:00', fim: '19:00' });
+          turnosDia.push({ nome: 'NOTURNO', inicio: '19:00', fim: '07:00' });
+        } else {
+          const hInicio = turnos[0]?.inicio || '07:00';
+          const hFim = tipoEscala.includes('24') ? '07:00' : '19:00';
+          turnosDia.push({ nome: tipoEscala.includes('24') ? 'PLANTÃO 24H' : 'ÚNICO', inicio: hInicio, fim: hFim });
+        }
+        
+        // Calcular quantas equipes precisamos
+        const numEquipes = turnosDia.length * diasCiclo;
+        
+        // Dividir funcionários em equipes automaticamente
+        const equipes = [];
+        for (let i = 0; i < numEquipes; i++) {
+          equipes.push([]);
+        }
+        
+        funcs.forEach((f, idx) => {
+          const equipeIdx = idx % numEquipes;
+          equipes[equipeIdx].push(f);
+          contagem[f.id] = 0;
+        });
+        
+        const funcPorEquipe = equipes.map(e => e.length);
+        console.log('=== GERADOR DE ESCALAS ===');
+        console.log('Tipo:', tipoEscala, '| Equipes:', numEquipes, '| Func/equipe:', funcPorEquipe.join(', '));
+
+        let dataAtual = new Date(inicio);
+        let diaIdx = 0;
+
+        while (dataAtual <= fim) {
+          const dataStr = dataAtual.toISOString().split('T')[0];
+          const diaSemana = dataAtual.getDay();
+
+          turnosDia.forEach((turno, turnoIdx) => {
+            const equipeIdx = ((diaIdx % diasCiclo) * turnosDia.length + turnoIdx) % numEquipes;
+            const equipe = equipes[equipeIdx] || [];
+            
+            equipe.forEach(f => {
+              escalas.push({
+                funcionario_id: f.id,
+                funcionario_nome: f.nome,
+                cargo_nome: f.cargo_nome,
+                jornada_nome: tipoEscala,
+                turno: turno.nome,
+                equipe: equipeIdx + 1,
+                data: dataStr,
+                diaSemana: diasSemana[diaSemana],
+                tipo: 'PLANTAO',
+                horario_inicio: turno.inicio,
+                horario_fim: turno.fim
+              });
+              contagem[f.id]++;
+            });
+          });
+
+          dataAtual.setDate(dataAtual.getDate() + 1);
+          diaIdx++;
+        }
+
+        escalas.contagem = contagem;
+        escalas.equipes = equipes;
+        return escalas;
+      }
+
+      function renderizarPreview() {
+        const preview = document.getElementById('previewArea');
+        const resumo = document.getElementById('resumoArea');
+        const distribuicao = document.getElementById('distribuicaoArea');
+        const btnSalvar = document.getElementById('btnSalvar');
+
+        if (escalasGeradas.length === 0) {
+          preview.innerHTML = '<div class="text-center text-muted py-5">Nenhuma escala gerada</div>';
+          resumo.style.display = 'none';
+          distribuicao.style.display = 'none';
+          btnSalvar.disabled = true;
+          return;
+        }
+
+        const porData = {};
+        escalasGeradas.forEach(e => {
+          if (!porData[e.data]) porData[e.data] = [];
+          porData[e.data].push(e);
+        });
+
+        const diasUnicos = Object.keys(porData).length;
+        const funcsUnicos = [...new Set(escalasGeradas.map(e => e.funcionario_id))].length;
+
+        document.getElementById('resumoDias').textContent = diasUnicos;
+        document.getElementById('resumoPlantoes').textContent = escalasGeradas.length;
+        document.getElementById('resumoFuncionarios').textContent = funcsUnicos;
+        resumo.style.display = 'block';
+
+        const distLista = document.getElementById('distribuicaoLista');
+        const contagem = escalasGeradas.contagem || {};
+        
+        // Calcular primeiro e último plantão de cada funcionário
+        const diasPorFunc = {};
+        escalasGeradas.forEach(e => {
+          if (!diasPorFunc[e.funcionario_id]) {
+            diasPorFunc[e.funcionario_id] = { primeiro: e.data, ultimo: e.data };
+          } else {
+            if (e.data < diasPorFunc[e.funcionario_id].primeiro) diasPorFunc[e.funcionario_id].primeiro = e.data;
+            if (e.data > diasPorFunc[e.funcionario_id].ultimo) diasPorFunc[e.funcionario_id].ultimo = e.data;
+          }
+        });
+        
+        const sorted = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
+        let tableHtml = '<table class="table table-sm table-bordered mb-0" style="font-size: 0.75rem;"><thead class="table-light"><tr><th>Funcionário</th><th class="text-center">Plantões</th><th class="text-center">Período</th></tr></thead><tbody>';
+        sorted.forEach(([funcId, qtd]) => {
+          const func = funcionarios.find(f => f.id == funcId);
+          if (func && qtd > 0) {
+            const nome = func.nome;
+            const dias = diasPorFunc[funcId];
+            const inicio = dias ? new Date(dias.primeiro + 'T12:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}) : '-';
+            const fim = dias ? new Date(dias.ultimo + 'T12:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}) : '-';
+            tableHtml += `<tr><td>${nome}</td><td class="text-center">${qtd}</td><td class="text-center">${inicio} → ${fim}</td></tr>`;
+          }
+        });
+        tableHtml += '</tbody></table>';
+        distLista.innerHTML = tableHtml;
+        distribuicao.style.display = 'block';
+
+        let html = '';
+        Object.entries(porData).forEach(([data, escalas]) => {
+          const dataObj = new Date(data + 'T12:00:00');
+          const diaSemana = diasSemana[dataObj.getDay()];
+          const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+          const isFds = dataObj.getDay() === 0 || dataObj.getDay() === 6;
+          
+          // Agrupar por turno
+          const porTurno = {};
+          escalas.forEach(e => {
+            const t = e.turno || 'UNICO';
+            if (!porTurno[t]) porTurno[t] = [];
+            porTurno[t].push(e);
+          });
+          
+          html += `<div class="dia-escala ${isFds ? 'bg-warning-subtle' : ''}">`;
+          html += `<div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="data">${isFds ? '☀️ ' : ''}${diaSemana}, ${dataFormatada}</span>
+            <span class="badge bg-primary">${escalas.length}</span>
+          </div>`;
+          
+          Object.entries(porTurno).forEach(([turno, funcs]) => {
+            const iconTurno = turno === 'DIURNO' ? '☀️' : (turno === 'NOTURNO' ? '🌙' : '');
+            const horario = funcs[0] ? funcs[0].horario_inicio + ' - ' + funcs[0].horario_fim : '';
+            
+            html += `<div class="mb-2 p-2 rounded ${turno === 'NOTURNO' ? 'bg-dark bg-opacity-10' : 'bg-light'}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="fw-bold">${iconTurno} ${turno} <span class="text-muted fw-normal">(${horario})</span></small>
+                
+              </div>
+              <div>${funcs.map(e => `<span class="funcionario-badge" title="${e.cargo_nome || ''}">${e.funcionario_nome.split(' ').slice(0, 2).join(' ')}</span>`).join('')}</div>
+            </div>`;
+          });
+          
+          html += `</div>
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="modalConfirm" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalConfirmTitle">Confirmar</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="modalConfirmBody"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="if(confirmCallback){bootstrap.Modal.getInstance(document.getElementById('modalConfirm')).hide();confirmCallback();}">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    </div>
+`;
+        });
+
+        preview.innerHTML = html;
+        btnSalvar.disabled = false;
+      }
+
+      async function salvarEscalas() {
+        if (escalasGeradas.length === 0) {
+          showAlert('Atenção', 'Gere o preview antes de salvar', 'error');
+          return;
+        }
+        showConfirm('Confirmar Criação', 
+          '<p>Deseja criar <strong>' + escalasGeradas.length + ' plantões</strong>?</p>', 
+          salvarEscalasReal);
+      }
+
+      async function salvarEscalasReal() {
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Salvando...';
+
+        try {
+          const res = await fetch('/api/escalas/gerar-lote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              escalas: escalasGeradas.map(e => ({
+                funcionario_id: e.funcionario_id,
+                data: e.data,
+                tipo: e.tipo,
+                turno: e.turno,
+                horario_inicio: e.horario_inicio,
+                horario_fim: e.horario_fim
+              })),
+              tipoEscala: $('#tipoEscala').val(),
+              atualizarJornada: $('#atualizarJornada').is(':checked')
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok && data.inseridos) {
+            showAlert('Sucesso', data.inseridos + ' escalas criadas!' + (data.jornadasAtualizadas ? '<br><small class="text-muted">' + data.jornadasAtualizadas + ' jornada(s) atualizada(s)</small>' : ''), 'success');
+            // Redirecionar para o mês das escalas criadas (URL limpa)
+            const dataInicioVal = document.getElementById('dataInicio').value;
+            if (dataInicioVal) {
+              const dataObj = parseDataBR(dataInicioVal);
+              if (dataObj) {
+                const ano = dataObj.getFullYear();
+                const mes = dataObj.getMonth() + 1;
+                setTimeout(() => { window.location.href = '/escalas/' + ano + '/' + mes; }, 1500);
+              } else {
+                setTimeout(() => { window.location.href = '/escalas'; }, 1500);
+              }
+            } else {
+              setTimeout(() => { window.location.href = '/escalas'; }, 1500);
+            }
+          } else {
+            showAlert('Erro', data.error || 'Erro desconhecido', 'error');
+          }
+        } catch (e) {
+          showAlert('Erro', e.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Salvar';
+        }
+      }
+    </script>
+  @end
+@end

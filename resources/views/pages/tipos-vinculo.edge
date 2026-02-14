@@ -1,0 +1,211 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Tipos de Vínculo</h4>
+        <p class="text-muted mb-0">Gerenciamento de tipos de vínculo empregatício</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoVinculo" onclick="limparForm()">
+        <i class="bi bi-plus-lg me-2"></i>Novo Tipo
+      </button>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaTiposVinculo" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal --}}
+    <div class="modal fade" id="modalTipoVinculo" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Tipo de Vínculo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formTipoVinculo" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="tipoVinculoId" name="id">
+              
+              <div class="mb-3">
+                <label class="form-label">Código</label>
+                <input type="text" class="form-control" id="codigo" name="codigo">
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nome" name="nome" required>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Descrição</label>
+                <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+              </div>
+              
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="ativo" name="ativo" checked style="width: 3em; height: 1.5em;">
+                <label class="form-check-label ms-2" for="ativo" id="ativoLabel">Ativo</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let table;
+
+      $(document).ready(function() {
+        carregarDados();
+        $('#formTipoVinculo').on('submit', salvar);
+
+        // Atualiza label do switch
+        $('#ativo').on('change', function() {
+          $('#ativoLabel').text(this.checked ? 'Ativo' : 'Inativo');
+        });
+      });
+
+      async function carregarDados() {
+        try {
+          const res = await fetch('/api/tipos-vinculo');
+          const json = await res.json();
+
+          if (table) table.destroy();
+
+          table = $('#tabelaTiposVinculo').DataTable({
+            data: json.data || [],
+            columns: [
+              { data: 'codigo', defaultContent: '-' },
+              { data: 'nome' },
+              { data: 'descricao', defaultContent: '-' },
+              { 
+                data: 'ativo',
+                render: (data) => data !== false
+                  ? '<span class="badge bg-success">Ativo</span>'
+                  : '<span class="badge bg-danger">Inativo</span>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editar(${data.id})" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="excluir(${data.id}, '${data.nome}')" title="Excluir">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                `
+              }
+            ],
+            order: [[1, 'asc']]
+          });
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao carregar dados');
+        }
+      }
+
+      async function editar(id) {
+        try {
+          const res = await fetch(`/api/tipos-vinculo/${id}`);
+          const item = await res.json();
+          $('#tipoVinculoId').val(item.id);
+          $('#codigo').val(item.codigo);
+          $('#nome').val(item.nome);
+          $('#descricao').val(item.descricao);
+          $('#ativo').prop('checked', item.ativo !== false);
+          $('#ativoLabel').text(item.ativo !== false ? 'Ativo' : 'Inativo');
+          $('.modal-title').text('Editar Tipo de Vínculo');
+          new bootstrap.Modal(document.getElementById('modalTipoVinculo')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar tipo de vínculo');
+        }
+      }
+
+      async function salvar(e) {
+        e.preventDefault();
+        const id = $('#tipoVinculoId').val();
+        const data = {
+          codigo: $('#codigo').val() || null,
+          nome: $('#nome').val(),
+          descricao: $('#descricao').val() || null,
+          ativo: $('#ativo').is(':checked')
+        };
+        
+        try {
+          const res = await fetch(id ? `/api/tipos-vinculo/${id}` : '/api/tipos-vinculo', {
+            method: id ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Tipo de vínculo atualizado!' : 'Tipo de vínculo cadastrado!');
+            bootstrap.Modal.getInstance(document.getElementById('modalTipoVinculo')).hide();
+            carregarDados();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluir(id, nome) {
+        if (!await confirmar(`Deseja excluir o tipo de vínculo "${nome}"?`, { tipo: 'danger', titulo: 'Excluir Tipo de Vínculo' })) return;
+
+        try {
+          const res = await fetch(`/api/tipos-vinculo/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
+          });
+          if (res.ok) {
+            toastr.success('Tipo de vínculo excluído!');
+            carregarDados();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      function limparForm() {
+        $('#formTipoVinculo')[0].reset();
+        $('#tipoVinculoId').val('');
+        $('#ativo').prop('checked', true);
+        $('#ativoLabel').text('Ativo');
+        $('.modal-title').text('Novo Tipo de Vínculo');
+      }
+
+      $('#modalTipoVinculo').on('hidden.bs.modal', limparForm);
+    </script>
+  @end
+@end

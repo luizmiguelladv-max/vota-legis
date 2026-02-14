@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<script>
+  // Carrega tema, cores e sidebar ANTES de renderizar (evita piscar)
+  (function() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const corPrimaria = localStorage.getItem('corPrimaria') || '#1a73e8';
+    const corSecundaria = localStorage.getItem('corSecundaria') || '#4285f4';
+    
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    document.documentElement.style.setProperty('--cor-primaria', corPrimaria);
+    document.documentElement.style.setProperty('--cor-secundaria', corSecundaria);
+    
+    // Aplica classe collapsed na sidebar antes do render
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+      document.documentElement.classList.add('sidebar-should-collapse');
+    }
+  })();
+</script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrfToken }}">
+  <title>{{ title || 'Sistema de Ponto Eletrônico' }} - {{ municipio?.nome || 'Prefeitura' }}</title>
+
+  {{-- Bootstrap 5 --}}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  {{-- Select2 --}}
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
+  {{-- Flatpickr (Date Picker) --}}
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+
+  {{-- DataTables --}}
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+  {{-- Toastr --}}
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+  {{-- Parsley Validation Styles --}}
+  <style>
+    .parsley-errors-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.25rem 0 0;
+      font-size: 0.875rem;
+      color: #dc3545;
+      display: block !important;
+      width: 100%;
+      order: 999; /* Garante que aparece por último em flex containers */
+    }
+    .parsley-errors-list li {
+      margin-top: 0.25rem;
+      display: block;
+    }
+    input.parsley-error,
+    select.parsley-error,
+    textarea.parsley-error {
+      border-color: #dc3545 !important;
+    }
+    input.parsley-success,
+    select.parsley-success,
+    textarea.parsley-success {
+      border-color: #198754 !important;
+    }
+    /* Garante que erros apareçam abaixo em todas as situações */
+    .form-group, .mb-3, .col-md-3, .col-md-4, .col-md-6, .col-md-12, .col-lg-3, .col-lg-4, .col-lg-6 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .parsley-errors-list.filled {
+      clear: both;
+    }
+    /* Corrigir select2 dentro de flex containers */
+    .select2-container {
+      width: 100% !important;
+    }
+    /* Feedback de validação custom (CPF/CNPJ) */
+    .invalid-feedback.custom-feedback {
+      display: block;
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875em;
+      color: #dc3545;
+    }
+  </style>
+
+  {{-- Custom Styles --}}
+  <style>
+    :root {
+      --sidebar-width: 260px;
+      --sidebar-collapsed-width: 70px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: background-color 0.2s ease;
+    }
+
+    /* Evitar piscar durante transições */
+    html {
+      background-color: #f5f6fa;
+    }
+
+    html[data-bs-theme="dark"] {
+      background-color: #1e2530;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      min-height: 100vh;
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, var(--cor-primaria) 0%, color-mix(in srgb, var(--cor-primaria) 70%, #000) 100%);
+      transition: width 0.2s ease;
+      overflow-x: hidden;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1050;
+    }
+
+    /* Espaço para compensar sidebar fixa quando collapsed */
+    body.sidebar-collapsed .main-content {
+      margin-left: var(--sidebar-collapsed-width) !important;
+      transition: none !important;
+    }
+
+    /* Expandir ao passar o mouse quando collapsed - sobrepõe o conteúdo */
+    .sidebar.collapsed:hover {
+      width: var(--sidebar-width);
+      box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .sidebar.collapsed:hover .nav-link {
+      justify-content: flex-start;
+      padding: 0.75rem 1rem;
+      margin: 0.2rem 0.5rem;
+    }
+
+    .sidebar.collapsed:hover .nav-link i {
+      margin-right: 0.75rem;
+    }
+
+    .sidebar.collapsed:hover .nav-link span,
+    .sidebar.collapsed:hover .sidebar-section-title,
+    .sidebar.collapsed:hover .sidebar-header h6,
+    .sidebar.collapsed:hover .sidebar-header small,
+    .sidebar.collapsed:hover .sidebar-footer {
+      display: block;
+    }
+
+    /* Pre-apply collapsed state from localStorage */
+    html.sidebar-should-collapse .sidebar {
+      width: var(--sidebar-collapsed-width);
+      position: fixed;
+      z-index: 1050;
+    }
+
+    html.sidebar-should-collapse .main-content {
+      margin-left: var(--sidebar-collapsed-width);
+    }
+
+    html.sidebar-should-collapse .sidebar .nav-link {
+      justify-content: center;
+      padding: 0.75rem;
+      margin: 0.2rem 0.3rem;
+    }
+
+    html.sidebar-should-collapse .sidebar .nav-link i {
+      margin-right: 0;
+    }
+
+    html.sidebar-should-collapse .sidebar .nav-link span,
+    html.sidebar-should-collapse .sidebar .sidebar-section-title,
+    html.sidebar-should-collapse .sidebar .sidebar-header h6,
+    html.sidebar-should-collapse .sidebar .sidebar-header small,
+    html.sidebar-should-collapse .sidebar .sidebar-header img,
+    html.sidebar-should-collapse .sidebar .sidebar-footer {
+      display: none;
+    }
+
+    .sidebar .nav-link {
+      color: rgba(255, 255, 255, 0.8);
+      padding: 0.75rem 1rem;
+      margin: 0.2rem 0.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .sidebar .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      font-weight: 500;
+    }
+
+    .sidebar .nav-link i {
+      width: 1.5rem;
+      min-width: 1.5rem;
+      margin-right: 0.75rem;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .sidebar.collapsed .nav-link {
+      justify-content: center;
+      padding: 0.75rem;
+      margin: 0.2rem 0.3rem;
+    }
+
+    .sidebar.collapsed .nav-link i {
+      margin-right: 0;
+    }
+
+    .sidebar.collapsed .nav-link span,
+    .sidebar.collapsed .sidebar-section-title,
+    .sidebar.collapsed .sidebar-header h6,
+    .sidebar.collapsed .sidebar-header small,
+    .sidebar.collapsed .sidebar-footer {
+      display: none;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .sidebar-header img {
+      max-height: 40px;
+    }
+
+    .sidebar.collapsed .sidebar-header h6,
+    .sidebar.collapsed .sidebar-header small,
+    .sidebar.collapsed .sidebar-header img {
+      display: none;
+    }
+
+    .sidebar.collapsed .sidebar-header > i.bi-building {
+      display: block;
+    }
+
+    .sidebar.collapsed:hover .sidebar-header h6,
+    .sidebar.collapsed:hover .sidebar-header small,
+    .sidebar.collapsed:hover .sidebar-header img {
+      display: block;
+    }
+
+    .sidebar-section-title {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.75rem;
+      padding: 0.5rem 1rem;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-footer {
+      padding: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Toggle Button no Header */
+    .sidebar-toggle-header {
+      color: inherit;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .sidebar-toggle-header:hover {
+      opacity: 1;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      background: #f5f6fa;
+      min-height: 100vh;
+      flex: 1;
+      transition: margin-left 0.3s ease;
+    }
+
+    .navbar-top {
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-radius: 0.5rem;
+    }
+
+    .stat-card {
+      border-left: 4px solid var(--cor-primaria);
+    }
+
+    .stat-card .stat-icon {
+      font-size: 2.5rem;
+      opacity: 0.3;
+    }
+
+    .btn-primary {
+      background-color: var(--cor-primaria);
+      border-color: var(--cor-primaria);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--cor-secundaria);
+      border-color: var(--cor-secundaria);
+    }
+
+    .list-group-item.active {
+      background-color: var(--cor-primaria);
+      border-color: var(--cor-primaria);
+    }
+
+    /* Links com cor primária */
+    a {
+      color: var(--cor-primaria);
+    }
+
+    a:hover {
+      color: var(--cor-secundaria);
+    }
+
+    /* Badge com cor primária */
+    .badge.bg-primary {
+      background-color: var(--cor-primaria) !important;
+    }
+
+    /* Text primary */
+    .text-primary {
+      color: var(--cor-primaria) !important;
+    }
+
+    /* ===== TABLES ===== */
+    .table th {
+      font-weight: 600;
+      background: #f8f9fa;
+      color: #495057;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+      margin-bottom: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    table.dataTable thead th {
+      background: #f8f9fa !important;
+      color: #495057 !important;
+      border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    /* ===== DARK MODE (Cinza Suave) ===== */
+    [data-bs-theme="dark"] {
+      --bg-dark: #1e2530;
+      --bg-card: #262f3d;
+      --bg-input: #2d3848;
+      --border-color: #3d4a5c;
+      --text-primary: #e4e6eb;
+      --text-secondary: #a8b3c5;
+    }
+
+    [data-bs-theme="dark"] body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .sidebar {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--cor-primaria) 40%, #1a2332) 0%, #1a2332 100%);
+    }
+
+    [data-bs-theme="dark"] .main-content {
+      background: var(--bg-dark);
+    }
+
+    [data-bs-theme="dark"] .navbar-top {
+      background: var(--bg-card);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    [data-bs-theme="dark"] .card {
+      background: var(--bg-card);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    [data-bs-theme="dark"] .table th,
+    [data-bs-theme="dark"] table.dataTable thead th {
+      background: #2d3848 !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    [data-bs-theme="dark"] .table td {
+      color: var(--text-secondary);
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .table-hover tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_length,
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter,
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_info,
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_paginate {
+      color: var(--text-secondary);
+    }
+
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input,
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_length select {
+      background: var(--bg-input);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select {
+      background: var(--bg-input);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .form-control:focus,
+    [data-bs-theme="dark"] .form-select:focus {
+      background: var(--bg-input);
+      border-color: var(--cor-primaria);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .page-link {
+      background: var(--bg-input);
+      border-color: var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    [data-bs-theme="dark"] .page-item.active .page-link {
+      background: var(--cor-primaria);
+      border-color: var(--cor-primaria);
+    }
+
+    [data-bs-theme="dark"] .dropdown-menu {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .dropdown-item {
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .dropdown-item:hover {
+      background: var(--bg-input);
+    }
+
+    [data-bs-theme="dark"] .modal-content {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .modal-header,
+    [data-bs-theme="dark"] .modal-footer {
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .btn-close {
+      filter: invert(1);
+    }
+
+    [data-bs-theme="dark"] .table {
+      --bs-table-bg: var(--bg-card);
+      --bs-table-striped-bg: var(--bg-input);
+      --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+      --bs-table-border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] table.dataTable tbody tr {
+      background-color: var(--bg-card) !important;
+    }
+
+    [data-bs-theme="dark"] table.dataTable tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    [data-bs-theme="dark"] table.dataTable tbody td {
+      background-color: transparent !important;
+    }
+
+    [data-bs-theme="dark"] table.dataTable tbody tr.odd {
+      background-color: var(--bg-card) !important;
+    }
+
+    [data-bs-theme="dark"] table.dataTable tbody tr.even {
+      background-color: rgba(45, 56, 72, 0.5) !important;
+    }
+
+    [data-bs-theme="dark"] .dataTables_empty {
+      color: var(--text-secondary) !important;
+      background-color: var(--bg-card) !important;
+    }
+
+    [data-bs-theme="dark"] .dataTables_wrapper {
+      color: var(--text-secondary);
+    }
+
+    [data-bs-theme="dark"] .page-item.disabled .page-link {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    [data-bs-theme="dark"] .text-muted {
+      color: var(--text-secondary) !important;
+    }
+
+    /* Dark mode - list group items */
+    [data-bs-theme="dark"] .list-group-item {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .list-group-item.active {
+      background-color: color-mix(in srgb, var(--cor-primaria) 30%, var(--bg-card));
+      border-color: var(--cor-primaria);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .list-group-item-action:hover {
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    /* Dark mode - card header */
+    [data-bs-theme="dark"] .card-header {
+      background-color: var(--bg-input);
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .card-footer {
+      background-color: var(--bg-input);
+      border-color: var(--border-color);
+    }
+
+    /* ===== DARK MODE - SELECT2 ===== */
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection {
+      background-color: var(--bg-input) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-primary) !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+      color: var(--text-primary) !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+      color: var(--text-secondary) !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown {
+      background-color: var(--bg-card) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+      background-color: var(--bg-input) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-primary) !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option {
+      background-color: var(--bg-card) !important;
+      color: var(--text-primary) !important;
+    }
+
+    /* Highlighted - quando passa o mouse ou navega com teclado */
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted,
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected],
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option.select2-results__option--highlighted {
+      background-color: var(--cor-primaria) !important;
+      color: #fff !important;
+    }
+
+    /* Selected - quando o item já está selecionado */
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--selected,
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option[aria-selected="true"] {
+      background-color: rgba(var(--cor-primaria-rgb, 26, 115, 232), 0.2) !important;
+      color: var(--text-primary) !important;
+    }
+
+    /* Quando está highlighted E selected ao mesmo tempo */
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted.select2-results__option--selected,
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected="true"] {
+      background-color: var(--cor-primaria) !important;
+      color: #fff !important;
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+      background-color: var(--bg-input);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+      color: var(--text-secondary);
+    }
+
+    /* ===== DARK MODE - FLATPICKR ===== */
+    [data-bs-theme="dark"] .flatpickr-calendar {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+      box-shadow: 0 3px 13px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-calendar.arrowTop:before,
+    [data-bs-theme="dark"] .flatpickr-calendar.arrowTop:after {
+      border-bottom-color: var(--bg-card);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:before,
+    [data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:after {
+      border-top-color: var(--bg-card);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-months {
+      background: var(--bg-input);
+      border-radius: 5px 5px 0 0;
+    }
+
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-month {
+      background: transparent;
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-current-month .flatpickr-monthDropdown-months {
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-current-month .flatpickr-monthDropdown-months option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-current-month input.cur-year {
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-prev-month,
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-next-month {
+      color: var(--text-primary);
+      fill: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-prev-month:hover,
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-next-month:hover {
+      color: var(--cor-primaria);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-prev-month:hover svg,
+    [data-bs-theme="dark"] .flatpickr-months .flatpickr-next-month:hover svg {
+      fill: var(--cor-primaria);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-weekdays {
+      background: var(--bg-input);
+    }
+
+    [data-bs-theme="dark"] span.flatpickr-weekday {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-days {
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .dayContainer {
+      background: var(--bg-card);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day {
+      color: var(--text-primary);
+      border-color: transparent;
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day:hover {
+      background: var(--bg-input);
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day.today {
+      border-color: var(--cor-primaria);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day.today:hover {
+      background: var(--cor-primaria);
+      color: #fff;
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day.selected,
+    [data-bs-theme="dark"] .flatpickr-day.selected:hover {
+      background: var(--cor-primaria);
+      border-color: var(--cor-primaria);
+      color: #fff;
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day.prevMonthDay,
+    [data-bs-theme="dark"] .flatpickr-day.nextMonthDay {
+      color: var(--text-secondary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled,
+    [data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled:hover {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    [data-bs-theme="dark"] .flatpickr-time {
+      border-color: var(--border-color);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-time input {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-time input:hover,
+    [data-bs-theme="dark"] .flatpickr-time input:focus {
+      background: var(--bg-input);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-time .flatpickr-am-pm {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    [data-bs-theme="dark"] .flatpickr-time .flatpickr-time-separator {
+      color: var(--text-primary);
+    }
+
+    /* Flatpickr altInput (campo visível) */
+    [data-bs-theme="dark"] .flatpickr-input.form-control[readonly] {
+      background-color: var(--bg-input);
+    }
+
+    /* ===== RESPONSIVE ===== */
+        @media (max-width: 991px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height para mobile */
+        max-height: -webkit-fill-available;
+        z-index: 1050;
+        transform: translateX(-100%);
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar.show {
+        transform: translateX(0);
+      }
+      .sidebar .nav.flex-column.flex-grow-1 {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 100px;
+      }
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+        display: none;
+      }
+      .sidebar-overlay.show {
+        display: block;
+      }
+    }
+  </style>
+
+  @stack('styles')
+</head>
+<body>
+  {{-- Modal Global de Confirmação/Alerta --}}
+  <div class="modal fade" id="modalGlobal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" id="modalGlobalHeader">
+          <h5 class="modal-title" id="modalGlobalTitle">Confirmação</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-start">
+            <i class="bi me-3" id="modalGlobalIcon" style="font-size: 2rem;"></i>
+            <p class="mb-0" id="modalGlobalMessage">Tem certeza que deseja continuar?</p>
+          </div>
+        </div>
+        <div class="modal-footer" id="modalGlobalFooter">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modalGlobalBtnCancelar">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="modalGlobalBtnConfirmar">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- Overlay para mobile --}}
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="d-flex">
+    {{-- Sidebar --}}
+    <nav class="sidebar d-flex flex-column" id="sidebar">
+      <div class="sidebar-header text-center">
+        @if(municipio?.logoUrl)
+          <img src="{{ municipio.logoUrl }}" alt="{{ municipio.nome }}" class="img-fluid mb-2" style="max-height: 40px;">
+        @else
+          <i class="bi bi-building text-white" style="font-size: 1.8rem;"></i>
+        @endif
+        <h6 class="text-white mb-0">{{ municipio?.nome || 'Sistema de Ponto' }}</h6>
+        <small class="text-white-50">Ponto Eletrônico</small>
+      </div>
+
+      <ul class="nav flex-column mt-3 flex-grow-1">
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/dashboard' ? 'active' : '' }}" href="/dashboard" title="Dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/funcionarios' ? 'active' : '' }}" href="/funcionarios" title="Funcionários">
+            <i class="bi bi-people"></i>
+            <span>Funcionários</span>
+          </a>
+        </li>
+
+        <li class="sidebar-section-title">CADASTROS</li>
+        @if(entidade?.tipo === 'PUBLICA')
+          {{-- Menu para Entidades Públicas --}}
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/unidades-gestoras' ? 'active' : '' }}" href="/unidades-gestoras" title="Unidades Gestoras">
+              <i class="bi bi-building"></i>
+              <span>Unidades Gestoras</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/secretarias' ? 'active' : '' }}" href="/secretarias" title="Secretarias">
+              <i class="bi bi-diagram-3"></i>
+              <span>Secretarias</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/lotacoes' ? 'active' : '' }}" href="/lotacoes" title="Lotações">
+              <i class="bi bi-geo-alt"></i>
+              <span>Lotações</span>
+            </a>
+          </li>
+        @else
+          {{-- Menu para Entidades Privadas (Empresas) --}}
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/filiais' ? 'active' : '' }}" href="/filiais" title="Filiais">
+              <i class="bi bi-shop"></i>
+              <span>Filiais</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/secretarias' ? 'active' : '' }}" href="/secretarias" title="Departamentos">
+              <i class="bi bi-diagram-3"></i>
+              <span>Departamentos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/lotacoes' ? 'active' : '' }}" href="/lotacoes" title="Setores">
+              <i class="bi bi-geo-alt"></i>
+              <span>Setores</span>
+            </a>
+          </li>
+        @endif
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/cargos' ? 'active' : '' }}" href="/cargos" title="Cargos">
+            <i class="bi bi-briefcase"></i>
+            <span>Cargos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/tipos-vinculo' ? 'active' : '' }}" href="/tipos-vinculo" title="Tipos de Vínculo">
+            <i class="bi bi-link-45deg"></i>
+            <span>Tipos de Vínculo</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/jornadas' ? 'active' : '' }}" href="/jornadas" title="Jornadas">
+            <i class="bi bi-clock"></i>
+            <span>Jornadas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/escalas' ? 'active' : '' }}" href="/escalas" title="Escala de Trabalho">
+            <i class="bi bi-calendar-week"></i>
+            <span>Escala de Trabalho</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/gerador-escalas' ? 'active' : '' }}" href="/gerador-escalas" title="Gerar Escalas">
+            <i class="bi bi-calendar-plus"></i>
+            <span>Gerar Escalas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/banco-horas' ? 'active' : '' }}" href="/banco-horas" title="Banco de Horas">
+            <i class="bi bi-wallet2"></i>
+            <span>Banco de Horas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/notificacoes' ? 'active' : '' }}" href="/notificacoes" title="Notificações">
+            <i class="bi bi-bell"></i>
+            <span>Notificações</span>
+            <span id="badgeNotificacoes" class="badge bg-danger ms-auto d-none">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/relatorio-banco-horas' ? 'active' : '' }}" href="/relatorio-banco-horas" title="Relatório Banco de Horas">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Relatórios</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/afastamentos' ? 'active' : '' }}" href="/afastamentos" title="Afastamentos">
+            <i class="bi bi-calendar-x"></i>
+            <span>Afastamentos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/rondas' ? 'active' : '' }}" href="/rondas" title="Rondas/Presencas">
+            <i class="bi bi-shield-check"></i>
+            <span>Rondas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/atendimentos' ? 'active' : '' }}" href="/atendimentos" title="Atendimentos">
+            <i class="bi bi-house-door"></i>
+            <span>Atendimentos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/mapa-atendimentos' ? 'active' : '' }}" href="/mapa-atendimentos" title="Mapa de Apuração">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Mapa de Apuração</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/anomalias' ? 'active' : '' }}" href="/anomalias" title="Anomalias de Ponto">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>Anomalias</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/esocial' ? 'active' : '' }}" href="/esocial" title="Exportação eSocial">
+            <i class="bi bi-building-check"></i>
+            <span>eSocial</span>
+          </a>
+        </li>
+
+        <li class="sidebar-section-title">PONTO</li>
+        @if(municipio?.moduloFacial !== false)
+          <li class="nav-item">
+            <a class="nav-link" href="/terminal" target="_blank" title="Terminal Facial (Camera)">
+              <i class="bi bi-camera"></i>
+              <span>Terminal Facial</span>
+            </a>
+          </li>
+        @endif
+        @if(municipio?.moduloDigital !== false)
+          <li class="nav-item">
+            <a class="nav-link" href="/terminal-digital" target="_blank" title="Terminal Digital (Biometria)">
+              <i class="bi bi-fingerprint"></i>
+              <span>Terminal Digital</span>
+            </a>
+          </li>
+        @endif
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/ponto' ? 'active' : '' }}" href="/ponto" title="Registros de Ponto">
+            <i class="bi bi-clock-history"></i>
+            <span>Registros de Ponto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/espelho' ? 'active' : '' }}" href="/espelho" title="Espelho de Ponto">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Espelho de Ponto</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/equipamentos' ? 'active' : '' }}" href="/equipamentos" title="Equipamentos">
+            <i class="bi bi-router"></i>
+            <span>Equipamentos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/ocorrencias' ? 'active' : '' }}" href="/ocorrencias" title="Ocorrências">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>Ocorrências</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/relatorios' ? 'active' : '' }}" href="/relatorios" title="Relatórios">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Relatórios</span>
+          </a>
+        </li>
+
+        @if(['ADMIN', 'RH'].includes(usuario?.perfil) || isSuperAdmin)
+          <li class="sidebar-section-title">CONFIGURAÇÕES</li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url() === '/configuracoes' ? 'active' : '' }}" href="/configuracoes" title="Configurações">
+              <i class="bi bi-gear"></i>
+              <span>Configurações</span>
+            </a>
+          </li>
+        @endif
+
+        @if(isSuperAdmin)
+          <li class="sidebar-section-title">ADMINISTRAÇÃO</li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url().startsWith('/admin/municipios') ? 'active' : '' }}" href="/admin/municipios" title="Municípios">
+              <i class="bi bi-buildings"></i>
+              <span>Municípios</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url().startsWith('/admin/usuarios') ? 'active' : '' }}" href="/admin/usuarios-master" title="Usuários Master">
+              <i class="bi bi-person-gear"></i>
+              <span>Usuários Master</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url().startsWith('/admin/auditoria') ? 'active' : '' }}" href="/admin/auditoria" title="Auditoria">
+              <i class="bi bi-shield-check"></i>
+              <span>Auditoria</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ request.url().startsWith('/admin/monitoramento') ? 'active' : '' }}" href="/admin/monitoramento" title="Monitoramento">
+              <i class="bi bi-activity"></i>
+              <span>Monitoramento</span>
+            </a>
+          </li>
+        @endif
+      </ul>
+
+      <div class="sidebar-footer mt-auto">
+        <small class="text-white-50">v1.0.0 - AdonisJS</small>
+      </div>
+    </nav>
+
+    {{-- Main Content --}}
+    <div class="main-content flex-grow-1">
+      {{-- Top Navbar --}}
+      <nav class="navbar navbar-top navbar-expand-lg px-4 py-2">
+        {{-- Botão de menu mobile --}}
+        <button class="btn btn-link d-lg-none p-0 me-3" type="button" onclick="toggleSidebar()">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+
+        {{-- Botão de recolher sidebar (desktop) --}}
+        <button class="btn btn-link d-none d-lg-flex p-0 me-3 sidebar-toggle-header" type="button" onclick="toggleSidebarCollapse()" title="Recolher/Expandir menu">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+          {{-- Notificações --}}
+          <div class="dropdown">
+            <button class="btn btn-link text-muted p-0 position-relative" type="button" data-bs-toggle="dropdown" title="Notificações">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="headerBadgeNotificacoes" style="font-size: 0.65rem;">
+                0
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end" style="width: 320px; max-height: 400px; overflow-y: auto;">
+              <h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                <span>Notificações</span>
+                <a href="/notificacoes" class="small text-decoration-none">Ver todas</a>
+              </h6>
+              <div class="dropdown-divider"></div>
+              <div id="headerListaNotificacoes">
+                <div class="text-center text-muted py-3">
+                  <i class="bi bi-bell-slash fs-4 d-block mb-2"></i>
+                  <small>Nenhuma notificação</small>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item text-center small" href="/notificacoes">
+                <i class="bi bi-arrow-right me-1"></i>Ver todas as notificações
+              </a>
+            </div>
+          </div>
+
+          {{-- Dark Mode Toggle --}}
+          <button class="btn btn-link text-muted p-0" onclick="toggleDarkMode()" title="Alternar tema">
+            <i class="bi bi-moon-stars fs-5" id="darkModeIcon"></i>
+          </button>
+
+          {{-- User Menu --}}
+          <div class="dropdown">
+            <button class="btn btn-link text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i>
+              {{ usuario?.nome || 'Usuário' }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text text-muted small">{{ usuario?.email }}</span></li>
+              <li><hr class="dropdown-divider"></li>
+              @if(isSuperAdmin)
+                <li>
+                  <a class="dropdown-item" href="/selecionar-municipio">
+                    <i class="bi bi-building me-2"></i>Trocar Município
+                  </a>
+                </li>
+              @endif
+              <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#alterarSenhaModal">
+                  <i class="bi bi-key me-2"></i>Alterar Senha
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="/logout">
+                  <i class="bi bi-box-arrow-right me-2"></i>Sair
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      {{-- Page Content --}}
+      <main class="p-4">
+        {{{ await $slots.content() }}}
+      </main>
+    </div>
+  </div>
+
+  {{-- Modal Alterar Senha --}}
+  <div class="modal fade" id="alterarSenhaModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Alterar Senha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formAlterarSenha" data-parsley-validate>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Senha Atual</label>
+              <input type="password" class="form-control" name="senhaAtual" required
+                     data-parsley-required-message="Digite sua senha atual">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nova Senha</label>
+              <input type="password" class="form-control" name="novaSenha" id="novaSenha" required minlength="6"
+                     data-parsley-required-message="Digite a nova senha"
+                     data-parsley-minlength="6"
+                     data-parsley-minlength-message="Senha deve ter pelo menos 6 caracteres">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirmar Nova Senha</label>
+              <input type="password" class="form-control" name="confirmarSenha" required
+                     data-parsley-required-message="Confirme a nova senha"
+                     data-parsley-equalto="#novaSenha"
+                     data-parsley-equalto-message="As senhas não coincidem">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Alterar Senha</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- jQuery --}}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  {{-- Bootstrap 5 --}}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  {{-- Select2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  {{-- Flatpickr --}}
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+  {{-- DataTables --}}
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+  {{-- Toastr --}}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+  {{-- Chart.js --}}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {{-- Parsley Validation --}}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
+
+  {{-- jQuery Mask Plugin --}}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+  {{-- Socket.IO Client --}}
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  {{-- Global Scripts --}}
+  <script>
+    // CSRF Token para requisições AJAX
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+      }
+    });
+
+    // Toastr config
+    toastr.options = {
+      closeButton: true,
+      progressBar: true,
+      positionClass: 'toast-top-right',
+      timeOut: 3000
+    };
+
+    // Select2 default config
+    $.fn.select2.defaults.set('theme', 'bootstrap-5');
+    $.fn.select2.defaults.set('language', 'pt-BR');
+
+    // Flatpickr default config
+    flatpickr.localize(flatpickr.l10ns.pt);
+
+    // Parsley pt-BR locale (inline para evitar erro de CDN)
+    window.Parsley.addMessages('pt-br', {
+      defaultMessage: "Este valor parece ser invalido.",
+      type: {
+        email: "Este campo deve ser um email valido.",
+        url: "Este campo deve ser uma URL valida.",
+        number: "Este campo deve ser um numero valido.",
+        integer: "Este campo deve ser um inteiro valido.",
+        digits: "Este campo deve conter apenas digitos.",
+        alphanum: "Este campo deve ser alfanumerico."
+      },
+      notblank: "Este campo nao pode ficar vazio.",
+      required: "Este campo e obrigatorio.",
+      pattern: "Este valor parece ser invalido.",
+      min: "Este valor deve ser maior ou igual a %s.",
+      max: "Este valor deve ser menor ou igual a %s.",
+      range: "Este valor deve estar entre %s e %s.",
+      minlength: "Este campo deve ter pelo menos %s caracteres.",
+      maxlength: "Este campo deve ter no maximo %s caracteres.",
+      length: "Este campo deve ter entre %s e %s caracteres.",
+      mincheck: "Voce deve selecionar pelo menos %s opcoes.",
+      maxcheck: "Voce deve selecionar no maximo %s opcoes.",
+      check: "Voce deve selecionar entre %s e %s opcoes.",
+      equalto: "Este valor deve ser identico."
+    });
+    window.Parsley.setLocale('pt-br');
+
+    // Parsley default config
+    window.Parsley.options.errorClass = 'parsley-error';
+    window.Parsley.options.successClass = 'parsley-success';
+    window.Parsley.options.errorsWrapper = '<ul class="parsley-errors-list"></ul>';
+    window.Parsley.options.errorTemplate = '<li></li>';
+
+    // Inicializa Parsley em todos os formulários com data-parsley-validate
+    $(document).ready(function() {
+      $('form[data-parsley-validate]').parsley();
+    });
+
+    // Função para remover acentos
+    function removerAcentos(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Transforma texto em maiúsculas e remove acentos (exceto login, senha, email)
+    $(document).on('input', 'input[type="text"], textarea', function() {
+      const campo = $(this);
+      const name = campo.attr('name') || '';
+      const id = campo.attr('id') || '';
+      const type = campo.attr('type') || '';
+
+      // Campos que NÃO devem ser transformados
+      const camposExcluidos = ['login', 'senha', 'password', 'email', 'slug', 'db', 'token'];
+      const deveExcluir = camposExcluidos.some(exc =>
+        name.toLowerCase().includes(exc) ||
+        id.toLowerCase().includes(exc) ||
+        type === 'password' ||
+        type === 'email'
+      );
+
+      if (!deveExcluir) {
+        const cursorPos = this.selectionStart;
+        const valorOriginal = campo.val();
+        const valorNovo = removerAcentos(valorOriginal).toUpperCase();
+
+        if (valorOriginal !== valorNovo) {
+          campo.val(valorNovo);
+          this.setSelectionRange(cursorPos, cursorPos);
+        }
+      }
+    });
+
+    // DataTables default config
+    $.extend(true, $.fn.dataTable.defaults, {
+      language: {
+        "sEmptyTable": "Nenhum registro encontrado",
+        "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+        "sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+        "sInfoFiltered": "(Filtrados de _MAX_ registros)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "_MENU_ resultados por página",
+        "sLoadingRecords": "Carregando...",
+        "sProcessing": "Processando...",
+        "sZeroRecords": "Nenhum registro encontrado",
+        "sSearch": "Pesquisar",
+        "oPaginate": {
+          "sNext": "Próximo",
+          "sPrevious": "Anterior",
+          "sFirst": "Primeiro",
+          "sLast": "Último"
+        },
+        "oAria": {
+          "sSortAscending": ": Ordenar colunas de forma ascendente",
+          "sSortDescending": ": Ordenar colunas de forma descendente"
+        }
+      },
+      processing: true,
+      serverSide: false
+    });
+
+    // Toggle Sidebar (mobile)
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('show');
+      overlay.classList.toggle('show');
+    }
+
+    // Toggle Sidebar Collapse (desktop)
+    function toggleSidebarCollapse() {
+      const sidebar = document.getElementById('sidebar');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+      localStorage.setItem('sidebarCollapsed', isCollapsed);
+    }
+
+    // Dark Mode
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-bs-theme') === 'dark';
+      html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      updateDarkModeIcon();
+    }
+
+    function updateDarkModeIcon() {
+      const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+      const icon = document.getElementById('darkModeIcon');
+      if (icon) {
+        icon.className = isDark ? 'bi bi-sun fs-5' : 'bi bi-moon-stars fs-5';
+      }
+    }
+
+    // Load saved preferences
+    document.addEventListener('DOMContentLoaded', function() {
+      // Theme
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        updateDarkModeIcon();
+      }
+
+      // Sidebar collapsed state - aplica a classe na sidebar real
+      const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+      const sidebar = document.getElementById('sidebar');
+      if (sidebarCollapsed && sidebar) {
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+      }
+      // Remove a classe temporária do html
+      document.documentElement.classList.remove('sidebar-should-collapse');
+      
+      // Inicializa máscaras de data globalmente
+      if (window.jQuery && window.jQuery.fn.mask) {
+        $('.mask-date').mask('00/00/0000');
+        $('.mask-cpf').mask('000.000.000-00');
+        $('.mask-cnpj').mask('00.000.000/0000-00');
+        $('.mask-phone').mask('(00) 00000-0000');
+        $('.mask-cep').mask('00000-000');
+        $('.mask-pis').mask('000.00000.00-0');
+      }
+    });
+
+    /**
+     * Função global para inicializar datepickers com:
+     * - Máscara de data (dd/mm/aaaa)
+     * - Botão "Hoje" no calendário
+     * - Locale português
+     *
+     * @param {string} selector - Seletor CSS para os inputs
+     * @param {Object} options - Opções adicionais do Flatpickr
+     * @returns {Object} Objeto com instâncias de Flatpickr indexadas por ID
+     */
+    window.initDatepickers = function(selector, options = {}) {
+      const instances = {};
+      document.querySelectorAll(selector).forEach(input => {
+        // Configurações padrão
+        const defaultOptions = {
+          locale: 'pt',
+          dateFormat: 'd/m/Y',
+          altInput: true,
+          altFormat: 'd/m/Y',
+          allowInput: true,
+          clickOpens: true,
+          onReady: function(selectedDates, dateStr, instance) {
+            // Container para os botões
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'd-flex gap-1 p-2 border-top';
+
+            // Botão Hoje
+            const btnHoje = document.createElement('button');
+            btnHoje.type = 'button';
+            btnHoje.className = 'btn btn-sm btn-primary flex-grow-1';
+            btnHoje.innerHTML = '<i class="bi bi-calendar-check me-1"></i>Hoje';
+            btnHoje.onclick = function() {
+              instance.setDate(new Date(), true);
+              instance.close();
+            };
+
+            // Botão Limpar
+            const btnLimpar = document.createElement('button');
+            btnLimpar.type = 'button';
+            btnLimpar.className = 'btn btn-sm btn-outline-secondary flex-grow-1';
+            btnLimpar.innerHTML = '<i class="bi bi-x-lg me-1"></i>Limpar';
+            btnLimpar.onclick = function() {
+              instance.clear();
+              instance.close();
+            };
+
+            btnContainer.appendChild(btnHoje);
+            btnContainer.appendChild(btnLimpar);
+            instance.calendarContainer.appendChild(btnContainer);
+          }
+        };
+
+        // Merge das opções
+        const finalOptions = { ...defaultOptions, ...options };
+
+        // Cria instância do Flatpickr
+        instances[input.id] = flatpickr(input, finalOptions);
+
+        // Adiciona máscara de data no altInput (input visível) se jQuery Mask estiver disponível
+        if (window.jQuery && window.jQuery.fn.mask) {
+          const fp = instances[input.id];
+          // Aplica máscara no altInput (input visível criado pelo Flatpickr)
+          if (fp.altInput) {
+            $(fp.altInput).mask('00/00/0000');
+          } else {
+            $(input).mask('00/00/0000');
+          }
+        }
+      });
+      return instances;
+    };
+
+    // Form Alterar Senha
+    document.getElementById('formAlterarSenha')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      if (formData.get('novaSenha') !== formData.get('confirmarSenha')) {
+        toastr.error('As senhas não coincidem');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/alterar-senha', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          },
+          body: JSON.stringify({
+            senhaAtual: formData.get('senhaAtual'),
+            novaSenha: formData.get('novaSenha')
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          toastr.success('Senha alterada com sucesso');
+          bootstrap.Modal.getInstance(document.getElementById('alterarSenhaModal')).hide();
+          form.reset();
+        } else {
+          toastr.error(data.error || 'Erro ao alterar senha');
+        }
+      } catch (error) {
+        toastr.error('Erro ao processar requisição');
+      }
+    });
+
+    // ========== LIMPEZA GLOBAL DE BACKDROP PARA TODOS OS MODAIS ==========
+    // Garante que o backdrop seja removido ao fechar qualquer modal
+    $(document).on('hidden.bs.modal', '.modal', function() {
+      // Remove backdrop residual
+      if ($('.modal.show').length === 0) {
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
+      }
+    });
+
+    // ========== FUNÇÕES GLOBAIS PARA MODAL DE CONFIRMAÇÃO/ALERTA ==========
+    /**
+     * Mostra modal de confirmação (substitui confirm())
+     * @param {string} mensagem - Mensagem a ser exibida
+     * @param {object} opcoes - Opções: titulo, tipo (danger/warning/info/success), textoBtnConfirmar, textoBtnCancelar
+     * @returns {Promise<boolean>} - true se confirmou, false se cancelou
+     */
+    window.confirmar = function(mensagem, opcoes = {}) {
+      return new Promise((resolve) => {
+        const titulo = opcoes.titulo || 'Confirmação';
+        const tipo = opcoes.tipo || 'warning';
+        const textoBtnConfirmar = opcoes.textoBtnConfirmar || 'Confirmar';
+        const textoBtnCancelar = opcoes.textoBtnCancelar || 'Cancelar';
+        
+        const icones = {
+          danger: 'bi-exclamation-triangle-fill text-danger',
+          warning: 'bi-exclamation-circle-fill text-warning',
+          info: 'bi-info-circle-fill text-info',
+          success: 'bi-check-circle-fill text-success'
+        };
+        
+        const btnClasses = {
+          danger: 'btn-danger',
+          warning: 'btn-warning',
+          info: 'btn-primary',
+          success: 'btn-success'
+        };
+        
+        $('#modalGlobalTitle').text(titulo);
+        $('#modalGlobalMessage').text(mensagem);
+        $('#modalGlobalIcon').attr('class', 'bi me-3 ' + (icones[tipo] || icones.warning)).css('font-size', '2rem');
+        $('#modalGlobalBtnConfirmar').text(textoBtnConfirmar).attr('class', 'btn ' + (btnClasses[tipo] || 'btn-primary'));
+        $('#modalGlobalBtnCancelar').text(textoBtnCancelar).show();
+        $('#modalGlobalFooter').show();
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalGlobal'));
+        
+        // Remove listeners anteriores
+        $('#modalGlobalBtnConfirmar').off('click').on('click', function() {
+          modal.hide();
+          resolve(true);
+        });
+        
+        $('#modalGlobal').off('hidden.bs.modal.confirmar').on('hidden.bs.modal.confirmar', function() {
+          resolve(false);
+        });
+        
+        modal.show();
+      });
+    };
+
+    /**
+     * Mostra modal de alerta (substitui alert())
+     * @param {string} mensagem - Mensagem a ser exibida
+     * @param {object} opcoes - Opções: titulo, tipo (danger/warning/info/success)
+     * @returns {Promise<void>}
+     */
+    window.mostrarAlerta = function(mensagem, opcoes = {}) {
+      return new Promise((resolve) => {
+        const titulo = opcoes.titulo || 'Atenção';
+        const tipo = opcoes.tipo || 'info';
+        
+        const icones = {
+          danger: 'bi-exclamation-triangle-fill text-danger',
+          warning: 'bi-exclamation-circle-fill text-warning',
+          info: 'bi-info-circle-fill text-info',
+          success: 'bi-check-circle-fill text-success'
+        };
+        
+        $('#modalGlobalTitle').text(titulo);
+        $('#modalGlobalMessage').text(mensagem);
+        $('#modalGlobalIcon').attr('class', 'bi me-3 ' + (icones[tipo] || icones.info)).css('font-size', '2rem');
+        $('#modalGlobalBtnConfirmar').text('OK').attr('class', 'btn btn-primary');
+        $('#modalGlobalBtnCancelar').hide();
+        $('#modalGlobalFooter').show();
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalGlobal'));
+        
+        $('#modalGlobalBtnConfirmar').off('click').on('click', function() {
+          modal.hide();
+          resolve();
+        });
+        
+        $('#modalGlobal').off('hidden.bs.modal.alerta').on('hidden.bs.modal.alerta', function() {
+          resolve();
+        });
+        
+        modal.show();
+      });
+    };
+
+    /**
+     * Solicita entrada de texto do usuário (substitui prompt())
+     * @param {string} mensagem - Mensagem/instrução a ser exibida
+     * @param {object} opcoes - Opções: titulo, tipo, valorPadrao, placeholder, textoConfirmar
+     * @returns {Promise<string|null>} - Texto digitado ou null se cancelou
+     */
+    window.solicitarTexto = function(mensagem, opcoes = {}) {
+      return new Promise((resolve) => {
+        const titulo = opcoes.titulo || 'Entrada de Dados';
+        const tipo = opcoes.tipo || 'info';
+        const valorPadrao = opcoes.valorPadrao || '';
+        const placeholder = opcoes.placeholder || '';
+        const textoConfirmar = opcoes.textoConfirmar || 'Confirmar';
+        
+        const icones = {
+          danger: 'bi-exclamation-triangle-fill text-danger',
+          warning: 'bi-exclamation-circle-fill text-warning',
+          info: 'bi-info-circle-fill text-info',
+          success: 'bi-check-circle-fill text-success'
+        };
+        
+        const btnClasses = {
+          danger: 'btn-danger',
+          warning: 'btn-warning',
+          info: 'btn-primary',
+          success: 'btn-success'
+        };
+        
+        // Cria conteúdo com input
+        const htmlContent = `
+          <p class="mb-3">${mensagem}</p>
+          <input type="text" class="form-control" id="modalGlobalInput" value="${valorPadrao}" placeholder="${placeholder}">
+        `;
+        
+        $('#modalGlobalTitle').text(titulo);
+        $('#modalGlobalMessage').html(htmlContent);
+        $('#modalGlobalIcon').attr('class', 'bi me-3 ' + (icones[tipo] || icones.info)).css('font-size', '2rem');
+        $('#modalGlobalBtnConfirmar').text(textoConfirmar).attr('class', 'btn ' + (btnClasses[tipo] || 'btn-primary'));
+        $('#modalGlobalBtnCancelar').text('Cancelar').show();
+        $('#modalGlobalFooter').show();
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalGlobal'));
+        let resolved = false;
+        
+        // Confirmar
+        $('#modalGlobalBtnConfirmar').off('click').on('click', function() {
+          const valor = $('#modalGlobalInput').val();
+          resolved = true;
+          modal.hide();
+          resolve(valor);
+        });
+        
+        // Ao fechar (cancelar)
+        $('#modalGlobal').off('hidden.bs.modal.prompt').on('hidden.bs.modal.prompt', function() {
+          if (!resolved) {
+            resolve(null);
+          }
+          // Limpa o input do HTML
+          $('#modalGlobalMessage').text('');
+        });
+        
+        // Permite Enter para confirmar
+        $('#modalGlobal').off('shown.bs.modal.prompt').on('shown.bs.modal.prompt', function() {
+          $('#modalGlobalInput').focus().on('keypress', function(e) {
+            if (e.which === 13) {
+              $('#modalGlobalBtnConfirmar').click();
+            }
+          });
+        });
+        
+        modal.show();
+      });
+    };
+
+    // ==========================================
+    // NOTIFICAÇÕES NO HEADER
+    // ==========================================
+    
+    // Carrega notificações ao iniciar e a cada 60 segundos
+    async function carregarNotificacoesHeader() {
+      try {
+        // Contador
+        const contadorRes = await fetch('/api/notificacoes/contador');
+        const contadorData = await contadorRes.json();
+        const badge = document.getElementById('headerBadgeNotificacoes');
+        
+        if (badge && contadorData.count > 0) {
+          badge.textContent = contadorData.count > 99 ? '99+' : contadorData.count;
+          badge.classList.remove('d-none');
+        } else if (badge) {
+          badge.classList.add('d-none');
+        }
+
+        // Lista de notificações recentes
+        const listaRes = await fetch('/api/notificacoes?por_pagina=5&status=nao_lida');
+        const listaData = await listaRes.json();
+        const lista = document.getElementById('headerListaNotificacoes');
+        
+        if (lista && listaData.notificacoes?.length > 0) {
+          lista.innerHTML = listaData.notificacoes.map(n => `
+            <a class="dropdown-item py-2 px-3 border-bottom" href="${n.action_url || '/notificacoes'}" onclick="marcarNotificacaoLida(${n.id})">
+              <div class="d-flex align-items-start">
+                <i class="bi ${getIconeNotificacao(n.tipo)} me-2 mt-1 text-${getCorNotificacao(n.tipo)}"></i>
+                <div class="flex-grow-1 overflow-hidden">
+                  <div class="fw-semibold text-truncate">${n.titulo}</div>
+                  <small class="text-muted text-truncate d-block">${n.mensagem}</small>
+                </div>
+              </div>
+            </a>
+          `).join('');
+        } else if (lista) {
+          lista.innerHTML = `
+            <div class="text-center text-muted py-3">
+              <i class="bi bi-bell-slash fs-4 d-block mb-2"></i>
+              <small>Nenhuma notificação nova</small>
+            </div>
+          `;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar notificações:', e);
+      }
+    }
+
+    function getIconeNotificacao(tipo) {
+      const icones = {
+        'INFO': 'bi-info-circle',
+        'ALERTA': 'bi-exclamation-triangle',
+        'URGENTE': 'bi-exclamation-octagon',
+        'SUCESSO': 'bi-check-circle',
+        'ERRO': 'bi-x-circle'
+      };
+      return icones[tipo] || 'bi-bell';
+    }
+
+    function getCorNotificacao(tipo) {
+      const cores = {
+        'INFO': 'info',
+        'ALERTA': 'warning',
+        'URGENTE': 'danger',
+        'SUCESSO': 'success',
+        'ERRO': 'danger'
+      };
+      return cores[tipo] || 'secondary';
+    }
+
+    async function marcarNotificacaoLida(id) {
+      try {
+        await fetch(`/api/notificacoes/${id}/lida`, { method: 'POST' });
+      } catch (e) {
+        console.error('Erro ao marcar notificação:', e);
+      }
+    }
+
+    // Carrega notificações ao iniciar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', carregarNotificacoesHeader);
+    } else {
+      carregarNotificacoesHeader();
+    }
+
+    // Atualiza a cada 30 segundos
+    setInterval(carregarNotificacoesHeader, 30000);
+
+    // WebSocket para notificações em tempo real
+    try {
+      const socket = io({ path: '/ws' });
+      const municipioId = {{ tenant?.municipioId || 0 }};
+
+      if (municipioId > 0) {
+        socket.emit('subscribe', municipioId);
+
+        socket.on('nova-notificacao', (notif) => {
+          console.log('[WS] Nova notificação:', notif.titulo);
+          // Atualiza badge e lista
+          carregarNotificacoesHeader();
+          // Mostra toast
+          if (typeof toastr !== 'undefined') {
+            toastr.info(notif.mensagem, notif.titulo);
+          }
+        });
+      }
+    } catch (e) {
+      console.error('[WS] Erro:', e);
+    }
+  </script>
+
+  @if($slots.scripts)
+    {{{ await $slots.scripts() }}}
+  @end
+</body>
+</html>

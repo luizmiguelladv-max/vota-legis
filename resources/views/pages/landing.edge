@@ -3,32 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VotaLegis | Sistema de Votacao Eletronica para Camaras Municipais</title>
-  <meta name="description" content="Sistema de votacao eletronica completo para camaras municipais e legislativos. Votacao nominal, secreta, controle de presenca, painel eletronico em tempo real.">
-
+  <title>Ponto Eletrônico | Sistema de Ponto SaaS</title>
+  <meta name="description" content="Sistema de ponto eletrônico SaaS para empresas. Reconhecimento facial, biometria, banco de horas, eSocial. Trial grátis por 14 dias.">
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --cor-primaria: #1a73e8;
-      --cor-secundaria: #4285f4;
+      --cor-primaria: #2563eb;
+      --cor-secundaria: #1e40af;
       --cor-destaque: #10b981;
-      --cor-warning: #d69e2e;
-      --cor-danger: #e53e3e;
-      --cor-favor: #10b981;
-      --cor-contra: #e53e3e;
-      --cor-abstencao: #718096;
     }
-
+    
     body {
       font-family: 'Inter', sans-serif;
       scroll-behavior: smooth;
-      overflow-x: hidden;
     }
-
-    /* Hero Section */
+    
     .hero {
       background: linear-gradient(135deg, var(--cor-primaria) 0%, var(--cor-secundaria) 100%);
       min-height: 100vh;
@@ -36,7 +29,7 @@
       position: relative;
       overflow: hidden;
     }
-
+    
     .hero::before {
       content: '';
       position: absolute;
@@ -46,35 +39,17 @@
       bottom: 0;
       background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
-
+    
     .navbar {
       background: transparent !important;
       transition: all 0.3s;
-      padding: 1rem 0;
     }
-
+    
     .navbar.scrolled {
-      background: rgba(26, 115, 232, 0.95) !important;
+      background: rgba(37, 99, 235, 0.95) !important;
       backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
-
-    .nav-link {
-      color: rgba(255,255,255,0.9) !important;
-      font-weight: 500;
-      margin: 0 10px;
-      transition: all 0.3s;
-    }
-
-    .nav-link:hover {
-      color: white !important;
-    }
-
+    
     .btn-cta {
       background: var(--cor-destaque);
       color: white;
@@ -84,591 +59,332 @@
       font-weight: 600;
       transition: all 0.3s;
     }
-
+    
     .btn-cta:hover {
       background: #059669;
-      color: white;
       transform: translateY(-2px);
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero h1 {
-      font-size: 3.5rem;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .hero p.lead {
-      font-size: 1.25rem;
-      opacity: 0.9;
-    }
-
-    /* Stats Section */
-    .stats-section {
-      background: white;
-      margin-top: -80px;
-      position: relative;
-      z-index: 10;
-    }
-
-    .stats-card {
-      background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: all 0.3s;
-    }
-
-    .stats-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .stats-number {
-      font-size: 2.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Feature Cards */
+    
     .feature-card {
       background: white;
-      border-radius: 20px;
+      border-radius: 16px;
       padding: 32px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       transition: all 0.3s;
       height: 100%;
-      border: 1px solid #f0f0f0;
     }
-
+    
     .feature-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-      border-color: var(--cor-primaria);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
-
+    
     .feature-icon {
-      width: 70px;
-      height: 70px;
+      width: 64px;
+      height: 64px;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      margin-bottom: 24px;
+      font-size: 28px;
+      margin-bottom: 20px;
     }
-
-    /* Voting Demo */
-    .voting-demo {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    }
-
-    .vote-panel {
+    
+    .pricing-card {
       background: white;
-      border-radius: 20px;
+      border-radius: 24px;
       padding: 40px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    }
-
-    .vote-btn {
-      padding: 20px 40px;
-      border-radius: 12px;
-      font-size: 1.25rem;
-      font-weight: 700;
-      border: none;
-      transition: all 0.3s;
-      min-width: 150px;
-    }
-
-    .vote-btn.favor {
-      background: var(--cor-favor);
-      color: white;
-    }
-
-    .vote-btn.contra {
-      background: var(--cor-contra);
-      color: white;
-    }
-
-    .vote-btn.abstencao {
-      background: var(--cor-abstencao);
-      color: white;
-    }
-
-    .vote-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .result-bar {
-      height: 40px;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #e2e8f0;
-    }
-
-    .result-favor {
-      background: var(--cor-favor);
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-    }
-
-    .result-contra {
-      background: var(--cor-contra);
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-    }
-
-    /* How it works */
-    .step-card {
-      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       position: relative;
-    }
-
-    .step-number {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
-      color: white;
-      font-size: 24px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-    }
-
-    /* Module Cards */
-    .module-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       transition: all 0.3s;
-      height: 100%;
     }
-
-    .module-card:hover {
-      transform: scale(1.02);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    
+    .pricing-card.destaque {
+      border: 3px solid var(--cor-primaria);
+      transform: scale(1.05);
     }
-
-    .module-header {
-      padding: 24px;
+    
+    .pricing-card.destaque::before {
+      content: 'Mais Popular';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--cor-primaria);
       color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
     }
-
-    .module-body {
-      padding: 24px;
+    
+    .pricing-price {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--cor-primaria);
     }
-
-    .module-body ul {
+    
+    .pricing-price small {
+      font-size: 16px;
+      font-weight: 400;
+      color: #6b7280;
+    }
+    
+    .check-list li {
       list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .module-body li {
-      padding: 10px 0;
+      padding: 8px 0;
       border-bottom: 1px solid #f0f0f0;
-      display: flex;
-      align-items: center;
     }
-
-    .module-body li:last-child {
-      border-bottom: none;
-    }
-
-    .module-body li i {
+    
+    .check-list li i {
       color: var(--cor-destaque);
-      margin-right: 10px;
+      margin-right: 8px;
     }
-
-    /* Contact */
-    .contact-section {
-      background: linear-gradient(135deg, var(--cor-primaria) 0%, var(--cor-secundaria) 100%);
+    
+    .check-list li.disabled {
+      color: #9ca3af;
+      text-decoration: line-through;
+    }
+    
+    .check-list li.disabled i {
+      color: #d1d5db;
+    }
+    
+    .cta-section {
+      background: linear-gradient(135deg, var(--cor-secundaria) 0%, var(--cor-primaria) 100%);
       color: white;
+      padding: 80px 0;
     }
-
-    .contact-card {
-      background: rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 30px;
-      text-align: center;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .contact-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin: 0 auto 16px;
-    }
-
-    /* Footer */
+    
     footer {
-      background: #1a202c;
-      color: #a0aec0;
-      padding: 40px 0;
+      background: #111827;
+      color: #9ca3af;
+      padding: 60px 0 30px;
     }
-
-    footer a {
-      color: #a0aec0;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      color: white;
-    }
-
-    /* Animations */
-    .fade-in {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.6s ease-out;
-    }
-
-    .fade-in.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
+    
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 2.5rem;
-      }
-      .stats-number {
-        font-size: 2rem;
+      .pricing-card.destaque {
+        transform: scale(1);
       }
     }
   </style>
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand text-white" href="#">
-        <i class="bi bi-check2-square me-2"></i>VotaLegis
+      <a class="navbar-brand fw-bold fs-4" href="#">
+        <i class="bi bi-clock-history me-2"></i>PontoSaaS
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto me-4">
-          <li class="nav-item"><a class="nav-link" href="#funcionalidades">Funcionalidades</a></li>
-          <li class="nav-item"><a class="nav-link" href="#como-funciona">Como Funciona</a></li>
-          <li class="nav-item"><a class="nav-link" href="#modulos">Modulos</a></li>
+        <ul class="navbar-nav ms-auto me-3">
+          <li class="nav-item"><a class="nav-link" href="#recursos">Recursos</a></li>
+          <li class="nav-item"><a class="nav-link" href="#planos">Planos</a></li>
           <li class="nav-item"><a class="nav-link" href="#contato">Contato</a></li>
         </ul>
-        <a href="/login" class="btn btn-cta">
-          <i class="bi bi-box-arrow-in-right me-2"></i>Acessar Sistema
-        </a>
+        <a href="/login" class="btn btn-outline-light me-2">Entrar</a>
+        <a href="#trial" class="btn btn-cta">Teste Grátis</a>
       </div>
     </div>
   </nav>
 
-  <!-- Hero Section -->
+  <!-- Hero -->
   <section class="hero d-flex align-items-center">
-    <div class="container hero-content">
+    <div class="container position-relative">
       <div class="row align-items-center">
-        <div class="col-lg-6">
-          <h1 class="mb-4">
-            Votacao Eletronica para o <span class="text-warning">Legislativo</span>
+        <div class="col-lg-6 mb-5 mb-lg-0">
+          <h1 class="display-4 fw-bold mb-4">
+            Sistema de Ponto Eletrônico <span class="text-warning">Completo</span>
           </h1>
-          <p class="lead mb-4">
-            Sistema completo para camaras municipais. Votacao nominal, secreta, controle de presenca,
-            painel eletronico em tempo real e muito mais. Transparencia e agilidade nas sessoes.
+          <p class="lead mb-4 opacity-75">
+            Gerencie o ponto dos seus funcionários com reconhecimento facial, biometria digital, 
+            banco de horas e integração eSocial. Tudo na nuvem.
           </p>
-          <div class="d-flex gap-3 flex-wrap">
-            <a href="/login" class="btn btn-cta btn-lg">
-              <i class="bi bi-play-circle me-2"></i>Comecar Agora
+          <div class="d-flex flex-wrap gap-3">
+            <a href="#trial" class="btn btn-cta btn-lg">
+              <i class="bi bi-rocket-takeoff me-2"></i>Teste 14 Dias Grátis
             </a>
-            <a href="#funcionalidades" class="btn btn-outline-light btn-lg">
-              <i class="bi bi-info-circle me-2"></i>Saiba Mais
-            </a>
+            <a href="#planos" class="btn btn-outline-light btn-lg">Ver Planos</a>
+          </div>
+          <div class="mt-4 d-flex gap-4 small opacity-75">
+            <span><i class="bi bi-check-circle me-1"></i>Sem cartão de crédito</span>
+            <span><i class="bi bi-check-circle me-1"></i>Setup em 5 minutos</span>
           </div>
         </div>
-        <div class="col-lg-6 text-center mt-5 mt-lg-0">
-          <div class="position-relative">
-            <div class="vote-panel mx-auto" style="max-width: 400px;">
-              <h5 class="text-dark mb-4">Projeto de Lei 001/2024</h5>
-              <div class="d-flex justify-content-center gap-3 mb-4">
-                <button class="vote-btn favor"><i class="bi bi-hand-thumbs-up me-2"></i>SIM</button>
-                <button class="vote-btn contra"><i class="bi bi-hand-thumbs-down me-2"></i>NAO</button>
-              </div>
-              <div class="result-bar d-flex">
-                <div class="result-favor" style="width: 65%;">65%</div>
-                <div class="result-contra" style="width: 35%;">35%</div>
-              </div>
-              <p class="text-muted mt-3 mb-0"><i class="bi bi-check-circle text-success me-1"></i> Projeto APROVADO</p>
-            </div>
-          </div>
+        <div class="col-lg-6 text-center">
+          <img src="https://placehold.co/600x400/2563eb/white?text=Dashboard+Preview" 
+               alt="Dashboard Preview" class="img-fluid rounded-4 shadow-lg">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="stats-section py-5">
-    <div class="container">
-      <div class="row g-4">
-        <div class="col-6 col-md-3">
-          <div class="stats-card">
-            <div class="stats-number">50+</div>
-            <p class="text-muted mb-0">Camaras Atendidas</p>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stats-card">
-            <div class="stats-number">10K+</div>
-            <p class="text-muted mb-0">Votacoes Realizadas</p>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stats-card">
-            <div class="stats-number">500+</div>
-            <p class="text-muted mb-0">Vereadores Ativos</p>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stats-card">
-            <div class="stats-number">99.9%</div>
-            <p class="text-muted mb-0">Disponibilidade</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features Section -->
-  <section id="funcionalidades" class="py-5">
+  <!-- Recursos -->
+  <section id="recursos" class="py-5" style="background: #f9fafb;">
     <div class="container py-5">
       <div class="text-center mb-5">
-        <h2 class="fw-bold">Funcionalidades Completas</h2>
-        <p class="text-muted">Tudo que sua camara precisa para sessoes modernas e transparentes</p>
+        <h2 class="display-6 fw-bold mb-3">Tudo que você precisa</h2>
+        <p class="lead text-muted">Funcionalidades completas para gestão de ponto</p>
       </div>
+      
       <div class="row g-4">
         <div class="col-md-6 col-lg-4">
           <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(56, 161, 105, 0.1); color: var(--cor-destaque);">
-              <i class="bi bi-check2-square"></i>
+            <div class="feature-icon bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-camera-video"></i>
             </div>
-            <h5>Votacao Nominal</h5>
-            <p class="text-muted">Registro individual do voto de cada vereador com identificacao completa e historico.</p>
+            <h5>Reconhecimento Facial</h5>
+            <p class="text-muted mb-0">Registro de ponto com câmera e inteligência artificial. Anti-fraude integrado.</p>
           </div>
         </div>
+        
         <div class="col-md-6 col-lg-4">
           <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(26, 54, 93, 0.1); color: var(--cor-primaria);">
-              <i class="bi bi-eye-slash"></i>
+            <div class="feature-icon bg-success bg-opacity-10 text-success">
+              <i class="bi bi-fingerprint"></i>
             </div>
-            <h5>Votacao Secreta</h5>
-            <p class="text-muted">Votacao sigilosa para materias que exigem confidencialidade, conforme regimento.</p>
+            <h5>Biometria Digital</h5>
+            <p class="text-muted mb-0">Suporte a leitores biométricos Futronic, DigitalPersona e outros.</p>
           </div>
         </div>
+        
         <div class="col-md-6 col-lg-4">
           <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(214, 158, 46, 0.1); color: var(--cor-warning);">
-              <i class="bi bi-display"></i>
-            </div>
-            <h5>Painel Eletronico</h5>
-            <p class="text-muted">Exibicao em tempo real do resultado das votacoes no painel do plenario.</p>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(229, 62, 62, 0.1); color: var(--cor-danger);">
-              <i class="bi bi-people"></i>
-            </div>
-            <h5>Controle de Presenca</h5>
-            <p class="text-muted">Registro de presenca dos vereadores com verificacao de quorum automatica.</p>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(56, 161, 105, 0.1); color: var(--cor-destaque);">
+            <div class="feature-icon bg-warning bg-opacity-10 text-warning">
               <i class="bi bi-clock-history"></i>
             </div>
-            <h5>Tempo de Fala</h5>
-            <p class="text-muted">Controle do tempo de pronunciamento com cronometro e alertas sonoros.</p>
+            <h5>Banco de Horas</h5>
+            <p class="text-muted mb-0">Gestão completa de créditos, débitos e compensações automáticas.</p>
           </div>
         </div>
+        
         <div class="col-md-6 col-lg-4">
           <div class="feature-card">
-            <div class="feature-icon" style="background: rgba(26, 54, 93, 0.1); color: var(--cor-primaria);">
-              <i class="bi bi-file-text"></i>
+            <div class="feature-icon bg-info bg-opacity-10 text-info">
+              <i class="bi bi-building-check"></i>
             </div>
-            <h5>Gestao de Sessoes</h5>
-            <p class="text-muted">Controle completo das sessoes: ordinarias, extraordinarias, solenes e especiais.</p>
+            <h5>Integração eSocial</h5>
+            <p class="text-muted mb-0">Exportação de eventos S-1200, S-2230 e AFDT. Portaria 671.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="feature-card">
+            <div class="feature-icon bg-danger bg-opacity-10 text-danger">
+              <i class="bi bi-bell"></i>
+            </div>
+            <h5>Notificações</h5>
+            <p class="text-muted mb-0">Alertas de faltas, atrasos e banco de horas negativo.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+          <div class="feature-card">
+            <div class="feature-icon bg-secondary bg-opacity-10 text-secondary">
+              <i class="bi bi-router"></i>
+            </div>
+            <h5>REP Control iD</h5>
+            <p class="text-muted mb-0">Integração com relógios de ponto REP homologados.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- How it works -->
-  <section id="como-funciona" class="py-5 bg-light">
+  <!-- Planos -->
+  <section id="planos" class="py-5">
     <div class="container py-5">
       <div class="text-center mb-5">
-        <h2 class="fw-bold">Como Funciona</h2>
-        <p class="text-muted">Processo simples e intuitivo para suas sessoes</p>
+        <h2 class="display-6 fw-bold mb-3">Planos que cabem no seu bolso</h2>
+        <p class="lead text-muted">Escolha o plano ideal para sua empresa</p>
       </div>
-      <div class="row g-4">
-        <div class="col-md-3">
-          <div class="step-card">
-            <div class="step-number">1</div>
-            <h5>Cadastre</h5>
-            <p class="text-muted">Cadastre vereadores, partidos e legislaturas</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="step-card">
-            <div class="step-number">2</div>
-            <h5>Agende</h5>
-            <p class="text-muted">Agende as sessoes e adicione a pauta</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="step-card">
-            <div class="step-number">3</div>
-            <h5>Vote</h5>
-            <p class="text-muted">Realize votacoes em tempo real</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="step-card">
-            <div class="step-number">4</div>
-            <h5>Publique</h5>
-            <p class="text-muted">Gere atas e publique resultados</p>
-          </div>
-        </div>
+      
+      <div class="row g-4 justify-content-center" id="listaPlanos">
+        <!-- Carregado via JavaScript -->
       </div>
     </div>
   </section>
 
-  <!-- Modules -->
-  <section id="modulos" class="py-5">
-    <div class="container py-5">
-      <div class="text-center mb-5">
-        <h2 class="fw-bold">Modulos do Sistema</h2>
-        <p class="text-muted">Solucao completa para a gestao legislativa</p>
-      </div>
-      <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-          <div class="module-card">
-            <div class="module-header" style="background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));">
-              <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Gestao de Sessoes</h5>
-            </div>
-            <div class="module-body">
-              <ul>
-                <li><i class="bi bi-check-circle-fill"></i>Sessoes Ordinarias</li>
-                <li><i class="bi bi-check-circle-fill"></i>Sessoes Extraordinarias</li>
-                <li><i class="bi bi-check-circle-fill"></i>Sessoes Solenes</li>
-                <li><i class="bi bi-check-circle-fill"></i>Controle de Pauta</li>
-                <li><i class="bi bi-check-circle-fill"></i>Atas Automaticas</li>
-              </ul>
-            </div>
-          </div>
+  <!-- CTA Trial -->
+  <section id="trial" class="cta-section">
+    <div class="container text-center">
+      <h2 class="display-5 fw-bold mb-4">Comece seu trial gratuito agora</h2>
+      <p class="lead mb-4 opacity-75">14 dias grátis, sem cartão de crédito. Setup em 5 minutos.</p>
+      
+      <form id="formTrial" class="row g-3 justify-content-center" style="max-width: 600px; margin: 0 auto;">
+        <div class="col-md-4">
+          <input type="text" class="form-control form-control-lg" placeholder="Seu nome" name="nome" required>
         </div>
-        <div class="col-md-6 col-lg-4">
-          <div class="module-card">
-            <div class="module-header" style="background: linear-gradient(135deg, var(--cor-destaque), #2f855a);">
-              <h5 class="mb-0"><i class="bi bi-check2-square me-2"></i>Sistema de Votacao</h5>
-            </div>
-            <div class="module-body">
-              <ul>
-                <li><i class="bi bi-check-circle-fill"></i>Votacao Nominal</li>
-                <li><i class="bi bi-check-circle-fill"></i>Votacao Secreta</li>
-                <li><i class="bi bi-check-circle-fill"></i>Votacao Simbolica</li>
-                <li><i class="bi bi-check-circle-fill"></i>Painel em Tempo Real</li>
-                <li><i class="bi bi-check-circle-fill"></i>Historico Completo</li>
-              </ul>
-            </div>
-          </div>
+        <div class="col-md-4">
+          <input type="email" class="form-control form-control-lg" placeholder="Email corporativo" name="email" required>
         </div>
-        <div class="col-md-6 col-lg-4">
-          <div class="module-card">
-            <div class="module-header" style="background: linear-gradient(135deg, var(--cor-warning), #b7791f);">
-              <h5 class="mb-0"><i class="bi bi-people me-2"></i>Gestao de Vereadores</h5>
-            </div>
-            <div class="module-body">
-              <ul>
-                <li><i class="bi bi-check-circle-fill"></i>Cadastro Completo</li>
-                <li><i class="bi bi-check-circle-fill"></i>Vinculo Partidario</li>
-                <li><i class="bi bi-check-circle-fill"></i>Legislaturas</li>
-                <li><i class="bi bi-check-circle-fill"></i>Controle de Presenca</li>
-                <li><i class="bi bi-check-circle-fill"></i>Historico de Votos</li>
-              </ul>
-            </div>
-          </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-cta btn-lg w-100">Iniciar Trial</button>
         </div>
-      </div>
+      </form>
     </div>
   </section>
 
-  <!-- Contact -->
-  <section id="contato" class="contact-section py-5">
+  <!-- Contato -->
+  <section id="contato" class="py-5" style="background: #f9fafb;">
     <div class="container py-5">
-      <div class="text-center mb-5">
-        <h2 class="fw-bold">Entre em Contato</h2>
-        <p class="opacity-75">Estamos prontos para atender sua camara municipal</p>
-      </div>
-      <div class="row g-4 justify-content-center">
-        <div class="col-md-4">
-          <div class="contact-card">
-            <div class="contact-icon">
-              <i class="bi bi-envelope"></i>
+      <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <h2 class="display-6 fw-bold mb-3">Fale com nosso time</h2>
+          <p class="lead text-muted mb-4">Tire suas dúvidas ou solicite uma demonstração personalizada.</p>
+          
+          <div class="d-flex mb-3">
+            <i class="bi bi-envelope fs-4 text-primary me-3"></i>
+            <div>
+              <h6 class="mb-0">Email</h6>
+              <span class="text-muted">contato@pontosaas.com.br</span>
             </div>
-            <h5>E-mail</h5>
-            <p class="mb-0">contato@votalegis.com.br</p>
+          </div>
+          
+          <div class="d-flex mb-3">
+            <i class="bi bi-whatsapp fs-4 text-success me-3"></i>
+            <div>
+              <h6 class="mb-0">WhatsApp</h6>
+              <span class="text-muted">(11) 99999-9999</span>
+            </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="contact-card">
-            <div class="contact-icon">
-              <i class="bi bi-whatsapp"></i>
+        
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form id="formContato">
+                <div class="mb-3">
+                  <input type="text" class="form-control" placeholder="Nome completo" name="nome" required>
+                </div>
+                <div class="mb-3">
+                  <input type="email" class="form-control" placeholder="Email" name="email" required>
+                </div>
+                <div class="mb-3">
+                  <input type="tel" class="form-control" placeholder="Telefone" name="telefone">
+                </div>
+                <div class="mb-3">
+                  <select class="form-select" name="funcionarios">
+                    <option value="">Quantos funcionários?</option>
+                    <option value="10">Até 10</option>
+                    <option value="50">11 a 50</option>
+                    <option value="200">51 a 200</option>
+                    <option value="500">201 a 500</option>
+                    <option value="1000">Mais de 500</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <textarea class="form-control" rows="3" placeholder="Mensagem" name="mensagem"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Enviar Mensagem</button>
+              </form>
             </div>
-            <h5>WhatsApp</h5>
-            <p class="mb-0">(88) 99999-9999</p>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="contact-card">
-            <div class="contact-icon">
-              <i class="bi bi-geo-alt"></i>
-            </div>
-            <h5>Localizacao</h5>
-            <p class="mb-0">Ceara, Brasil</p>
-          </div>
-        </div>
-      </div>
-      <div class="text-center mt-5">
-        <a href="/login" class="btn btn-cta btn-lg">
-          <i class="bi bi-box-arrow-in-right me-2"></i>Acessar Sistema
-        </a>
       </div>
     </div>
   </section>
@@ -676,13 +392,38 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6">
-          <p class="mb-0">2024 VotaLegis. Todos os direitos reservados.</p>
+      <div class="row">
+        <div class="col-lg-4 mb-4">
+          <h5 class="text-white mb-3"><i class="bi bi-clock-history me-2"></i>PontoSaaS</h5>
+          <p>Sistema de ponto eletrônico SaaS multi-tenant para empresas públicas e privadas.</p>
         </div>
-        <div class="col-md-6 text-md-end">
-          <p class="mb-0">Desenvolvido por <a href="https://mdevelop.com.br" target="_blank">MDevelop</a></p>
+        <div class="col-lg-2 mb-4">
+          <h6 class="text-white mb-3">Produto</h6>
+          <ul class="list-unstyled">
+            <li><a href="#recursos" class="text-decoration-none text-muted">Recursos</a></li>
+            <li><a href="#planos" class="text-decoration-none text-muted">Planos</a></li>
+            <li><a href="#" class="text-decoration-none text-muted">Integrações</a></li>
+          </ul>
         </div>
+        <div class="col-lg-2 mb-4">
+          <h6 class="text-white mb-3">Empresa</h6>
+          <ul class="list-unstyled">
+            <li><a href="#" class="text-decoration-none text-muted">Sobre</a></li>
+            <li><a href="#contato" class="text-decoration-none text-muted">Contato</a></li>
+            <li><a href="#" class="text-decoration-none text-muted">Blog</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 mb-4">
+          <h6 class="text-white mb-3">Legal</h6>
+          <ul class="list-unstyled">
+            <li><a href="#" class="text-decoration-none text-muted">Privacidade</a></li>
+            <li><a href="#" class="text-decoration-none text-muted">Termos</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr class="my-4 opacity-10">
+      <div class="text-center">
+        <small>&copy; 2024 PontoSaaS. Todos os direitos reservados.</small>
       </div>
     </div>
   </footer>
@@ -699,27 +440,108 @@
       }
     });
 
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
+    // Carrega planos
+    async function carregarPlanos() {
+      try {
+        const res = await fetch('/api/planos');
+        const planos = await res.json();
+        
+        const container = document.getElementById('listaPlanos');
+        container.innerHTML = planos.map(p => `
+          <div class="col-lg-3 col-md-6">
+            <div class="pricing-card ${p.destaque ? 'destaque' : ''}">
+              <h5 class="mb-2">${p.nome}</h5>
+              <p class="text-muted mb-3">Até ${p.max_funcionarios === 99999 ? '∞' : p.max_funcionarios} funcionários</p>
+              
+              <div class="pricing-price mb-3">
+                ${p.preco_mensal === 0 ? 'Sob consulta' : `R$${p.preco_mensal.toFixed(0)}<small>/mês</small>`}
+              </div>
+              
+              <ul class="check-list ps-0 mb-4">
+                <li class="${p.recursos.banco_horas ? '' : 'disabled'}">
+                  <i class="bi bi-${p.recursos.banco_horas ? 'check-circle-fill' : 'x-circle'}"></i>
+                  Banco de Horas
+                </li>
+                <li class="${p.recursos.afastamentos ? '' : 'disabled'}">
+                  <i class="bi bi-${p.recursos.afastamentos ? 'check-circle-fill' : 'x-circle'}"></i>
+                  Afastamentos
+                </li>
+                <li class="${p.recursos.esocial ? '' : 'disabled'}">
+                  <i class="bi bi-${p.recursos.esocial ? 'check-circle-fill' : 'x-circle'}"></i>
+                  eSocial
+                </li>
+                <li class="${p.recursos.app_mobile ? '' : 'disabled'}">
+                  <i class="bi bi-${p.recursos.app_mobile ? 'check-circle-fill' : 'x-circle'}"></i>
+                  App Mobile
+                </li>
+                <li class="${p.recursos.suporte_prioritario ? '' : 'disabled'}">
+                  <i class="bi bi-${p.recursos.suporte_prioritario ? 'check-circle-fill' : 'x-circle'}"></i>
+                  Suporte Prioritário
+                </li>
+              </ul>
+              
+              <a href="#trial" class="btn ${p.destaque ? 'btn-primary' : 'btn-outline-primary'} w-100">
+                ${p.preco_mensal === 0 ? 'Falar com Vendas' : 'Começar Trial'}
+              </a>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Erro ao carregar planos:', e);
+      }
+    }
+
+    // Form Trial
+    document.getElementById('formTrial').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      try {
+        await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome: formData.get('nome'),
+            email: formData.get('email'),
+            origem: 'landing_page_trial'
+          })
+        });
+        
+        alert('Obrigado! Você receberá um email com as instruções de acesso.');
+        this.reset();
+      } catch (e) {
+        alert('Erro ao enviar. Tente novamente.');
+      }
     });
 
-    // Fade in animation
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
+    // Form Contato
+    document.getElementById('formContato').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      try {
+        await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome: formData.get('nome'),
+            email: formData.get('email'),
+            telefone: formData.get('telefone'),
+            funcionarios: formData.get('funcionarios'),
+            mensagem: formData.get('mensagem'),
+            origem: 'landing_page_contato'
+          })
+        });
+        
+        alert('Mensagem enviada! Entraremos em contato em breve.');
+        this.reset();
+      } catch (e) {
+        alert('Erro ao enviar. Tente novamente.');
+      }
+    });
 
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    // Carrega planos ao iniciar
+    carregarPlanos();
   </script>
 </body>
 </html>

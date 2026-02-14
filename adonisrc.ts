@@ -50,7 +50,13 @@ export default defineConfig({
     () => import('@adonisjs/shield/shield_provider'),
     () => import('@adonisjs/static/static_provider'),
     () => import('@adonisjs/lucid/database_provider'),
-    () => import('@adonisjs/auth/auth_provider')
+    () => import('@adonisjs/auth/auth_provider'),
+    () => import('./providers/websocket_provider.js'),
+    () => import('./providers/rep_proxy_provider.js'),
+    () => import('./providers/deepface_provider.js'),
+    () => import('./providers/futronic_provider.js'),
+    () => import('./providers/rep_sync_provider.js'),
+    () => import('./providers/anomalias_provider.js')
   ],
 
   /*

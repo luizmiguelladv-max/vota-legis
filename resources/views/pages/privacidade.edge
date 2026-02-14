@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade | GetPonto</title>
+  <meta name="description" content="Política de Privacidade do GetPonto - Sistema de Controle de Ponto Eletrônico">
+  <link rel="icon" type="image/x-icon" href="/portal/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      text-decoration: none;
+      color: white;
+    }
+    .logo svg {
+      width: 40px;
+      height: 40px;
+    }
+    .logo span {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    .content {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    .last-update {
+      background: #f1f5f9;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      color: #1e40af;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.75rem 0;
+      color: #334155;
+    }
+    p {
+      margin-bottom: 1rem;
+      color: #475569;
+    }
+    ul, ol {
+      margin: 1rem 0 1rem 1.5rem;
+      color: #475569;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+    }
+    .highlight-box p {
+      margin: 0;
+      color: #1e40af;
+    }
+    .contact-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    .contact-box h3 {
+      color: #166534;
+      margin-top: 0;
+    }
+    .contact-box p {
+      margin-bottom: 0.5rem;
+    }
+    .contact-box a {
+      color: #15803d;
+      text-decoration: none;
+    }
+    .contact-box a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      .content {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="white"/>
+        <path d="M12 6v6l4 2" stroke="#1e40af" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>GetPonto</span>
+    </a>
+    <h1>Política de Privacidade</h1>
+    <p>Seu direito à privacidade é nossa prioridade</p>
+  </div>
+
+  <div class="container">
+    <div class="content">
+      <div class="last-update">
+        <strong>Última atualização:</strong> {{ new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+      </div>
+
+      <h2>1. Introdução</h2>
+      <p>
+        A <strong>GetPonto</strong>, desenvolvida pela MDevelop Tecnologia, está comprometida em proteger
+        a privacidade dos dados de seus usuários. Esta Política de Privacidade descreve como coletamos,
+        usamos, armazenamos e protegemos suas informações pessoais quando você utiliza nosso aplicativo
+        e sistema de controle de ponto eletrônico.
+      </p>
+      <p>
+        Ao utilizar o GetPonto, você concorda com as práticas descritas nesta política. Recomendamos
+        a leitura completa deste documento.
+      </p>
+
+      <h2>2. Dados que Coletamos</h2>
+
+      <h3>2.1 Dados de Identificação</h3>
+      <ul>
+        <li>Nome completo</li>
+        <li>CPF (Cadastro de Pessoa Física)</li>
+        <li>PIS/PASEP</li>
+        <li>Matrícula funcional</li>
+        <li>Cargo e função</li>
+        <li>E-mail corporativo</li>
+        <li>Telefone de contato</li>
+      </ul>
+
+      <h3>2.2 Dados Biométricos</h3>
+      <ul>
+        <li>Impressões digitais (templates biométricos)</li>
+        <li>Imagens faciais para reconhecimento</li>
+        <li>Descritores faciais (vetores matemáticos)</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p>
+          <strong>Importante:</strong> Os dados biométricos são armazenados de forma criptografada
+          e são utilizados exclusivamente para verificação de identidade no registro de ponto.
+        </p>
+      </div>
+
+      <h3>2.3 Dados de Localização</h3>
+      <ul>
+        <li>Coordenadas GPS (latitude e longitude) no momento do registro</li>
+        <li>Precisão da localização</li>
+        <li>Informações do dispositivo utilizado</li>
+      </ul>
+
+      <h3>2.4 Dados de Jornada de Trabalho</h3>
+      <ul>
+        <li>Horários de entrada e saída</li>
+        <li>Intervalos e pausas</li>
+        <li>Horas extras e banco de horas</li>
+        <li>Afastamentos e faltas</li>
+        <li>Justificativas de ocorrências</li>
+      </ul>
+
+      <h2>3. Finalidade do Tratamento</h2>
+      <p>Os dados coletados são utilizados exclusivamente para:</p>
+      <ul>
+        <li>Registro e controle de jornada de trabalho conforme legislação vigente</li>
+        <li>Cumprimento das obrigações trabalhistas (Portaria 671/2021 do MTE)</li>
+        <li>Geração de relatórios e espelhos de ponto</li>
+        <li>Cálculo de horas extras, adicional noturno e banco de horas</li>
+        <li>Verificação de identidade através de biometria</li>
+        <li>Validação de localização para registro de ponto remoto</li>
+        <li>Comunicação de notificações relacionadas ao ponto</li>
+        <li>Melhoria contínua do sistema e suporte técnico</li>
+      </ul>
+
+      <h2>4. Base Legal para o Tratamento</h2>
+      <p>O tratamento dos dados pessoais no GetPonto está fundamentado nas seguintes bases legais da LGPD:</p>
+      <ul>
+        <li><strong>Cumprimento de obrigação legal:</strong> Atendimento à CLT e Portaria 671/2021</li>
+        <li><strong>Execução de contrato:</strong> Relação de trabalho entre empregado e empregador</li>
+        <li><strong>Consentimento:</strong> Para coleta de dados biométricos, com possibilidade de revogação</li>
+        <li><strong>Legítimo interesse:</strong> Para melhorias do sistema e segurança</li>
+      </ul>
+
+      <h2>5. Compartilhamento de Dados</h2>
+      <p>Seus dados podem ser compartilhados com:</p>
+      <ul>
+        <li><strong>Empregador:</strong> Acesso aos dados de jornada de seus funcionários</li>
+        <li><strong>Órgãos fiscalizadores:</strong> Quando exigido por lei (Ministério do Trabalho, INSS)</li>
+        <li><strong>Prestadores de serviço:</strong> Empresas de infraestrutura (hosting) sob acordo de confidencialidade</li>
+      </ul>
+      <p>
+        <strong>Não vendemos, alugamos ou compartilhamos</strong> seus dados pessoais com terceiros
+        para fins de marketing ou publicidade.
+      </p>
+
+      <h2>6. Armazenamento e Segurança</h2>
+      <p>Implementamos medidas técnicas e organizacionais para proteger seus dados:</p>
+      <ul>
+        <li>Criptografia de dados em trânsito (HTTPS/TLS)</li>
+        <li>Criptografia de dados biométricos em repouso</li>
+        <li>Isolamento de dados por empresa/entidade (multi-tenancy seguro)</li>
+        <li>Backups automáticos com criptografia</li>
+        <li>Controle de acesso baseado em perfis</li>
+        <li>Monitoramento de segurança 24/7</li>
+        <li>Servidores hospedados em data centers certificados no Brasil</li>
+      </ul>
+
+      <h3>6.1 Retenção de Dados</h3>
+      <p>
+        Os dados são mantidos pelo período exigido pela legislação trabalhista brasileira
+        (mínimo de 5 anos após o término do contrato de trabalho) ou pelo tempo necessário
+        para cumprimento das finalidades descritas nesta política.
+      </p>
+
+      <h2>7. Seus Direitos</h2>
+      <p>De acordo com a LGPD, você tem direito a:</p>
+      <ul>
+        <li><strong>Confirmação e acesso:</strong> Confirmar a existência de tratamento e acessar seus dados</li>
+        <li><strong>Correção:</strong> Solicitar correção de dados incompletos ou desatualizados</li>
+        <li><strong>Anonimização ou bloqueio:</strong> Para dados desnecessários ou tratados em desconformidade</li>
+        <li><strong>Portabilidade:</strong> Receber seus dados em formato estruturado</li>
+        <li><strong>Eliminação:</strong> Solicitar exclusão de dados tratados com consentimento</li>
+        <li><strong>Informação:</strong> Saber com quem seus dados foram compartilhados</li>
+        <li><strong>Revogação:</strong> Revogar o consentimento a qualquer momento</li>
+        <li><strong>Oposição:</strong> Opor-se ao tratamento quando aplicável</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p>
+          <strong>Nota:</strong> Alguns dados não podem ser eliminados enquanto houver relação
+          trabalhista ativa ou obrigação legal de retenção.
+        </p>
+      </div>
+
+      <h2>8. Uso do Aplicativo Móvel</h2>
+      <p>O aplicativo GetPonto solicita as seguintes permissões:</p>
+      <ul>
+        <li><strong>Câmera:</strong> Para reconhecimento facial e captura de fotos</li>
+        <li><strong>Localização:</strong> Para registro de ponto com geolocalização</li>
+        <li><strong>Armazenamento:</strong> Para cache de dados offline</li>
+        <li><strong>Internet:</strong> Para sincronização com o servidor</li>
+        <li><strong>Biometria do dispositivo:</strong> Para autenticação local</li>
+        <li><strong>Notificações:</strong> Para alertas de jornada</li>
+      </ul>
+      <p>
+        Todas as permissões são opcionais e podem ser gerenciadas nas configurações do seu dispositivo.
+        O app funciona em modo limitado sem algumas permissões.
+      </p>
+
+      <h2>9. Cookies e Tecnologias Similares</h2>
+      <p>Utilizamos cookies essenciais para:</p>
+      <ul>
+        <li>Manter sua sessão ativa</li>
+        <li>Lembrar suas preferências</li>
+        <li>Garantir a segurança do sistema</li>
+      </ul>
+      <p>Não utilizamos cookies de rastreamento ou publicidade.</p>
+
+      <h2>10. Menores de Idade</h2>
+      <p>
+        O GetPonto é destinado ao uso por funcionários em idade trabalhista legal.
+        No caso de aprendizes menores de 18 anos, o cadastro deve ser autorizado pelo
+        responsável legal e pelo empregador, em conformidade com a legislação trabalhista.
+      </p>
+
+      <h2>11. Transferência Internacional</h2>
+      <p>
+        Seus dados são armazenados em servidores localizados no Brasil. Caso seja necessária
+        transferência internacional (ex: backup em nuvem), garantimos que o país de destino
+        oferece nível adequado de proteção ou utilizamos cláusulas contratuais padrão.
+      </p>
+
+      <h2>12. Alterações nesta Política</h2>
+      <p>
+        Esta política pode ser atualizada periodicamente. Notificaremos sobre mudanças
+        significativas através do aplicativo ou e-mail cadastrado. A data da última
+        atualização está indicada no início deste documento.
+      </p>
+
+      <h2>13. Encarregado de Dados (DPO)</h2>
+      <p>
+        Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais,
+        entre em contato com nosso Encarregado de Proteção de Dados:
+      </p>
+
+      <div class="contact-box">
+        <h3>Contato</h3>
+        <p><strong>MDevelop Tecnologia</strong></p>
+        <p>E-mail: <a href="mailto:privacidade@getponto.inf.br">privacidade@getponto.inf.br</a></p>
+        <p>E-mail alternativo: <a href="mailto:contato@mdevelop.com.br">contato@mdevelop.com.br</a></p>
+        <p>Site: <a href="https://getponto.inf.br">https://getponto.inf.br</a></p>
+      </div>
+
+      <h2>14. Legislação Aplicável</h2>
+      <p>
+        Esta política é regida pelas leis brasileiras, em especial:
+      </p>
+      <ul>
+        <li>Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)</li>
+        <li>Marco Civil da Internet (Lei nº 12.965/2014)</li>
+        <li>Consolidação das Leis do Trabalho (CLT)</li>
+        <li>Portaria MTE nº 671/2021</li>
+      </ul>
+      <p>
+        Eventuais disputas serão resolvidas no foro da comarca de domicílio do titular dos dados.
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{ new Date().getFullYear() }} GetPonto - MDevelop Tecnologia. Todos os direitos reservados.</p>
+    <p><a href="/">Voltar para o início</a></p>
+  </div>
+</body>
+</html>

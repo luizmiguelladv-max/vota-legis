@@ -1,0 +1,590 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 class="mb-1"><i class="bi bi-geo-alt-fill me-2"></i>Mapa de Apuração</h4>
+          <p class="text-muted mb-0">Visualize as visitas domiciliares e atendimentos externos</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-success" onclick="exportarKML()">
+            <i class="bi bi-download me-2"></i>Exportar KML
+          </button>
+          <button class="btn btn-primary" onclick="atualizarMapa()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Atualizar
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-3">
+        <div class="card-body py-2">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+              <label class="form-label small mb-1">Funcionário</label>
+              <select class="form-select form-select-sm" id="filtroFuncionario">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small mb-1">Lotação</label>
+              <select class="form-select form-select-sm" id="filtroLotacao">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small mb-1">Data Início</label>
+              <input type="date" class="form-control form-control-sm" id="filtroDataInicio">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small mb-1">Data Fim</label>
+              <input type="date" class="form-control form-control-sm" id="filtroDataFim">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small mb-1">Tipo</label>
+              <select class="form-select form-select-sm" id="filtroTipo">
+                <option value="">Todos</option>
+                <option value="DOMICILIAR">Visita Domiciliar</option>
+                <option value="EXTERNO">Atendimento Externo</option>
+                <option value="INSPECAO">Inspeção</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-sm btn-primary w-100" onclick="atualizarMapa()">
+                <i class="bi bi-search me-1"></i>Filtrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Mapa -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-body p-0">
+              <div id="mapa" style="height: 600px; border-radius: 0.375rem;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel Lateral -->
+        <div class="col-lg-4">
+          <!-- Resumo -->
+          <div class="card mb-3">
+            <div class="card-header bg-primary text-white py-2">
+              <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Resumo do Período</h6>
+            </div>
+            <div class="card-body">
+              <div class="row text-center">
+                <div class="col-4">
+                  <h3 id="totalAtendimentos" class="text-primary mb-0">0</h3>
+                  <small class="text-muted">Visitas</small>
+                </div>
+                <div class="col-4">
+                  <h3 id="totalFuncionarios" class="text-success mb-0">0</h3>
+                  <small class="text-muted">Agentes</small>
+                </div>
+                <div class="col-4">
+                  <h3 id="totalBairros" class="text-info mb-0">0</h3>
+                  <small class="text-muted">Bairros</small>
+                </div>
+              </div>
+              <hr>
+              <div class="row text-center">
+                <div class="col-6">
+                  <h5 id="tempoMedio" class="text-warning mb-0">0</h5>
+                  <small class="text-muted">Tempo médio (min)</small>
+                </div>
+                <div class="col-6">
+                  <h5 id="comGps" class="text-success mb-0">0%</h5>
+                  <small class="text-muted">Com GPS válido</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ranking Funcionários -->
+          <div class="card mb-3">
+            <div class="card-header bg-success text-white py-2">
+              <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Ranking de Visitas</h6>
+            </div>
+            <div class="card-body p-0" style="max-height: 200px; overflow-y: auto;">
+              <div id="rankingFuncionarios" class="list-group list-group-flush">
+                <div class="text-center py-3 text-muted small">Carregando...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de Atendimentos -->
+          <div class="card">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+              <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Últimas Visitas</h6>
+              <span class="badge bg-primary" id="contadorLista">0</span>
+            </div>
+            <div class="card-body p-0" style="max-height: 250px; overflow-y: auto;">
+              <div id="listaAtendimentos" class="list-group list-group-flush">
+                <div class="text-center py-4 text-muted">
+                  <i class="bi bi-search fs-1"></i>
+                  <p class="mt-2 small">Clique em Filtrar para buscar</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="card mt-3">
+        <div class="card-body py-2">
+          <div class="d-flex flex-wrap gap-4 justify-content-center">
+            <div class="d-flex align-items-center">
+              <span class="me-2" style="width: 16px; height: 16px; background: #28a745; border-radius: 50%; display: inline-block;"></span>
+              <small>Visita Domiciliar</small>
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="me-2" style="width: 16px; height: 16px; background: #007bff; border-radius: 50%; display: inline-block;"></span>
+              <small>Atendimento Externo</small>
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="me-2" style="width: 16px; height: 16px; background: #dc3545; border-radius: 50%; display: inline-block;"></span>
+              <small>Inspeção</small>
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="me-2" style="width: 16px; height: 16px; background: #ffc107; border: 2px dashed #000; border-radius: 50%; display: inline-block;"></span>
+              <small>GPS Impreciso (+100m)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Detalhes -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalhes da Visita</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Funcionário</label>
+                  <p id="detFuncionario" class="fw-bold mb-0">-</p>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Endereço</label>
+                  <p id="detEndereco" class="mb-0">-</p>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Pessoa Atendida</label>
+                  <p id="detAtendido" class="mb-0">-</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Início</label>
+                  <p id="detInicio" class="mb-0">-</p>
+                  <small id="detCoordsInicio" class="text-muted">-</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Fim</label>
+                  <p id="detFim" class="mb-0">-</p>
+                  <small id="detCoordsFim" class="text-muted">-</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label text-muted small mb-0">Duração</label>
+                  <p id="detDuracao" class="fw-bold text-primary mb-0">-</p>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2" id="rowFotos" style="display: none;">
+              <div class="col-md-6 text-center">
+                <label class="form-label text-muted small">Foto Início</label>
+                <img id="detFotoInicio" src="" class="img-fluid rounded border" style="max-height: 180px;">
+              </div>
+              <div class="col-md-6 text-center">
+                <label class="form-label text-muted small">Foto Fim</label>
+                <img id="detFotoFim" src="" class="img-fluid rounded border" style="max-height: 180px;">
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="form-label text-muted small mb-0">Observações</label>
+              <p id="detObservacoes" class="mb-0 fst-italic">-</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-info" onclick="centralizarNoMapa()">
+              <i class="bi bi-geo-alt me-2"></i>Localizar no Mapa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaflet CSS/JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <script>
+      let mapa = null;
+      let markersLayer = null;
+      let atendimentoAtual = null;
+      let dadosAtendimentos = [];
+
+      const CORES_TIPO = {
+        'DOMICILIAR': '#28a745',
+        'EXTERNO': '#007bff',
+        'INSPECAO': '#dc3545',
+        'VISITA': '#28a745'
+      };
+
+      $(document).ready(function() {
+        // Datas padrão (hoje)
+        const hoje = new Date().toISOString().split('T')[0];
+        $('#filtroDataInicio').val(hoje);
+        $('#filtroDataFim').val(hoje);
+
+        inicializarMapa();
+        carregarFuncionarios();
+        carregarLotacoes();
+        atualizarMapa();
+      });
+
+      function inicializarMapa() {
+        // Centro em Nova Floresta/PB (ajustar conforme município)
+        mapa = L.map('mapa').setView([-6.45, -36.2], 13);
+        
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        });
+        
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '© Esri'
+        });
+
+        osm.addTo(mapa);
+        
+        L.control.layers({ 'Ruas': osm, 'Satélite': satellite }).addTo(mapa);
+
+        markersLayer = L.markerClusterGroup({
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: true,
+          maxClusterRadius: 40,
+          iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            let size = 'small';
+            if (count > 10) size = 'medium';
+            if (count > 50) size = 'large';
+            return L.divIcon({
+              html: `<div><span>${count}</span></div>`,
+              className: `marker-cluster marker-cluster-${size}`,
+              iconSize: L.point(40, 40)
+            });
+          }
+        });
+        mapa.addLayer(markersLayer);
+      }
+
+      async function carregarFuncionarios() {
+        try {
+          const res = await fetch('/api/funcionarios?ativo=true');
+          const data = await res.json();
+          const select = $('#filtroFuncionario');
+          (data.data || []).forEach(f => {
+            select.append(`<option value="${f.id}">${f.nome}</option>`);
+          });
+        } catch (e) { console.error(e); }
+      }
+
+      async function carregarLotacoes() {
+        try {
+          const res = await fetch('/api/lotacoes');
+          const data = await res.json();
+          const select = $('#filtroLotacao');
+          (data.data || data || []).forEach(l => {
+            select.append(`<option value="${l.id}">${l.nome}</option>`);
+          });
+        } catch (e) { console.error(e); }
+      }
+
+      async function atualizarMapa() {
+        const params = new URLSearchParams();
+        
+        const funcionario = $('#filtroFuncionario').val();
+        const lotacao = $('#filtroLotacao').val();
+        const dataInicio = $('#filtroDataInicio').val();
+        const dataFim = $('#filtroDataFim').val();
+        const tipo = $('#filtroTipo').val();
+
+        if (funcionario) params.append('funcionario_id', funcionario);
+        if (lotacao) params.append('lotacao_id', lotacao);
+        if (dataInicio) params.append('data_inicio', dataInicio);
+        if (dataFim) params.append('data_fim', dataFim);
+        if (tipo) params.append('tipo', tipo);
+        params.append('por_pagina', '500');
+
+        try {
+          $('#totalAtendimentos').html('<i class="bi bi-hourglass-split"></i>');
+          
+          const res = await fetch(`/api/atendimentos/mapa?${params}`);
+          const data = await res.json();
+          
+          dadosAtendimentos = data.atendimentos || [];
+          
+          renderizarMarcadores(dadosAtendimentos);
+          atualizarResumo(data);
+          renderizarRanking(data.ranking || []);
+          renderizarLista(dadosAtendimentos.slice(0, 50));
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao carregar dados');
+        }
+      }
+
+      function renderizarMarcadores(atendimentos) {
+        markersLayer.clearLayers();
+        
+        if (atendimentos.length === 0) {
+          toastr.info('Nenhuma visita com GPS encontrada');
+          return;
+        }
+
+        const bounds = [];
+
+        atendimentos.forEach(a => {
+          if (!a.latitude_inicio || !a.longitude_inicio) return;
+          
+          const lat = parseFloat(a.latitude_inicio);
+          const lng = parseFloat(a.longitude_inicio);
+          if (!lat || !lng || lat === 0 || lng === 0) return;
+
+          const cor = CORES_TIPO[a.tipo_atendimento] || '#6c757d';
+          const precisaoOk = !a.precisao_gps_inicio || a.precisao_gps_inicio < 100;
+          
+          const icone = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="
+              width: 14px; height: 14px;
+              background: ${cor};
+              border: ${precisaoOk ? '2px solid white' : '3px dashed #ffc107'};
+              border-radius: 50%;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            "></div>`,
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+          });
+
+          const marker = L.marker([lat, lng], { icon: icone });
+          
+          const dataHora = new Date(a.data_hora_inicio).toLocaleString('pt-BR', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          });
+
+          marker.bindPopup(`
+            <div style="min-width: 180px">
+              <strong>${a.funcionario_nome || 'Agente'}</strong><br>
+              <small class="text-muted">${dataHora}</small>
+              <hr class="my-1">
+              ${a.nome_atendido ? `<b>Atendido:</b> ${a.nome_atendido}<br>` : ''}
+              ${a.endereco ? `<b>Local:</b> ${a.endereco}, ${a.numero || 's/n'}<br>` : ''}
+              ${a.bairro ? `<b>Bairro:</b> ${a.bairro}<br>` : ''}
+              ${a.duracao_minutos ? `<b>Duração:</b> ${a.duracao_minutos} min<br>` : ''}
+              <button class="btn btn-sm btn-primary mt-2 w-100" onclick="abrirDetalhes(${a.id})">
+                <i class="bi bi-eye"></i> Detalhes
+              </button>
+            </div>
+          `);
+
+          markersLayer.addLayer(marker);
+          bounds.push([lat, lng]);
+        });
+
+        if (bounds.length > 0) {
+          mapa.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+      }
+
+      function atualizarResumo(data) {
+        $('#totalAtendimentos').text(data.total || 0);
+        $('#totalFuncionarios').text(data.total_funcionarios || 0);
+        $('#totalBairros').text(data.total_bairros || 0);
+        $('#tempoMedio').text(data.tempo_medio || 0);
+        
+        const comGps = data.total > 0 ? Math.round((data.com_gps / data.total) * 100) : 0;
+        $('#comGps').text(comGps + '%');
+      }
+
+      function renderizarRanking(ranking) {
+        const div = $('#rankingFuncionarios');
+        div.empty();
+
+        if (ranking.length === 0) {
+          div.html('<div class="text-center py-3 text-muted small">Sem dados</div>');
+          return;
+        }
+
+        ranking.slice(0, 10).forEach((r, i) => {
+          const medalha = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+          div.append(`
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span>${medalha} ${r.nome}</span>
+              <span class="badge bg-primary rounded-pill">${r.total}</span>
+            </div>
+          `);
+        });
+      }
+
+      function renderizarLista(atendimentos) {
+        const lista = $('#listaAtendimentos');
+        lista.empty();
+        $('#contadorLista').text(dadosAtendimentos.length);
+
+        if (atendimentos.length === 0) {
+          lista.html('<div class="text-center py-3 text-muted small">Nenhuma visita encontrada</div>');
+          return;
+        }
+
+        atendimentos.forEach(a => {
+          const hora = new Date(a.data_hora_inicio).toLocaleTimeString('pt-BR', {
+            hour: '2-digit', minute: '2-digit'
+          });
+          const temGps = a.latitude_inicio ? '<i class="bi bi-geo-alt text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>';
+
+          lista.append(`
+            <a href="#" class="list-group-item list-group-item-action py-2" onclick="abrirDetalhes(${a.id}); return false;">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <strong class="small">${a.funcionario_nome || '-'}</strong>
+                  <small class="d-block text-muted text-truncate" style="max-width: 180px;">
+                    ${a.endereco || a.bairro || 'Sem endereço'}
+                  </small>
+                </div>
+                <div class="text-end">
+                  <small>${hora} ${temGps}</small>
+                </div>
+              </div>
+            </a>
+          `);
+        });
+      }
+
+      async function abrirDetalhes(id) {
+        try {
+          const res = await fetch(`/api/atendimentos/${id}`);
+          const a = await res.json();
+          atendimentoAtual = a;
+
+          $('#detFuncionario').text(`${a.funcionario_nome || '-'} (${a.matricula || '-'})`);
+          
+          let endereco = '-';
+          if (a.endereco) {
+            endereco = `${a.endereco}, ${a.numero || 's/n'}`;
+            if (a.bairro) endereco += ` - ${a.bairro}`;
+            if (a.cidade) endereco += ` - ${a.cidade}`;
+          }
+          $('#detEndereco').text(endereco);
+          
+          $('#detAtendido').text(a.nome_atendido ? `${a.nome_atendido} ${a.documento_atendido ? '(' + a.documento_atendido + ')' : ''}` : '-');
+          
+          $('#detInicio').text(a.data_hora_inicio ? new Date(a.data_hora_inicio).toLocaleString('pt-BR') : '-');
+          $('#detCoordsInicio').text(a.latitude_inicio ? 
+            `<i class="bi bi-geo-alt text-success"></i> ${parseFloat(a.latitude_inicio).toFixed(6)}, ${parseFloat(a.longitude_inicio).toFixed(6)} (±${a.precisao_gps_inicio || '?'}m)` : 
+            '<i class="bi bi-x-circle text-danger"></i> Sem GPS');
+          
+          $('#detFim').text(a.data_hora_fim ? new Date(a.data_hora_fim).toLocaleString('pt-BR') : 'Em andamento');
+          $('#detCoordsFim').text(a.latitude_fim ? 
+            `<i class="bi bi-geo-alt text-success"></i> ${parseFloat(a.latitude_fim).toFixed(6)}, ${parseFloat(a.longitude_fim).toFixed(6)} (±${a.precisao_gps_fim || '?'}m)` : 
+            '-');
+          
+          $('#detDuracao').text(a.duracao_minutos ? `${a.duracao_minutos} minutos` : '-');
+          $('#detObservacoes').text(a.observacoes || 'Nenhuma observação');
+
+          if (a.foto_inicio || a.foto_fim) {
+            $('#rowFotos').show();
+            $('#detFotoInicio').attr('src', a.foto_inicio || '').toggle(!!a.foto_inicio);
+            $('#detFotoFim').attr('src', a.foto_fim || '').toggle(!!a.foto_fim);
+          } else {
+            $('#rowFotos').hide();
+          }
+
+          new bootstrap.Modal($('#modalDetalhes')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar detalhes');
+        }
+      }
+
+      function centralizarNoMapa() {
+        if (!atendimentoAtual?.latitude_inicio) {
+          toastr.warning('Visita sem coordenadas GPS');
+          return;
+        }
+        
+        const lat = parseFloat(atendimentoAtual.latitude_inicio);
+        const lng = parseFloat(atendimentoAtual.longitude_inicio);
+        
+        mapa.setView([lat, lng], 18);
+        bootstrap.Modal.getInstance($('#modalDetalhes')).hide();
+      }
+
+      function exportarKML() {
+        if (dadosAtendimentos.length === 0) {
+          toastr.warning('Nenhum dado para exportar');
+          return;
+        }
+
+        let kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Visitas - ${$('#filtroDataInicio').val()} a ${$('#filtroDataFim').val()}</name>
+  <Style id="visita"><IconStyle><color>ff00ff00</color><scale>1</scale></IconStyle></Style>`;
+
+        dadosAtendimentos.forEach(a => {
+          if (!a.latitude_inicio || !a.longitude_inicio) return;
+          kml += `
+  <Placemark>
+    <name>${a.funcionario_nome || 'Visita'}</name>
+    <description><![CDATA[
+      Data: ${new Date(a.data_hora_inicio).toLocaleString('pt-BR')}<br>
+      Atendido: ${a.nome_atendido || '-'}<br>
+      Endereço: ${a.endereco || '-'}, ${a.numero || 's/n'}<br>
+      Bairro: ${a.bairro || '-'}
+    ]]></description>
+    <Point><coordinates>${a.longitude_inicio},${a.latitude_inicio},0</coordinates></Point>
+  </Placemark>`;
+        });
+
+        kml += `
+</Document>
+</kml>`;
+
+        const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `visitas_${$('#filtroDataInicio').val()}.kml`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+
+    <style>
+      .custom-marker { background: transparent !important; border: none !important; }
+      .marker-cluster-small { background-color: rgba(40, 167, 69, 0.6); }
+      .marker-cluster-small div { background-color: rgba(40, 167, 69, 0.9); }
+      .marker-cluster-medium { background-color: rgba(255, 193, 7, 0.6); }
+      .marker-cluster-medium div { background-color: rgba(255, 193, 7, 0.9); }
+      .marker-cluster-large { background-color: rgba(220, 53, 69, 0.6); }
+      .marker-cluster-large div { background-color: rgba(220, 53, 69, 0.9); }
+      .marker-cluster { border-radius: 50%; }
+      .marker-cluster div { width: 30px; height: 30px; margin: 5px; text-align: center; border-radius: 50%; font-weight: bold; line-height: 30px; color: white; }
+    </style>
+  @end
+@end

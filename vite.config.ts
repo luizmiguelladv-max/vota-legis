@@ -16,4 +16,11 @@ export default defineConfig({
       reload: ['resources/views/**/*.edge'],
     }),
   ],
+  
+  // Porta HMR diferente para não conflitar com outros projetos AdonisJS
+  server: {
+    hmr: {
+      port: 24679
+    }
+  }
 })

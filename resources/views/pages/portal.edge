@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GetPonto | Controle de Ponto Eletrônico Simples e Completo</title>
+  <meta name="description" content="O único sistema que une REP Físico, Leitor Digital e Reconhecimento Facial em uma só plataforma. Controle presença e rotas da sua equipe com precisão. Homologado Portaria 671.">
+  <meta name="author" content="GetPonto">
+  <meta name="keywords" content="controle de ponto, ponto eletrônico, REP, biometria, reconhecimento facial, Portaria 671, gestão de presença, rotas GPS">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://getponto.inf.br">
+  <meta property="og:title" content="GetPonto | Controle de Ponto Eletrônico Simples e Completo">
+  <meta property="og:description" content="O único sistema que une REP Físico, Leitor Digital e Reconhecimento Facial em uma só plataforma.">
+  <meta property="og:image" content="https://getponto.inf.br/assets/og-image.png">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://getponto.inf.br">
+  <meta property="twitter:title" content="GetPonto | Controle de Ponto Eletrônico Simples e Completo">
+  <meta property="twitter:description" content="O único sistema que une REP Físico, Leitor Digital e Reconhecimento Facial em uma só plataforma.">
+  <meta property="twitter:image" content="https://getponto.inf.br/assets/og-image.png">
+  
+  <link rel="canonical" href="https://getponto.inf.br">
+  <link rel="icon" type="image/x-icon" href="/portal/favicon.ico">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ========================================================================
+       VARIÁVEIS E RESET
+       ======================================================================== */
+    :root {
+      --color-primary: #2563eb;
+      --color-primary-dark: #1e40af;
+      --color-primary-light: #3b82f6;
+      --color-secondary: #10b981;
+      --color-secondary-dark: #059669;
+      --color-accent: #f59e0b;
+      --color-danger: #ef4444;
+      --color-gray-50: #f9fafb;
+      --color-gray-100: #f3f4f6;
+      --color-gray-200: #e5e7eb;
+      --color-gray-300: #d1d5db;
+      --color-gray-400: #9ca3af;
+      --color-gray-500: #6b7280;
+      --color-gray-600: #4b5563;
+      --color-gray-700: #374151;
+      --color-gray-800: #1f2937;
+      --color-gray-900: #111827;
+      --color-white: #ffffff;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    body {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--color-gray-800);
+      background: var(--color-white);
+      overflow-x: hidden;
+    }
+    
+    /* ========================================================================
+       UTILITÁRIOS
+       ======================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .container-narrow {
+      max-width: 1024px;
+    }
+    
+    .section {
+      padding: 5rem 0;
+    }
+    
+    .section-gray {
+      background: var(--color-gray-50);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      transition: all var(--transition-base);
+      cursor: pointer;
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+    
+    .btn-primary {
+      background: var(--color-secondary);
+      color: var(--color-white);
+    }
+    
+    .btn-primary:hover {
+      background: var(--color-secondary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-white);
+      border-color: var(--color-white);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--color-white);
+      color: var(--color-primary);
+    }
+    
+    .btn-outline {
+      background: transparent;
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    
+    .btn-outline:hover {
+      background: var(--color-primary);
+      color: var(--color-white);
+    }
+    
+    /* ========================================================================
+       HEADER / NAVBAR
+       ======================================================================== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: transparent;
+      transition: all var(--transition-base);
+    }
+    
+    .header.scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+    
+    .header.scrolled .nav-link {
+      color: var(--color-gray-700);
+    }
+    
+    .header.scrolled .logo {
+      color: var(--color-primary);
+    }
+    
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--color-white);
+      text-decoration: none;
+      transition: color var(--transition-base);
+    }
+    
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--color-secondary);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    
+    .nav-link {
+      color: var(--color-white);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--color-secondary);
+      transition: width var(--transition-base);
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--color-white);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    
+    /* ========================================================================
+       HERO SECTION
+       ======================================================================== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      color: var(--color-white);
+      overflow: hidden;
+      padding-top: 5rem;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    
+    .hero-text h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .hero-text .highlight {
+      color: var(--color-secondary);
+      position: relative;
+      display: inline-block;
+    }
+    
+    .hero-text p {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .hero-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    
+    .hero-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .hero-feature svg {
+      width: 20px;
+      height: 20px;
+      color: var(--color-secondary);
+    }
+    
+    .hero-image {
+      position: relative;
+    }
+    
+    .hero-image img {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      box-shadow: var(--shadow-2xl);
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+    
+    /* ========================================================================
+       FEATURES SECTION
+       ======================================================================== */
+    .features-header {
+      text-align: center;
+      max-width: 768px;
+      margin: 0 auto 4rem;
+    }
+    
+    .features-header h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--color-gray-900);
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .features-header p {
+      font-size: 1.125rem;
+      color: var(--color-gray-600);
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+    
+    .feature-card {
+      background: var(--color-white);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      transition: all var(--transition-base);
+      border: 1px solid var(--color-gray-200);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--color-primary);
+    }
+    
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: var(--color-white);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: 0.75rem;
+    }
+    
+    .feature-card p {
+      color: var(--color-gray-600);
+      line-height: 1.6;
+    }
+    
+    /* ========================================================================
+       RESPONSIVE
+       ======================================================================== */
+    @media (max-width: 1024px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+      
+      .hero-text h1 {
+        font-size: 2.5rem;
+      }
+      
+      .hero-image {
+        order: -1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .nav-menu {
+        display: none;
+      }
+      
+      .mobile-menu-toggle {
+        display: block;
+      }
+      
+      .hero-text h1 {
+        font-size: 2rem;
+      }
+      
+      .hero-text p {
+        font-size: 1rem;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .section {
+        padding: 3rem 0;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container">
+      <nav class="navbar">
+        <a href="/" class="logo">
+          <div class="logo-icon">⏱️</div>
+          <span>GetPonto</span>
+        </a>
+        
+        <ul class="nav-menu">
+          <li><a href="#recursos" class="nav-link">Recursos</a></li>
+          <li><a href="#funcionalidades" class="nav-link">Funcionalidades</a></li>
+          <li><a href="#precos" class="nav-link">Preços</a></li>
+          <li><a href="#contato" class="nav-link">Contato</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+          <a href="/login" class="btn btn-secondary">Entrar</a>
+          <a href="#trial" class="btn btn-primary">Teste Grátis</a>
+        </div>
+        
+        <button class="mobile-menu-toggle" aria-label="Menu">
+          ☰
+        </button>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1>
+            O Único Sistema que Une <span class="highlight">REP, Biometria e Facial</span> em Uma Plataforma
+          </h1>
+          <p>
+            Controle de ponto eletrônico completo e homologado pela Portaria 671/2021. 
+            Gerencie presença, rotas GPS e banco de horas com precisão absoluta.
+          </p>
+          <div class="hero-actions">
+            <a href="#trial" class="btn btn-primary">
+              <i class="bi bi-rocket-takeoff me-2"></i>Teste 14 Dias Grátis
+            </a>
+            <a href="#demo" class="btn btn-secondary">
+              ▶️ Ver Demonstração
+            </a>
+          </div>
+          <div class="hero-features">
+            <div class="hero-feature">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>Sem cartão de crédito</span>
+            </div>
+            <div class="hero-feature">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>Setup em 5 minutos</span>
+            </div>
+            <div class="hero-feature">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>Suporte dedicado</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="/portal/assets/hero-devices-DiwffDYt.png" alt="GetPonto Dashboard" loading="eager">
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FEATURES -->
+  <section id="recursos" class="section section-gray">
+    <div class="container">
+      <div class="features-header">
+        <h2>Tudo que Você Precisa em Um Só Lugar</h2>
+        <p>Funcionalidades completas para gestão de ponto eletrônico homologado</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📷</div>
+          <h3>Reconhecimento Facial</h3>
+          <p>Registro de ponto com câmera e inteligência artificial. Sistema anti-fraude integrado com detecção de vivacidade.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">👆</div>
+          <h3>Biometria Digital</h3>
+          <p>Suporte completo a leitores biométricos Futronic, DigitalPersona e outros modelos homologados.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-building"></i></div>
+          <h3>REP Control iD</h3>
+          <p>Integração nativa com relógios de ponto REP físicos homologados pelo MTE. Sincronização automática.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-clock-history"></i></div>
+          <h3>Banco de Horas</h3>
+          <p>Gestão completa de créditos, débitos e compensações automáticas. Relatórios detalhados por período.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-graph-up"></i></div>
+          <h3>Portaria 671/2021</h3>
+          <p>Sistema 100% homologado. Geração automática de AFD, AFDT e espelho de ponto conforme legislação.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-phone"></i></div>
+          <h3>App Mobile</h3>
+          <p>Aplicativo Android para registro de ponto externo com GPS, foto e reconhecimento facial.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <script>
+    // Navbar scroll effect
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

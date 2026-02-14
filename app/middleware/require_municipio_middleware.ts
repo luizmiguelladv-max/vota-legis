@@ -2,40 +2,32 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 
 /**
- * Middleware que exige que um município esteja selecionado
+ * Middleware que requer município selecionado
  */
 export default class RequireMunicipioMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    const { tenant, response, request } = ctx
+    const { response } = ctx
 
-    // Se não tem município selecionado
-    if (!tenant.municipioId) {
-      // Se for requisição de API, retorna erro JSON
-      if (request.url().startsWith('/api/')) {
-        return response.unauthorized({
-          success: false,
-          error: 'Municipio nao selecionado',
-          message: 'Selecione um municipio para continuar',
-        })
+    // Super admin pode acessar sem município em algumas rotas
+    if (ctx.tenant?.isSuperAdmin && !ctx.tenant.municipioId) {
+      // Permite acesso a rotas admin sem município selecionado
+      const path = ctx.request.url()
+      if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
+        return next()
       }
-
-      // Se for requisição web, redireciona
-      return response.redirect().toRoute('selecionar-municipio')
     }
 
-    // Verifica se o banco do município foi criado
-    if (!tenant.municipio?.bancoCriado) {
-      if (request.url().startsWith('/api/')) {
-        return response.serviceUnavailable({
-          success: false,
-          error: 'Banco de dados nao configurado',
-          message: 'O banco de dados deste municipio ainda nao foi configurado',
-        })
+    // Verifica se há município selecionado
+    if (!ctx.tenant?.municipioId || !ctx.tenant.municipio) {
+      // Para APIs retorna JSON
+      if (ctx.request.url().startsWith('/api')) {
+        return response.unauthorized({ error: 'Nenhum município selecionado' })
       }
 
-      return response.redirect().toRoute('municipio-pendente')
+      // Para páginas redireciona para seleção
+      return response.redirect('/selecionar-municipio')
     }
 
-    return next()
+    await next()
   }
 }

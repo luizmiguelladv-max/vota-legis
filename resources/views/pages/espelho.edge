@@ -1,0 +1,1246 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Espelho de Ponto</h4>
+        <p class="text-muted mb-0">Visualizar e processar espelhos de ponto dos funcionarios</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success d-none" id="btnAprovarLote" onclick="aprovarEmLote()">
+          <i class="bi bi-check-all me-2"></i>Aprovar Selecionados (<span id="qtdSelecionados">0</span>)
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProcessar">
+          <i class="bi bi-gear me-2"></i>Processar Periodo
+        </button>
+      </div>
+    </div>
+
+    {{-- Filtros com Select2 e filtragem automática --}}
+    @let(isPrivada = entidade?.tipo === 'PRIVADA')
+    @let(labelSecretaria = isPrivada ? 'Departamento' : 'Secretaria')
+    @let(labelLotacao = isPrivada ? 'Setor' : 'Lotação')
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-2">
+            <label class="form-label">{{ labelSecretaria }}</label>
+            <select class="form-select filtro-select2" id="filtroSecretaria">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">{{ labelLotacao }}</label>
+            <select class="form-select filtro-select2" id="filtroLotacao">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Funcionário</label>
+            <select class="form-select filtro-select2" id="filtroFuncionario">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-6 col-lg-1" style="min-width: 90px;">
+            <label class="form-label">Mês</label>
+            <select class="form-select filtro-select2" id="filtroMes">
+              <option value="">Todos</option>
+              <option value="1">Jan</option>
+              <option value="2">Fev</option>
+              <option value="3">Mar</option>
+              <option value="4">Abr</option>
+              <option value="5">Mai</option>
+              <option value="6">Jun</option>
+              <option value="7">Jul</option>
+              <option value="8">Ago</option>
+              <option value="9">Set</option>
+              <option value="10">Out</option>
+              <option value="11">Nov</option>
+              <option value="12">Dez</option>
+            </select>
+          </div>
+          <div class="col-6 col-lg-1" style="min-width: 90px;">
+            <label class="form-label">Ano</label>
+            <select class="form-select filtro-select2" id="filtroAno">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-6 col-lg-1" style="min-width: 100px;">
+            <label class="form-label">Status</label>
+            <select class="form-select filtro-select2" id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="ABERTO">Aberto</option>
+              <option value="FECHADO">Fechado</option>
+              <option value="APROVADO">Aprovado</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Jornada</label>
+            <select class="form-select filtro-select2" id="filtroJornada">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="col-auto d-flex gap-2 align-items-end">
+            <button class="btn btn-outline-secondary" onclick="limparFiltros()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaEspelhos" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" id="checkTodos" onclick="toggleTodos(this)"></th>
+              <th>Funcionario</th>
+              <th>Matricula</th>
+              <th>Periodo</th>
+              <th>Dias Trab.</th>
+              <th>Horas Trab.</th>
+              <th>H. Extras</th>
+              <th>H. Faltantes</th>
+              <th>Atrasos</th>
+              <th>Faltas</th>
+              <th>Status</th>
+              <th>Acoes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal Processar Periodo --}}
+    <div class="modal fade" id="modalProcessar" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Processar Periodo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            {{-- Formulário de seleção --}}
+            <div id="formProcessar">
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="form-label">Mes *</label>
+                  <select class="form-select" id="processarMes" required>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Marco</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Ano *</label>
+                  <select class="form-select" id="processarAno" required></select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Funcionarios</label>
+                  <select class="form-select" id="processarFuncionarios" multiple size="5">
+                  </select>
+                  <small class="text-muted">Deixe vazio para processar todos os funcionarios ativos</small>
+                </div>
+              </div>
+            </div>
+
+            {{-- Barra de progresso (oculta inicialmente) --}}
+            <div id="progressoProcessamento" class="d-none">
+              <div class="text-center mb-3">
+                <div class="spinner-border text-primary mb-2"></div>
+                <h6 id="progressoNomeFuncionario">Iniciando...</h6>
+              </div>
+              <div class="progress mb-2" style="height: 25px;">
+                <div id="progressoBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+                  0%
+                </div>
+              </div>
+              <p class="text-muted text-center mb-0">
+                <span id="progressoAtual">0</span> de <span id="progressoTotal">0</span> funcionários
+              </p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="processarPeriodo()" id="btnProcessar">
+              <i class="bi bi-gear me-2"></i>Processar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Ver Espelho --}}
+    <div class="modal fade" id="modalEspelho" tabindex="-1">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEspelhoTitle">Espelho de Ponto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="modalEspelhoBody">
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary"></div>
+              <p class="mt-2">Carregando espelho...</p>
+            </div>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <div>
+              <button type="button" class="btn btn-outline-danger d-none" id="btnReprovar" onclick="abrirModalReprovar()">
+                <i class="bi bi-x-circle me-2"></i>Reprovar
+              </button>
+              <button type="button" class="btn btn-outline-warning d-none" id="btnReabrir" onclick="abrirModalReabrir()">
+                <i class="bi bi-unlock me-2"></i>Reabrir
+              </button>
+            </div>
+            <div class="d-flex gap-2">
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-download me-2"></i>Exportar
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#" onclick="downloadPDF()"><i class="bi bi-file-pdf me-2"></i>PDF</a></li>
+                  <li><a class="dropdown-item" href="#" onclick="downloadExcel()"><i class="bi bi-file-excel me-2"></i>Excel</a></li>
+                </ul>
+              </div>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-success d-none" id="btnAprovar" onclick="aprovarEspelho()">
+                <i class="bi bi-check-lg me-2"></i>Aprovar
+              </button>
+              <button type="button" class="btn btn-primary" onclick="imprimirEspelho()">
+                <i class="bi bi-printer me-2"></i>Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Motivo Reprovar/Reabrir --}}
+    <div class="modal fade" id="modalMotivo" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalMotivoTitle">Motivo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Informe o motivo:</label>
+              <textarea class="form-control" id="inputMotivo" rows="3" placeholder="Descreva o motivo..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarMotivo" onclick="confirmarMotivo()">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Editar Marcacao --}}
+    <div class="modal fade" id="modalEditarMarcacao" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Editar Marcacao</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data/Hora</label>
+              <input type="datetime-local" class="form-control" id="editDataHora">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Justificativa *</label>
+              <textarea class="form-control" id="editJustificativa" rows="2" placeholder="Justifique a alteracao..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-danger" onclick="excluirMarcacao()">
+              <i class="bi bi-trash me-2"></i>Excluir
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="salvarMarcacao()">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Adicionar Marcacao --}}
+    <div class="modal fade" id="modalAdicionarMarcacao" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Adicionar Marcacao</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data/Hora</label>
+              <input type="datetime-local" class="form-control" id="novaDataHora">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="novoTipo">
+                <option value="">Automatico</option>
+                <option value="ENTRADA">Entrada</option>
+                <option value="SAIDA">Saida</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Justificativa *</label>
+              <textarea class="form-control" id="novaJustificativa" rows="2" placeholder="Justifique a adicao..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="adicionarMarcacao()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let dataTable;
+      let espelhosData = [];
+      let funcionariosData = [];
+      let espelhoAtual = null;
+      let espelhosSelecionados = [];
+      let acaoMotivo = null; // 'reprovar' ou 'reabrir'
+      let marcacaoAtual = null;
+
+      $(document).ready(function() {
+        // Preenche anos
+        const anoAtual = new Date().getFullYear();
+        for (let ano = anoAtual; ano >= anoAtual - 5; ano--) {
+          $('#filtroAno, #processarAno').append(`<option value="${ano}">${ano}</option>`);
+        }
+
+        // Seleciona mes/ano atual
+        const mesAtual = new Date().getMonth() + 1;
+        $('#filtroMes').val(mesAtual);
+        $('#filtroAno').val(anoAtual);
+        $('#processarMes').val(mesAtual);
+        $('#processarAno').val(anoAtual);
+
+        // Inicializa Select2 nos filtros
+        $('.filtro-select2').select2({
+          theme: 'bootstrap-5',
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Eventos de mudança - filtra automaticamente ao selecionar
+        $('.filtro-select2').on('change', function() {
+          // Se mudou secretaria, recarrega lotações
+          if (this.id === 'filtroSecretaria') {
+            carregarLotacoes();
+          }
+          // Se mudou lotação, recarrega funcionários filtrados
+          if (this.id === 'filtroLotacao') {
+            carregarFuncionariosFiltrados();
+          }
+          carregarEspelhos();
+        });
+
+        carregarSecretarias();
+        carregarLotacoes();
+        carregarFuncionarios();
+        carregarJornadas();
+        carregarEspelhos();
+      });
+
+      async function carregarSecretarias() {
+        try {
+          const response = await fetch('/api/secretarias');
+          const result = await response.json();
+          const secretarias = result.data || result || [];
+
+          const select = document.getElementById('filtroSecretaria');
+          select.innerHTML = '<option value="">Todos</option>';
+          secretarias.forEach(s => {
+            select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+          });
+
+          $('#filtroSecretaria').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Todos',
+            allowClear: true
+          });
+        } catch (error) {
+          console.error('Erro ao carregar secretarias:', error);
+        }
+      }
+
+      async function carregarLotacoes() {
+        try {
+          const secretariaId = $('#filtroSecretaria').val();
+          let url = '/api/lotacoes';
+          if (secretariaId) {
+            url += `?secretaria_id=${secretariaId}`;
+          }
+
+          const response = await fetch(url);
+          const result = await response.json();
+          const lotacoes = result.data || result || [];
+
+          const select = document.getElementById('filtroLotacao');
+          select.innerHTML = '<option value="">Todos</option>';
+          lotacoes.forEach(l => {
+            select.innerHTML += `<option value="${l.id}">${l.nome}</option>`;
+          });
+
+          $('#filtroLotacao').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Todos',
+            allowClear: true
+          });
+        } catch (error) {
+          console.error('Erro ao carregar lotacoes:', error);
+        }
+      }
+
+      async function carregarFuncionariosFiltrados() {
+        try {
+          const lotacaoId = $('#filtroLotacao').val();
+          let url = '/api/funcionarios/select';
+          if (lotacaoId) {
+            url += `?lotacao_id=${lotacaoId}`;
+          }
+
+          const response = await fetch(url);
+          const result = await response.json();
+          funcionariosData = Array.isArray(result) ? result : (result.data || []);
+
+          const select = document.getElementById('filtroFuncionario');
+          select.innerHTML = '<option value="">Todos</option>';
+          funcionariosData.forEach(f => {
+            select.innerHTML += `<option value="${f.id}">${f.matricula} - ${f.nome}</option>`;
+          });
+
+          $('#filtroFuncionario').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Todos',
+            allowClear: true
+          });
+        } catch (error) {
+          console.error('Erro ao carregar funcionarios filtrados:', error);
+        }
+      }
+
+      async function carregarJornadas() {
+        try {
+          const response = await fetch('/api/jornadas');
+          const data = await response.json();
+          const jornadas = Array.isArray(data) ? data : (data.data || []);
+
+          const select = document.getElementById('filtroJornada');
+          jornadas.forEach(j => {
+            select.innerHTML += `<option value="${j.id}">${j.nome}</option>`;
+          });
+
+          // Reinicializa Select2 após carregar as jornadas
+          $('#filtroJornada').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Todas',
+            allowClear: true
+          });
+        } catch (error) {
+          console.error('Erro ao carregar jornadas:', error);
+        }
+      }
+
+      async function carregarFuncionarios() {
+        try {
+          const response = await fetch('/api/funcionarios/select');
+          const result = await response.json();
+          funcionariosData = Array.isArray(result) ? result : (result.data || []);
+
+          // Preenche selects
+          funcionariosData.forEach(f => {
+            $('#filtroFuncionario, #processarFuncionarios').append(
+              `<option value="${f.id}">${f.matricula} - ${f.nome}</option>`
+            );
+          });
+
+          // Reinicializa Select2 após carregar os funcionários
+          $('#filtroFuncionario').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Todos',
+            allowClear: true
+          });
+        } catch (error) {
+          console.error('Erro ao carregar funcionarios:', error);
+        }
+      }
+
+      async function carregarEspelhos() {
+        try {
+          const params = new URLSearchParams();
+          const secretaria = $('#filtroSecretaria').val();
+          const lotacao = $('#filtroLotacao').val();
+          const funcionario = $('#filtroFuncionario').val();
+          const mes = $('#filtroMes').val();
+          const ano = $('#filtroAno').val();
+          const status = $('#filtroStatus').val();
+          const jornada = $('#filtroJornada').val();
+
+          if (secretaria) params.append('secretaria_id', secretaria);
+          if (lotacao) params.append('lotacao_id', lotacao);
+          if (funcionario) params.append('funcionario_id', funcionario);
+          if (mes) params.append('mes', mes);
+          if (ano) params.append('ano', ano);
+          if (status) params.append('status', status);
+          if (jornada) params.append('jornada_id', jornada);
+
+          const response = await fetch('/api/ponto/espelhos?' + params.toString());
+          const result = await response.json();
+          espelhosData = result.data || result || [];
+          espelhosSelecionados = [];
+          atualizarBotaoLote();
+
+          if (dataTable) {
+            dataTable.destroy();
+          }
+
+          dataTable = $('#tabelaEspelhos').DataTable({
+            data: espelhosData,
+            columns: [
+              {
+                data: null,
+                orderable: false,
+                render: function(data) {
+                  if (data.status === 'ABERTO' || data.status === 'FECHADO') {
+                    return `<input type="checkbox" class="check-espelho" data-id="${data.id}" onchange="toggleSelecao(${data.id})">`;
+                  }
+                  return '';
+                }
+              },
+              { data: 'funcionario_nome', defaultContent: '-' },
+              { data: 'matricula', defaultContent: '-' },
+              {
+                data: null,
+                render: function(data) {
+                  const meses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                  return `${meses[data.mes] || '-'}/${data.ano || '-'}`;
+                }
+              },
+              { data: 'dias_trabalhados', defaultContent: '0' },
+              {
+                data: 'horas_trabalhadas',
+                render: function(data) {
+                  return formatarMinutos(data || 0);
+                }
+              },
+              {
+                data: 'horas_extras',
+                render: function(data) {
+                  const val = data || 0;
+                  return val > 0 ? `<span class="text-success">+${formatarMinutos(val)}</span>` : '-';
+                }
+              },
+              {
+                data: 'horas_faltantes',
+                render: function(data) {
+                  const val = data || 0;
+                  return val > 0 ? `<span class="text-danger">-${formatarMinutos(val)}</span>` : '-';
+                }
+              },
+              {
+                data: 'atrasos',
+                render: function(data) {
+                  const val = data || 0;
+                  return val > 0 ? `<span class="text-warning">${formatarMinutos(val)}</span>` : '-';
+                }
+              },
+              {
+                data: 'faltas',
+                render: function(data) {
+                  const val = data || 0;
+                  return val > 0 ? `<span class="text-danger">${val}</span>` : '-';
+                }
+              },
+              {
+                data: 'status',
+                render: function(data) {
+                  const badges = {
+                    'ABERTO': 'bg-warning text-dark',
+                    'FECHADO': 'bg-info',
+                    'APROVADO': 'bg-success'
+                  };
+                  return `<span class="badge ${badges[data] || 'bg-secondary'}">${data || '-'}</span>`;
+                }
+              },
+              {
+                data: null,
+                orderable: false,
+                render: function(data) {
+                  let btns = `
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="verEspelho(${data.funcionario_id}, ${data.mes}, ${data.ano})" title="Ver Espelho">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  `;
+                  if (data.status === 'ABERTO' || data.status === 'FECHADO') {
+                    btns += `
+                      <button class="btn btn-sm btn-outline-success" onclick="aprovarEspelhoRapido(${data.id})" title="Aprovar">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    `;
+                  }
+                  if (data.status === 'APROVADO') {
+                    btns += `
+                      <button class="btn btn-sm btn-outline-warning" onclick="reabrirEspelhoRapido(${data.id})" title="Reabrir">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                      </button>
+                    `;
+                  }
+                  return btns;
+                }
+              }
+            ],
+            order: [[3, 'desc'], [1, 'asc']],
+            language: {
+              emptyTable: "Nenhum espelho encontrado. Use 'Processar Periodo' para gerar."
+            }
+          });
+        } catch (error) {
+          console.error('Erro ao carregar espelhos:', error);
+          toastr.error('Erro ao carregar espelhos');
+        }
+      }
+
+      // Toggle selecao individual
+      function toggleSelecao(id) {
+        const idx = espelhosSelecionados.indexOf(id);
+        if (idx === -1) {
+          espelhosSelecionados.push(id);
+        } else {
+          espelhosSelecionados.splice(idx, 1);
+        }
+        atualizarBotaoLote();
+      }
+
+      // Toggle selecionar todos
+      function toggleTodos(checkbox) {
+        espelhosSelecionados = [];
+        if (checkbox.checked) {
+          $('.check-espelho').each(function() {
+            $(this).prop('checked', true);
+            espelhosSelecionados.push(Number($(this).data('id')));
+          });
+        } else {
+          $('.check-espelho').prop('checked', false);
+        }
+        atualizarBotaoLote();
+      }
+
+      // Atualiza botao de aprovar em lote
+      function atualizarBotaoLote() {
+        const qtd = espelhosSelecionados.length;
+        $('#qtdSelecionados').text(qtd);
+        if (qtd > 0) {
+          $('#btnAprovarLote').removeClass('d-none');
+        } else {
+          $('#btnAprovarLote').addClass('d-none');
+        }
+      }
+
+      // Aprovar em lote
+      async function aprovarEmLote() {
+        if (espelhosSelecionados.length === 0) return;
+
+        if (!await confirmar(`Deseja aprovar ${espelhosSelecionados.length} espelho(s)?`, { tipo: 'success', titulo: 'Aprovar em Lote' })) return;
+
+        try {
+          const response = await fetch('/api/ponto/espelhos/aprovar-lote', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ ids: espelhosSelecionados })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            toastr.success(result.message);
+            $('#checkTodos').prop('checked', false);
+            carregarEspelhos();
+          } else {
+            toastr.error(result.error || 'Erro ao aprovar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao aprovar em lote');
+        }
+      }
+
+      function limparFiltros() {
+        $('#filtroSecretaria').val('').trigger('change.select2');
+        $('#filtroLotacao').val('').trigger('change.select2');
+        $('#filtroFuncionario').val('').trigger('change.select2');
+        $('#filtroMes').val('').trigger('change.select2');
+        $('#filtroAno').val('').trigger('change.select2');
+        $('#filtroStatus').val('').trigger('change.select2');
+        $('#filtroJornada').val('').trigger('change.select2');
+        carregarLotacoes();
+        carregarFuncionarios();
+        carregarEspelhos();
+      }
+
+      async function processarPeriodo() {
+        const mes = $('#processarMes').val();
+        const ano = $('#processarAno').val();
+        const funcionarios = $('#processarFuncionarios').val();
+
+        if (!mes || !ano) {
+          toastr.warning('Selecione mes e ano');
+          return;
+        }
+
+        try {
+          // Mostra barra de progresso e oculta formulário
+          $('#formProcessar').addClass('d-none');
+          $('#progressoProcessamento').removeClass('d-none');
+          $('#btnProcessar').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processando...');
+
+          // Conecta ao WebSocket para receber progresso
+          const socket = io({ path: '/ws', transports: ['websocket', 'polling'] });
+          const municipioId = {{ tenant?.municipioId || 1 }};
+          socket.emit('subscribe', municipioId);
+
+          // Listener de progresso
+          socket.on('progresso-espelho', (progresso) => {
+            $('#progressoNomeFuncionario').text(progresso.funcionario_nome);
+            $('#progressoBar').css('width', progresso.percentual + '%').text(progresso.percentual + '%');
+            $('#progressoAtual').text(progresso.atual);
+            $('#progressoTotal').text(progresso.total);
+
+            if (progresso.status === 'concluido') {
+              socket.disconnect();
+            }
+          });
+
+          const response = await fetch('/api/ponto/processarPeriodo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({
+              mes: Number(mes),
+              ano: Number(ano),
+              funcionario_ids: funcionarios?.length > 0 ? funcionarios.map(Number) : null
+            })
+          });
+
+          const result = await response.json();
+          socket.disconnect();
+
+          if (response.ok) {
+            toastr.success(result.message || 'Periodo processado com sucesso');
+            bootstrap.Modal.getInstance(document.getElementById('modalProcessar')).hide();
+            carregarEspelhos();
+          } else {
+            toastr.error(result.error || 'Erro ao processar periodo');
+          }
+        } catch (error) {
+          console.error('Erro:', error);
+          toastr.error('Erro ao processar periodo');
+        } finally {
+          // Restaura estado inicial
+          $('#formProcessar').removeClass('d-none');
+          $('#progressoProcessamento').addClass('d-none');
+          $('#progressoBar').css('width', '0%').text('0%');
+          $('#btnProcessar').prop('disabled', false).html('<i class="bi bi-gear me-2"></i>Processar');
+        }
+      }
+
+      async function verEspelho(funcionarioId, mes, ano) {
+        espelhoAtual = { funcionarioId, mes, ano };
+        $('#modalEspelhoBody').html(`
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Carregando espelho...</p>
+          </div>
+        `);
+        new bootstrap.Modal(document.getElementById('modalEspelho')).show();
+
+        try {
+          const response = await fetch(`/api/ponto/espelho?funcionario_id=${funcionarioId}&mes=${mes}&ano=${ano}`);
+          const espelho = await response.json();
+
+          // Salva ID do espelho
+          espelhoAtual.espelhoId = espelho.id;
+
+          const meses = ['', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+          const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+
+          // Atualiza titulo
+          $('#modalEspelhoTitle').text(`Espelho de Ponto - ${espelho.funcionario?.nome || 'Funcionario'} - ${meses[mes]}/${ano}`);
+
+          // Mostra/esconde botoes conforme status
+          $('#btnAprovar, #btnReprovar, #btnReabrir').addClass('d-none');
+          if (espelho.status === 'ABERTO' || espelho.status === 'FECHADO') {
+            $('#btnAprovar').removeClass('d-none').data('id', espelho.id);
+          }
+          if (espelho.status === 'FECHADO' || espelho.status === 'APROVADO') {
+            $('#btnReprovar').removeClass('d-none');
+          }
+          // Botao reabrir so para APROVADO
+          if (espelho.status === 'APROVADO') {
+            $('#btnReabrir').removeClass('d-none');
+          }
+
+          // Monta HTML do espelho
+          let html = `
+            <div class="container-fluid">
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-2">Funcionario</h6>
+                  <p class="mb-1"><strong>${espelho.funcionario?.nome || '-'}</strong></p>
+                  <p class="mb-1">Matricula: ${espelho.funcionario?.matricula || '-'}</p>
+                  <p class="mb-1">Lotacao: ${espelho.funcionario?.lotacao_nome || '-'}</p>
+                  <p class="mb-0">Jornada: ${espelho.funcionario?.jornada_nome || '-'} (${formatarMinutos(espelho.funcionario?.carga_horaria_diaria || 480)}/dia)</p>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-2">Resumo do Periodo</h6>
+                  <div class="row">
+                    <div class="col-6">
+                      <p class="mb-1">Dias Trabalhados: <strong>${espelho.dias_trabalhados || 0}</strong></p>
+                      <p class="mb-1">Horas Trabalhadas: <strong>${formatarMinutos(espelho.horas_trabalhadas || 0)}</strong></p>
+                      <p class="mb-0">Faltas: <strong class="text-danger">${espelho.faltas || 0}</strong></p>
+                    </div>
+                    <div class="col-6">
+                      <p class="mb-1">Horas Extras: <strong class="text-success">+${formatarMinutos(espelho.horas_extras || 0)}</strong></p>
+                      <p class="mb-1">Horas Faltantes: <strong class="text-danger">-${formatarMinutos(espelho.horas_faltantes || 0)}</strong></p>
+                      <p class="mb-0">Atrasos: <strong class="text-warning">${formatarMinutos(espelho.atrasos || 0)}</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert ${espelho.status === 'APROVADO' ? 'alert-success' : espelho.status === 'FECHADO' ? 'alert-info' : 'alert-warning'} mb-4">
+                <i class="bi ${espelho.status === 'APROVADO' ? 'bi-check-circle' : espelho.status === 'FECHADO' ? 'bi-lock' : 'bi-clock'} me-2"></i>
+                Status: <strong>${espelho.status || 'ABERTO'}</strong>
+                ${espelho.calculado ? ' <span class="badge bg-secondary">Calculado em tempo real</span>' : ''}
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:100px">Data</th>
+                      <th style="width:50px">Dia</th>
+                      <th>Registros</th>
+                      <th style="width:80px">Previsto</th>
+                      <th style="width:80px">Trabalhado</th>
+                      <th style="width:80px">Saldo</th>
+                      <th>Ocorrencias</th>
+                      <th style="width:60px" class="no-print">Acao</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          // Verifica se pode editar (nao aprovado)
+          const podeEditar = espelho.status !== 'APROVADO';
+
+          // Lista dias
+          const dias = espelho.dados?.dias || [];
+          dias.forEach(dia => {
+            const data = new Date(dia.data + 'T12:00:00');
+            const diaSem = diasSemana[data.getDay()];
+            const isWeekend = data.getDay() === 0 || data.getDay() === 6;
+
+            // Formata registros
+            let registrosHtml = '-';
+            if (dia.registros && dia.registros.length > 0) {
+              registrosHtml = dia.registros.map(r => {
+                const dt = new Date(r);
+                return dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              }).join(' | ');
+            }
+
+            // Calcula saldo do dia
+            const saldo = dia.horasTrabalhadas - dia.horasPrevistas;
+            let saldoClass = '';
+            let saldoStr = '-';
+            if (dia.horasPrevistas > 0) {
+              if (saldo > 0) {
+                saldoClass = 'text-success';
+                saldoStr = '+' + formatarMinutos(saldo);
+              } else if (saldo < 0) {
+                saldoClass = 'text-danger';
+                saldoStr = '-' + formatarMinutos(Math.abs(saldo));
+              } else {
+                saldoStr = '0';
+              }
+            }
+
+            // Formata ocorrencias
+            let ocorrenciasHtml = '-';
+            if (dia.ocorrencias && dia.ocorrencias.length > 0) {
+              ocorrenciasHtml = dia.ocorrencias.map(o => {
+                let cls = 'bg-secondary';
+                if (o.includes('FALTA')) cls = 'bg-danger';
+                else if (o.includes('ATRASO')) cls = 'bg-warning text-dark';
+                else if (o.includes('HORA EXTRA')) cls = 'bg-success';
+                else if (o.includes('FALTANTE')) cls = 'bg-danger';
+                else if (o.includes('IMPAR')) cls = 'bg-warning text-dark';
+                else if (o.includes('FERIADO') || o.includes('FOLGA')) cls = 'bg-info';
+                return `<span class="badge ${cls} me-1">${o}</span>`;
+              }).join('');
+            }
+
+            // Botao de adicionar marcacao
+            const btnAdicionar = podeEditar ?
+              `<button class="btn btn-sm btn-outline-primary" onclick="abrirAdicionarMarcacao('${dia.data}')" title="Adicionar marcacao">
+                <i class="bi bi-plus-lg"></i>
+              </button>` : '';
+
+            html += `
+              <tr class="${isWeekend || dia.feriado || dia.folga ? 'table-light text-muted' : ''} ${dia.falta ? 'table-danger' : ''}">
+                <td>${dia.data.split('-').reverse().join('/')}</td>
+                <td>${diaSem}</td>
+                <td><small>${registrosHtml}</small></td>
+                <td>${dia.horasPrevistas > 0 ? formatarMinutos(dia.horasPrevistas) : '-'}</td>
+                <td>${dia.horasTrabalhadas > 0 ? formatarMinutos(dia.horasTrabalhadas) : '-'}</td>
+                <td class="${saldoClass}">${saldoStr}</td>
+                <td>${ocorrenciasHtml}</td>
+                <td class="no-print">${btnAdicionar}</td>
+              </tr>
+            `;
+          });
+
+          html += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+
+          $('#modalEspelhoBody').html(html);
+        } catch (error) {
+          console.error('Erro:', error);
+          $('#modalEspelhoBody').html(`
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Erro ao carregar espelho: ${error.message}
+            </div>
+          `);
+        }
+      }
+
+      async function aprovarEspelhoRapido(id) {
+        if (!await confirmar('Deseja aprovar este espelho de ponto?', { tipo: 'success', titulo: 'Aprovar Espelho' })) return;
+
+        try {
+          const response = await fetch(`/api/ponto/espelhos/${id}/aprovar`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+          });
+
+          if (response.ok) {
+            toastr.success('Espelho aprovado');
+            carregarEspelhos();
+          } else {
+            toastr.error('Erro ao aprovar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao aprovar');
+        }
+      }
+
+      async function aprovarEspelho() {
+        const id = $('#btnAprovar').data('id');
+        if (!id) return;
+
+        await aprovarEspelhoRapido(id);
+        bootstrap.Modal.getInstance(document.getElementById('modalEspelho')).hide();
+      }
+
+      async function reabrirEspelhoRapido(id) {
+        if (!await confirmar('Deseja reabrir este espelho de ponto?', { tipo: 'warning', titulo: 'Reabrir Espelho' })) return;
+
+        try {
+          const response = await fetch(`/api/ponto/espelhos/${id}/reabrir`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+          });
+
+          if (response.ok) {
+            toastr.success('Espelho reaberto');
+            carregarEspelhos();
+          } else {
+            toastr.error('Erro ao reabrir');
+          }
+        } catch (error) {
+          toastr.error('Erro ao reabrir');
+        }
+      }
+
+      function imprimirEspelho() {
+        window.print();
+      }
+
+      // Download PDF
+      function downloadPDF() {
+        if (!espelhoAtual) return;
+        const { funcionarioId, mes, ano } = espelhoAtual;
+        window.open(`/api/ponto/espelho/pdf?funcionario_id=${funcionarioId}&mes=${mes}&ano=${ano}`, '_blank');
+      }
+
+      // Download Excel
+      function downloadExcel() {
+        if (!espelhoAtual) return;
+        const { funcionarioId, mes, ano } = espelhoAtual;
+        window.open(`/api/ponto/espelho/excel?funcionario_id=${funcionarioId}&mes=${mes}&ano=${ano}`, '_blank');
+      }
+
+      // Abrir modal para reprovar
+      function abrirModalReprovar() {
+        acaoMotivo = 'reprovar';
+        $('#modalMotivoTitle').text('Reprovar Espelho');
+        $('#inputMotivo').val('');
+        $('#btnConfirmarMotivo').removeClass('btn-warning').addClass('btn-danger').text('Reprovar');
+        new bootstrap.Modal(document.getElementById('modalMotivo')).show();
+      }
+
+      // Abrir modal para reabrir
+      function abrirModalReabrir() {
+        acaoMotivo = 'reabrir';
+        $('#modalMotivoTitle').text('Reabrir Espelho');
+        $('#inputMotivo').val('');
+        $('#btnConfirmarMotivo').removeClass('btn-danger').addClass('btn-warning').text('Reabrir');
+        new bootstrap.Modal(document.getElementById('modalMotivo')).show();
+      }
+
+      // Confirmar acao de reprovar/reabrir
+      async function confirmarMotivo() {
+        const motivo = $('#inputMotivo').val().trim();
+        const id = $('#btnAprovar').data('id') || espelhoAtual?.espelhoId;
+
+        if (!id) {
+          toastr.error('Espelho nao identificado');
+          return;
+        }
+
+        if (acaoMotivo === 'reprovar' && !motivo) {
+          toastr.warning('Informe o motivo da reprovacao');
+          return;
+        }
+
+        try {
+          const endpoint = acaoMotivo === 'reprovar' ? 'reprovar' : 'reabrir';
+          const response = await fetch(`/api/ponto/espelhos/${id}/${endpoint}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ motivo })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            toastr.success(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('modalMotivo')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('modalEspelho'))?.hide();
+            carregarEspelhos();
+          } else {
+            toastr.error(result.error || 'Erro na operacao');
+          }
+        } catch (error) {
+          toastr.error('Erro ao processar');
+        }
+      }
+
+      // Abrir modal para editar marcacao
+      function abrirEditarMarcacao(registroId, dataHora) {
+        marcacaoAtual = { id: registroId, dataHora };
+        const dt = new Date(dataHora);
+        const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        $('#editDataHora').val(local);
+        $('#editJustificativa').val('');
+        new bootstrap.Modal(document.getElementById('modalEditarMarcacao')).show();
+      }
+
+      // Salvar marcacao editada
+      async function salvarMarcacao() {
+        if (!marcacaoAtual?.id) return;
+
+        const dataHora = $('#editDataHora').val();
+        const justificativa = $('#editJustificativa').val().trim();
+
+        if (!justificativa) {
+          toastr.warning('Justificativa obrigatoria');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/ponto/marcacoes/${marcacaoAtual.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ data_hora: dataHora, justificativa })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            toastr.success(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarMarcacao')).hide();
+            // Recarrega o espelho
+            if (espelhoAtual) {
+              verEspelho(espelhoAtual.funcionarioId, espelhoAtual.mes, espelhoAtual.ano);
+            }
+          } else {
+            toastr.error(result.error || 'Erro ao salvar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao salvar marcacao');
+        }
+      }
+
+      // Excluir marcacao
+      async function excluirMarcacao() {
+        if (!marcacaoAtual?.id) return;
+
+        const justificativa = $('#editJustificativa').val().trim();
+        if (!justificativa) {
+          toastr.warning('Informe uma justificativa para excluir');
+          return;
+        }
+
+        if (!await confirmar('Deseja excluir esta marcacao?', { tipo: 'danger', titulo: 'Excluir Marcacao' })) return;
+
+        try {
+          const response = await fetch(`/api/ponto/marcacoes/${marcacaoAtual.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ justificativa })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            toastr.success(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarMarcacao')).hide();
+            if (espelhoAtual) {
+              verEspelho(espelhoAtual.funcionarioId, espelhoAtual.mes, espelhoAtual.ano);
+            }
+          } else {
+            toastr.error(result.error || 'Erro ao excluir');
+          }
+        } catch (error) {
+          toastr.error('Erro ao excluir marcacao');
+        }
+      }
+
+      // Abrir modal para adicionar marcacao
+      function abrirAdicionarMarcacao(data) {
+        const dataFormatada = data + 'T08:00';
+        $('#novaDataHora').val(dataFormatada);
+        $('#novoTipo').val('');
+        $('#novaJustificativa').val('');
+        new bootstrap.Modal(document.getElementById('modalAdicionarMarcacao')).show();
+      }
+
+      // Adicionar nova marcacao
+      async function adicionarMarcacao() {
+        if (!espelhoAtual) return;
+
+        const dataHora = $('#novaDataHora').val();
+        const tipo = $('#novoTipo').val();
+        const justificativa = $('#novaJustificativa').val().trim();
+
+        if (!justificativa) {
+          toastr.warning('Justificativa obrigatoria');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/ponto/registros', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({
+              funcionario_id: espelhoAtual.funcionarioId,
+              data_hora: dataHora,
+              tipo: tipo || null,
+              justificativa
+            })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            toastr.success('Marcacao adicionada');
+            bootstrap.Modal.getInstance(document.getElementById('modalAdicionarMarcacao')).hide();
+            verEspelho(espelhoAtual.funcionarioId, espelhoAtual.mes, espelhoAtual.ano);
+          } else {
+            toastr.error(result.error || 'Erro ao adicionar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao adicionar marcacao');
+        }
+      }
+
+      function formatarMinutos(minutos) {
+        if (!minutos && minutos !== 0) return '-';
+        const h = Math.floor(Math.abs(minutos) / 60);
+        const m = Math.abs(minutos) % 60;
+        return `${h}h${m.toString().padStart(2, '0')}`;
+      }
+    </script>
+
+    <style>
+      @media print {
+        .modal-header, .modal-footer, .btn-close { display: none !important; }
+        .modal { position: static !important; }
+        .modal-dialog { max-width: 100% !important; margin: 0 !important; }
+        .modal-content { border: none !important; box-shadow: none !important; }
+        .no-print { display: none !important; }
+      }
+      .check-espelho {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+      #checkTodos {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+    </style>
+  @end
+@end

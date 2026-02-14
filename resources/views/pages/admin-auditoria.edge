@@ -1,0 +1,457 @@
+@component('layouts/admin')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Auditoria do Sistema</h4>
+        <p class="text-muted mb-0">Log completo de todas as ações</p>
+      </div>
+      <button class="btn btn-outline-secondary" onclick="exportarLogs()">
+        <i class="bi bi-download me-2"></i>Exportar CSV
+      </button>
+    </div>
+
+    {{-- Estatísticas --}}
+    <div class="row g-3 mb-4">
+      <div class="col-md-2">
+        <div class="card bg-primary text-white">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statTotal">-</h3>
+            <small>Total (24h)</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="card bg-success text-white">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statSucessos">-</h3>
+            <small>Sucessos</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="card bg-danger text-white">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statErros">-</h3>
+            <small>Erros</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="card bg-info text-white">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statLogins">-</h3>
+            <small>Logins</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="card bg-warning text-dark">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statUpdates">-</h3>
+            <small>Alterações</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="card bg-secondary text-white">
+          <div class="card-body text-center py-3">
+            <h3 class="mb-0" id="statUsuarios">-</h3>
+            <small>Usuários Ativos</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Filtros --}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Ação</label>
+            <select class="form-select" id="filtroAcao">
+              <option value="">Todas</option>
+              <option value="LOGIN">Login</option>
+              <option value="LOGOUT">Logout</option>
+              <option value="VIEW">Visualização</option>
+              <option value="CREATE">Criar</option>
+              <option value="UPDATE">Atualizar</option>
+              <option value="DELETE">Excluir</option>
+              <option value="EXPORT">Exportar</option>
+              <option value="ERROR">Erro</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Recurso</label>
+            <select class="form-select" id="filtroRecurso">
+              <option value="">Todos</option>
+              <option value="funcionarios">Funcionários</option>
+              <option value="jornadas">Jornadas</option>
+              <option value="ponto">Ponto</option>
+              <option value="usuarios">Usuários</option>
+              <option value="entidades">Entidades</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Usuário</label>
+            <input type="text" class="form-control" id="filtroUsuario" placeholder="Nome...">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="filtroSucesso">
+              <option value="">Todos</option>
+              <option value="true">Sucesso</option>
+              <option value="false">Erro</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control" id="filtroDataInicio">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" id="filtroDataFim">
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12 text-end">
+            <button class="btn btn-secondary me-2" onclick="limparFiltros()">
+              <i class="bi bi-x-lg me-1"></i>Limpar
+            </button>
+            <button class="btn btn-primary" onclick="carregarLogs()">
+              <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="tabelaAuditoria" class="table table-sm table-hover" style="width:100%">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 140px">Data/Hora</th>
+                <th>Usuário</th>
+                <th style="width: 100px">Ação</th>
+                <th>Recurso</th>
+                <th>Rota</th>
+                <th style="width: 80px">Status</th>
+                <th style="width: 100px">Duração</th>
+                <th style="width: 120px">IP</th>
+                <th style="width: 80px">Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaBody">
+              <tr><td colspan="9" class="text-center py-4"><div class="spinner-border"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            <span id="infoRegistros" class="text-muted">Carregando...</span>
+          </div>
+          <div>
+            <button class="btn btn-outline-secondary btn-sm me-2" id="btnAnterior" onclick="paginaAnterior()" disabled>
+              <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="btnProximo" onclick="proximaPagina()">
+              Próximo <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Detalhes --}}
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detalhes do Log</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="detalhesConteudo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let paginaAtual = 0;
+      const limitePorPagina = 50;
+      let totalRegistros = 0;
+
+      const acaoConfig = {
+        'LOGIN': { badge: 'bg-info', icon: 'bi-box-arrow-in-right' },
+        'LOGOUT': { badge: 'bg-secondary', icon: 'bi-box-arrow-right' },
+        'VIEW': { badge: 'bg-light text-dark', icon: 'bi-eye' },
+        'CREATE': { badge: 'bg-success', icon: 'bi-plus-circle' },
+        'UPDATE': { badge: 'bg-warning text-dark', icon: 'bi-pencil' },
+        'DELETE': { badge: 'bg-danger', icon: 'bi-trash' },
+        'EXPORT': { badge: 'bg-primary', icon: 'bi-download' },
+        'IMPORT': { badge: 'bg-primary', icon: 'bi-upload' },
+        'ERROR': { badge: 'bg-danger', icon: 'bi-exclamation-triangle' },
+        'OTHER': { badge: 'bg-secondary', icon: 'bi-three-dots' }
+      };
+
+      $(document).ready(function() {
+        const hoje = new Date();
+        $('#filtroDataInicio').val(hoje.toISOString().split('T')[0]);
+        $('#filtroDataFim').val(hoje.toISOString().split('T')[0]);
+        carregarLogs();
+      });
+
+      async function carregarLogs() {
+        const params = new URLSearchParams({
+          acao: $('#filtroAcao').val(),
+          recurso: $('#filtroRecurso').val(),
+          usuario: $('#filtroUsuario').val(),
+          sucesso: $('#filtroSucesso').val(),
+          data_inicio: $('#filtroDataInicio').val(),
+          data_fim: $('#filtroDataFim').val(),
+          limite: limitePorPagina,
+          offset: paginaAtual * limitePorPagina
+        });
+
+        try {
+          $('#tabelaBody').html('<tr><td colspan="9" class="text-center py-4"><div class="spinner-border"></div></td></tr>');
+
+          const response = await fetch('/api/admin/auditoria?' + params);
+          const result = await response.json();
+
+          totalRegistros = result.total || 0;
+
+          // Atualiza estatísticas
+          if (result.stats) {
+            $('#statTotal').text(result.stats.total || 0);
+            $('#statSucessos').text(result.stats.sucessos || 0);
+            $('#statErros').text(result.stats.erros || 0);
+            $('#statLogins').text(result.stats.logins || 0);
+            $('#statUpdates').text((Number(result.stats.updates) + Number(result.stats.creates) + Number(result.stats.deletes)) || 0);
+            $('#statUsuarios').text(result.stats.usuarios_unicos || 0);
+          }
+
+          // Renderiza tabela
+          if (!result.data || result.data.length === 0) {
+            $('#tabelaBody').html('<tr><td colspan="9" class="text-center py-4 text-muted">Nenhum registro encontrado</td></tr>');
+          } else {
+            const html = result.data.map(log => {
+              const acao = acaoConfig[log.acao] || acaoConfig['OTHER'];
+              const dataHora = new Date(log.created_at).toLocaleString('pt-BR');
+              const status = log.sucesso
+                ? '<span class="badge bg-success">OK</span>'
+                : '<span class="badge bg-danger">Erro</span>';
+              const duracao = log.duracao_ms ? `${log.duracao_ms}ms` : '-';
+
+              return `
+                <tr class="${!log.sucesso ? 'table-danger' : ''}">
+                  <td class="small">${dataHora}</td>
+                  <td>${log.usuario_nome || '<span class="text-muted">-</span>'}</td>
+                  <td><span class="badge ${acao.badge}"><i class="bi ${acao.icon} me-1"></i>${log.acao}</span></td>
+                  <td>${log.recurso || '-'}</td>
+                  <td class="small text-truncate" style="max-width: 200px" title="${log.rota}">${log.rota || '-'}</td>
+                  <td>${status}</td>
+                  <td class="small">${duracao}</td>
+                  <td class="small">${log.ip_address || '-'}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-info" onclick='verDetalhes(${JSON.stringify(log).replace(/'/g, "\\'")})'><i class="bi bi-eye"></i></button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+            $('#tabelaBody').html(html);
+          }
+
+          // Atualiza info de paginação
+          const inicio = paginaAtual * limitePorPagina + 1;
+          const fim = Math.min((paginaAtual + 1) * limitePorPagina, totalRegistros);
+          $('#infoRegistros').text(`Mostrando ${inicio}-${fim} de ${totalRegistros} registros`);
+
+          // Atualiza botões de paginação
+          $('#btnAnterior').prop('disabled', paginaAtual === 0);
+          $('#btnProximo').prop('disabled', fim >= totalRegistros);
+
+        } catch (error) {
+          console.error('Erro:', error);
+          $('#tabelaBody').html('<tr><td colspan="9" class="text-center text-danger py-4">Erro ao carregar logs</td></tr>');
+        }
+      }
+
+      function verDetalhes(log) {
+        let html = `
+          <div class="row g-3">
+            <div class="col-md-6">
+              <strong>Data/Hora:</strong><br>
+              ${new Date(log.created_at).toLocaleString('pt-BR')}
+            </div>
+            <div class="col-md-6">
+              <strong>Duração:</strong><br>
+              ${log.duracao_ms ? log.duracao_ms + 'ms' : '-'}
+            </div>
+            <div class="col-md-6">
+              <strong>Usuário:</strong><br>
+              ${log.usuario_nome || '-'} ${log.usuario_email ? '(' + log.usuario_email + ')' : ''}
+            </div>
+            <div class="col-md-6">
+              <strong>Perfil:</strong><br>
+              ${log.usuario_perfil || '-'}
+            </div>
+            <div class="col-md-6">
+              <strong>Entidade:</strong><br>
+              ${log.entidade_nome || '-'}
+            </div>
+            <div class="col-md-6">
+              <strong>Município:</strong><br>
+              ${log.municipio_nome || '-'}
+            </div>
+            <div class="col-12">
+              <strong>Rota:</strong><br>
+              <code>${log.metodo} ${log.url_completa || log.rota}</code>
+            </div>
+            <div class="col-md-6">
+              <strong>IP:</strong><br>
+              ${log.ip_address || '-'}
+            </div>
+            <div class="col-md-6">
+              <strong>Status:</strong><br>
+              ${log.sucesso ? '<span class="badge bg-success">Sucesso</span>' : '<span class="badge bg-danger">Erro</span>'} (${log.status_code || '-'})
+            </div>
+        `;
+
+        if (log.mensagem_erro) {
+          html += `
+            <div class="col-12">
+              <strong class="text-danger">Erro:</strong><br>
+              <pre class="bg-danger-subtle p-2 rounded small">${log.mensagem_erro}</pre>
+            </div>
+          `;
+        }
+
+        if (log.dados_request && Object.keys(log.dados_request).length > 0) {
+          html += `
+            <div class="col-12">
+              <strong>Dados da Requisição:</strong><br>
+              <pre class="bg-light p-2 rounded small" style="max-height: 200px; overflow: auto">${JSON.stringify(log.dados_request, null, 2)}</pre>
+            </div>
+          `;
+        }
+
+        if (log.dados_antes) {
+          html += `
+            <div class="col-12">
+              <strong>Dados Anteriores:</strong><br>
+              <pre class="bg-warning-subtle p-2 rounded small" style="max-height: 200px; overflow: auto">${JSON.stringify(log.dados_antes, null, 2)}</pre>
+            </div>
+          `;
+        }
+
+        if (log.dados_depois) {
+          html += `
+            <div class="col-12">
+              <strong>Dados Novos:</strong><br>
+              <pre class="bg-success-subtle p-2 rounded small" style="max-height: 200px; overflow: auto">${JSON.stringify(log.dados_depois, null, 2)}</pre>
+            </div>
+          `;
+        }
+
+        if (log.user_agent) {
+          html += `
+            <div class="col-12">
+              <strong>User Agent:</strong><br>
+              <small class="text-muted">${log.user_agent}</small>
+            </div>
+          `;
+        }
+
+        html += '</div>';
+
+        $('#detalhesConteudo').html(html);
+        new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
+      }
+
+      function paginaAnterior() {
+        if (paginaAtual > 0) {
+          paginaAtual--;
+          carregarLogs();
+        }
+      }
+
+      function proximaPagina() {
+        if ((paginaAtual + 1) * limitePorPagina < totalRegistros) {
+          paginaAtual++;
+          carregarLogs();
+        }
+      }
+
+      function limparFiltros() {
+        $('#filtroAcao').val('');
+        $('#filtroRecurso').val('');
+        $('#filtroUsuario').val('');
+        $('#filtroSucesso').val('');
+        const hoje = new Date();
+        $('#filtroDataInicio').val(hoje.toISOString().split('T')[0]);
+        $('#filtroDataFim').val(hoje.toISOString().split('T')[0]);
+        paginaAtual = 0;
+        carregarLogs();
+      }
+
+      function exportarLogs() {
+        const params = new URLSearchParams({
+          acao: $('#filtroAcao').val(),
+          recurso: $('#filtroRecurso').val(),
+          usuario: $('#filtroUsuario').val(),
+          sucesso: $('#filtroSucesso').val(),
+          data_inicio: $('#filtroDataInicio').val(),
+          data_fim: $('#filtroDataFim').val(),
+          limite: 10000,
+          offset: 0
+        });
+
+        toastr.info('Preparando exportação...');
+
+        fetch('/api/admin/auditoria?' + params)
+          .then(r => r.json())
+          .then(result => {
+            if (!result.data || result.data.length === 0) {
+              toastr.warning('Nenhum registro para exportar');
+              return;
+            }
+
+            // Converte para CSV
+            const headers = ['Data/Hora', 'Usuário', 'Email', 'Ação', 'Recurso', 'Rota', 'Status', 'IP', 'Duração (ms)'];
+            const rows = result.data.map(log => [
+              new Date(log.created_at).toLocaleString('pt-BR'),
+              log.usuario_nome || '',
+              log.usuario_email || '',
+              log.acao,
+              log.recurso || '',
+              log.rota || '',
+              log.sucesso ? 'OK' : 'ERRO',
+              log.ip_address || '',
+              log.duracao_ms || ''
+            ]);
+
+            const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `auditoria_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+
+            toastr.success(`${result.data.length} registros exportados!`);
+          })
+          .catch(err => {
+            toastr.error('Erro ao exportar');
+            console.error(err);
+          });
+      }
+    </script>
+  @end
+@end

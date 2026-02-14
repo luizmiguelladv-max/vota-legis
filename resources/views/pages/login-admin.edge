@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrativo - GetPonto</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #1557b0;
+    }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      max-width: 420px;
+      width: 100%;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+    .login-header {
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+      color: #fff;
+      padding: 30px;
+      text-align: center;
+    }
+    .login-header .icon {
+      width: 70px;
+      height: 70px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 32px;
+    }
+    .login-body {
+      padding: 30px;
+    }
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
+    }
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+    .code-inputs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .code-input {
+      width: 50px;
+      height: 60px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    .code-input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    .entidade-option {
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .entidade-option:hover {
+      border-color: var(--primary);
+      background: #f8f9fa;
+    }
+    .entidade-option.selected {
+      border-color: var(--primary);
+      background: #e8f0fe;
+    }
+    .entidade-option .nome {
+      font-weight: 600;
+      color: #333;
+    }
+    .entidade-option .codigo {
+      font-size: 12px;
+      color: #666;
+    }
+    .timer {
+      font-size: 14px;
+      color: #666;
+    }
+    .timer.warning {
+      color: #dc3545;
+    }
+    .back-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon">
+        <i class="bi bi-shield-lock"></i>
+      </div>
+      <h4 class="mb-1">Painel Administrativo</h4>
+      <p class="mb-0 opacity-75 small">GetPonto - Sistema de Ponto</p>
+    </div>
+    <div class="login-body">
+      <!-- Step 1: Email -->
+      <div id="step1" class="step active">
+        <p class="text-muted mb-4">Digite seu email para receber o código de acesso:</p>
+        <form id="formEmail">
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control" id="inputEmail" placeholder="seu@email.com" required autofocus>
+            </div>
+          </div>
+          <div id="alertEmail" class="mb-3"></div>
+          <button type="submit" class="btn btn-primary w-100" id="btnEnviarCodigo">
+            <span class="spinner-border spinner-border-sm d-none me-2" id="spinnerEmail"></span>
+            <i class="bi bi-send me-2"></i>Enviar Código
+          </button>
+        </form>
+        <div class="text-center mt-4">
+          <a href="/login" class="back-link"><i class="bi bi-arrow-left me-1"></i>Voltar ao login master</a>
+        </div>
+      </div>
+
+      <!-- Step 2: Código -->
+      <div id="step2" class="step">
+        <p class="text-muted mb-2">Digite o código enviado para:</p>
+        <p class="fw-bold mb-4" id="emailMascarado">l***@email.com</p>
+        <form id="formCodigo">
+          <div class="code-inputs mb-3">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+          </div>
+          <div class="text-center timer mb-3" id="timer">Expira em 5:00</div>
+          <div id="alertCodigo" class="mb-3"></div>
+          <button type="submit" class="btn btn-primary w-100" id="btnValidarCodigo">
+            <span class="spinner-border spinner-border-sm d-none me-2" id="spinnerCodigo"></span>
+            <i class="bi bi-check-lg me-2"></i>Validar Código
+          </button>
+        </form>
+        <div class="text-center mt-3">
+          <button type="button" class="btn btn-link text-muted" id="btnReenviar" disabled>
+            Reenviar código
+          </button>
+        </div>
+        <div class="text-center mt-2">
+          <a href="#" class="back-link" onclick="voltarStep1()"><i class="bi bi-arrow-left me-1"></i>Usar outro email</a>
+        </div>
+      </div>
+
+      <!-- Step 3: Selecionar Entidade -->
+      <div id="step3" class="step">
+        <p class="text-muted mb-4">Selecione a entidade que deseja acessar:</p>
+        <div id="listaEntidades"></div>
+        <div id="alertEntidade" class="mb-3"></div>
+        <button type="button" class="btn btn-primary w-100" id="btnAcessar" disabled>
+          <span class="spinner-border spinner-border-sm d-none me-2" id="spinnerEntidade"></span>
+          <i class="bi bi-box-arrow-in-right me-2"></i>Acessar
+        </button>
+        <div class="text-center mt-3">
+          <a href="#" class="back-link" onclick="voltarStep1()"><i class="bi bi-arrow-left me-1"></i>Fazer novo login</a>
+        </div>
+      </div>
+    </div>
+    <div class="text-center pb-3">
+      <small class="text-muted">getponto.inf.br</small>
+    </div>
+  </div>
+
+  <script>
+    let emailAtual = '';
+    let entidadeSelecionada = null;
+    let timerInterval = null;
+    let tempoRestante = 300; // 5 minutos
+
+    // Step 1: Enviar código
+    document.getElementById('formEmail').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('inputEmail').value;
+      const btn = document.getElementById('btnEnviarCodigo');
+      const spinner = document.getElementById('spinnerEmail');
+      const alert = document.getElementById('alertEmail');
+
+      alert.innerHTML = '';
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+
+      try {
+        const res = await fetch('/api/auth/solicitar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          emailAtual = email;
+          document.getElementById('emailMascarado').textContent = data.emailMascarado || email;
+          irParaStep(2);
+          iniciarTimer();
+          document.querySelector('.code-input').focus();
+        } else {
+          alert.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>${data.error}</div>`;
+        }
+      } catch (err) {
+        alert.innerHTML = '<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>Erro de conexão</div>';
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    });
+
+    // Step 2: Validar código
+    document.getElementById('formCodigo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const inputs = document.querySelectorAll('.code-input');
+      const codigo = Array.from(inputs).map(i => i.value).join('');
+
+      if (codigo.length !== 6) {
+        document.getElementById('alertCodigo').innerHTML = '<div class="alert alert-warning py-2">Digite o código completo</div>';
+        return;
+      }
+
+      const btn = document.getElementById('btnValidarCodigo');
+      const spinner = document.getElementById('spinnerCodigo');
+      const alert = document.getElementById('alertCodigo');
+
+      alert.innerHTML = '';
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+
+      try {
+        const res = await fetch('/api/auth/validar-codigo-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailAtual, codigo })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.entidades) {
+          pararTimer();
+
+          if (data.entidades.length === 1) {
+            // Apenas uma entidade - faz login direto
+            await selecionarEntidade(data.entidades[0].id);
+          } else {
+            // Múltiplas entidades - mostra seletor
+            mostrarEntidades(data.entidades);
+            irParaStep(3);
+          }
+        } else {
+          alert.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>${data.error}</div>`;
+          // Limpa inputs
+          inputs.forEach(i => i.value = '');
+          inputs[0].focus();
+        }
+      } catch (err) {
+        alert.innerHTML = '<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>Erro de conexão</div>';
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    });
+
+    // Code input navigation
+    document.querySelectorAll('.code-input').forEach((input, index, inputs) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const digits = paste.replace(/\D/g, '').slice(0, 6);
+        digits.split('').forEach((d, i) => {
+          if (inputs[i]) inputs[i].value = d;
+        });
+        if (digits.length === 6) {
+          document.getElementById('formCodigo').dispatchEvent(new Event('submit'));
+        }
+      });
+    });
+
+    // Step 3: Selecionar entidade
+    document.getElementById('btnAcessar').addEventListener('click', async () => {
+      if (!entidadeSelecionada) return;
+      await selecionarEntidade(entidadeSelecionada);
+    });
+
+    function mostrarEntidades(entidades) {
+      const container = document.getElementById('listaEntidades');
+      container.innerHTML = entidades.map(e => `
+        <div class="entidade-option" data-id="${e.id}" onclick="selecionarOpcao(${e.id})">
+          <div class="nome"><i class="bi bi-building me-2"></i>${e.nome}</div>
+          <div class="codigo">Código: ${e.codigo}</div>
+        </div>
+      `).join('');
+    }
+
+    function selecionarOpcao(id) {
+      document.querySelectorAll('.entidade-option').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`.entidade-option[data-id="${id}"]`).classList.add('selected');
+      entidadeSelecionada = id;
+      document.getElementById('btnAcessar').disabled = false;
+    }
+
+    async function selecionarEntidade(entidadeId) {
+      const btn = document.getElementById('btnAcessar');
+      const spinner = document.getElementById('spinnerEntidade');
+      const alert = document.getElementById('alertEntidade');
+
+      if (btn) btn.disabled = true;
+      if (spinner) spinner.classList.remove('d-none');
+      if (alert) alert.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/auth/selecionar-entidade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entidadeId })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.redirectTo) {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
+          window.location.href = data.redirectTo;
+        } else {
+          if (alert) {
+            alert.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>${data.error}</div>`;
+          }
+        }
+      } catch (err) {
+        if (alert) {
+          alert.innerHTML = '<div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-2"></i>Erro de conexão</div>';
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.classList.add('d-none');
+      }
+    }
+
+    function irParaStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active');
+    }
+
+    function voltarStep1() {
+      pararTimer();
+      emailAtual = '';
+      entidadeSelecionada = null;
+      document.getElementById('inputEmail').value = '';
+      document.querySelectorAll('.code-input').forEach(i => i.value = '');
+      document.getElementById('alertEmail').innerHTML = '';
+      document.getElementById('alertCodigo').innerHTML = '';
+      document.getElementById('alertEntidade').innerHTML = '';
+      irParaStep(1);
+      document.getElementById('inputEmail').focus();
+    }
+
+    function iniciarTimer() {
+      tempoRestante = 300;
+      atualizarTimer();
+      timerInterval = setInterval(() => {
+        tempoRestante--;
+        atualizarTimer();
+        if (tempoRestante <= 0) {
+          pararTimer();
+          document.getElementById('alertCodigo').innerHTML = '<div class="alert alert-warning py-2">Código expirado. Solicite um novo.</div>';
+          document.getElementById('btnReenviar').disabled = false;
+        }
+      }, 1000);
+
+      // Habilita reenvio após 30 segundos
+      setTimeout(() => {
+        document.getElementById('btnReenviar').disabled = false;
+      }, 30000);
+    }
+
+    function atualizarTimer() {
+      const min = Math.floor(tempoRestante / 60);
+      const sec = tempoRestante % 60;
+      const timer = document.getElementById('timer');
+      timer.textContent = `Expira em ${min}:${sec.toString().padStart(2, '0')}`;
+      timer.classList.toggle('warning', tempoRestante <= 60);
+    }
+
+    function pararTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    // Reenviar código
+    document.getElementById('btnReenviar').addEventListener('click', async () => {
+      if (!emailAtual) return;
+
+      const btn = document.getElementById('btnReenviar');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        const res = await fetch('/api/auth/solicitar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailAtual })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          document.querySelectorAll('.code-input').forEach(i => i.value = '');
+          document.querySelector('.code-input').focus();
+          document.getElementById('alertCodigo').innerHTML = '<div class="alert alert-success py-2"><i class="bi bi-check-circle me-2"></i>Novo código enviado!</div>';
+          iniciarTimer();
+        } else {
+          document.getElementById('alertCodigo').innerHTML = `<div class="alert alert-danger py-2">${data.error}</div>`;
+        }
+      } catch (err) {
+        document.getElementById('alertCodigo').innerHTML = '<div class="alert alert-danger py-2">Erro ao reenviar</div>';
+      } finally {
+        btn.textContent = 'Reenviar código';
+      }
+    });
+  </script>
+</body>
+</html>

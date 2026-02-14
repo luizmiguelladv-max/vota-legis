@@ -1,0 +1,668 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Jornadas de Trabalho</h4>
+        <p class="text-muted mb-0">Gerenciamento de jornadas e horários por dia da semana</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalJornada" onclick="limparForm()">
+        <i class="bi bi-plus-lg me-2"></i>Nova Jornada
+      </button>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaJornadas" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>CH Semanal</th>
+              <th>Dias Trabalho</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal --}}
+    <div class="modal fade" id="modalJornada" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Nova Jornada</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formJornada" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="jornadaId" name="id">
+              
+              {{-- Informações básicas --}}
+              <div class="row g-3">
+                <div class="col-md-2">
+                  <label class="form-label">Código <small class="text-muted">(auto)</small></label>
+                  <input type="text" class="form-control" id="codigo" name="codigo" placeholder="40H" readonly>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label">Nome <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="nome" name="nome" required placeholder="Ex: 40 Horas Semanais">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Tipo</label>
+                  <select class="form-select" id="tipo" name="tipo">
+                    <option value="NORMAL">Normal</option>
+                    <option value="PLANTAO">Plantão</option>
+                    <option value="CORRIDA">Corrida/Contínua</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Tolerância (min)</label>
+                  <input type="number" class="form-control" id="tolerancia_minutos" name="tolerancia_minutos" value="10">
+                </div>
+              </div>
+
+              {{-- Configuração de Plantão (aparece apenas quando tipo = PLANTÃO) --}}
+              <div id="secaoPlantao" class="mt-3" style="display: none;">
+                <div class="alert alert-info d-flex align-items-center">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <span>Configure as horas trabalhadas e de folga do plantão</span>
+                </div>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Escala</label>
+                    <select class="form-select" id="escalaPlantao" onchange="atualizarEscalaPlantao()">
+                      <option value="12x36">12x36 (12h trabalho, 36h folga)</option>
+                      <option value="24x48">24x48 (24h trabalho, 48h folga)</option>
+                      <option value="24x72">24x72 (24h trabalho, 72h folga)</option>
+                      <option value="custom">Personalizado</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Horas Trabalhadas</label>
+                    <input type="number" class="form-control" id="horasPlantao" value="12" min="1" max="48">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Horas de Folga</label>
+                    <input type="number" class="form-control" id="horasFolga" value="36" min="1" max="120">
+                  </div>
+                </div>
+                <div class="row g-3 mt-2">
+                  <div class="col-md-6">
+                    <label class="form-label">Horário de Entrada</label>
+                    <input type="time" class="form-control" id="horarioEntradaPlantao" value="07:00">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Horário de Saída</label>
+                    <input type="time" class="form-control" id="horarioSaidaPlantao" value="19:00">
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              {{-- Grade de horários (oculta para plantão) --}}
+              <div id="secaoHorarios">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted mb-0"><i class="bi bi-calendar-week me-2"></i>Horários por Dia da Semana</h6>
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-secondary" onclick="copiarPrimeiroParaTodos()">
+                    <i class="bi bi-clipboard me-1"></i>Copiar Seg para todos
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="limparHorarios()">
+                    <i class="bi bi-eraser me-1"></i>Limpar
+                  </button>
+                </div>
+              </div>
+              
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm" id="tabelaHorarios">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 120px;">Dia</th>
+                      <th class="text-center" style="width: 60px;">Folga</th>
+                      <th class="text-center">Entrada 1</th>
+                      <th class="text-center">Saída 1</th>
+                      <th class="text-center">Entrada 2</th>
+                      <th class="text-center">Saída 2</th>
+                      <th class="text-center" style="width: 80px;">Horas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-dia="1">
+                      <td><strong>Segunda</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_1" data-dia="1"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_1" data-dia="1"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_1" data-dia="1"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_1" data-dia="1"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_1" data-dia="1"></td>
+                      <td class="text-center horas-dia" id="horas_1">0h</td>
+                    </tr>
+                    <tr data-dia="2">
+                      <td><strong>Terça</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_2" data-dia="2"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_2" data-dia="2"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_2" data-dia="2"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_2" data-dia="2"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_2" data-dia="2"></td>
+                      <td class="text-center horas-dia" id="horas_2">0h</td>
+                    </tr>
+                    <tr data-dia="3">
+                      <td><strong>Quarta</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_3" data-dia="3"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_3" data-dia="3"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_3" data-dia="3"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_3" data-dia="3"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_3" data-dia="3"></td>
+                      <td class="text-center horas-dia" id="horas_3">0h</td>
+                    </tr>
+                    <tr data-dia="4">
+                      <td><strong>Quinta</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_4" data-dia="4"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_4" data-dia="4"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_4" data-dia="4"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_4" data-dia="4"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_4" data-dia="4"></td>
+                      <td class="text-center horas-dia" id="horas_4">0h</td>
+                    </tr>
+                    <tr data-dia="5">
+                      <td><strong>Sexta</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_5" data-dia="5"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_5" data-dia="5"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_5" data-dia="5"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_5" data-dia="5"></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_5" data-dia="5"></td>
+                      <td class="text-center horas-dia" id="horas_5">0h</td>
+                    </tr>
+                    <tr data-dia="6" class="table-secondary">
+                      <td><strong>Sábado</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_6" data-dia="6" checked></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_6" data-dia="6" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_6" data-dia="6" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_6" data-dia="6" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_6" data-dia="6" disabled></td>
+                      <td class="text-center horas-dia" id="horas_6">Folga</td>
+                    </tr>
+                    <tr data-dia="0" class="table-secondary">
+                      <td><strong>Domingo</strong></td>
+                      <td class="text-center"><input type="checkbox" class="form-check-input folga-check" name="folga_0" data-dia="0" checked></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada1_0" data-dia="0" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida1_0" data-dia="0" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="entrada2_0" data-dia="0" disabled></td>
+                      <td><input type="time" class="form-control form-control-sm horario-input" id="saida2_0" data-dia="0" disabled></td>
+                      <td class="text-center horas-dia" id="horas_0">Folga</td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="table-light">
+                    <tr>
+                      <td colspan="6" class="text-end"><strong>Carga Horária Semanal:</strong></td>
+                      <td class="text-center"><strong id="cargaHorariaSemanal">0h</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              </div> {{-- Fim secaoHorarios --}}
+
+              <div class="mb-3 mt-3">
+                <label class="form-label">Descrição</label>
+                <textarea class="form-control" id="descricao" name="descricao" rows="2" placeholder="Observações sobre esta jornada..."></textarea>
+              </div>
+              
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="ativo" name="ativo" checked style="width: 3em; height: 1.5em;">
+                <label class="form-check-label ms-2" for="ativo" id="ativoLabel">Ativo</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let table;
+      const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+      $(document).ready(function() {
+        carregarDados();
+        $('#formJornada').on('submit', salvar);
+
+        // Atualiza label do switch
+        $('#ativo').on('change', function() {
+          $('#ativoLabel').text(this.checked ? 'Ativo' : 'Inativo');
+        });
+
+        // Alterna entre modo normal e plantão
+        $('#tipo').on('change', function() {
+          atualizarModoJornada();
+        });
+
+        // Eventos para checkboxes de folga
+        $('.folga-check').on('change', function() {
+          const dia = $(this).data('dia');
+          const isFolga = $(this).is(':checked');
+          const row = $(`tr[data-dia="${dia}"]`);
+          
+          row.find('.horario-input').prop('disabled', isFolga);
+          if (isFolga) {
+            row.find('.horario-input').val('');
+            row.addClass('table-secondary');
+            $(`#horas_${dia}`).text('Folga');
+          } else {
+            row.removeClass('table-secondary');
+            calcularHorasDia(dia);
+          }
+          calcularCargaSemanal();
+        });
+
+        // Eventos para inputs de horário
+        $('.horario-input').on('change', function() {
+          const dia = $(this).data('dia');
+          const entrada1 = $(`#entrada1_${dia}`).val();
+          const saida1 = $(`#saida1_${dia}`).val();
+          const folgaCheck = $(`.folga-check[data-dia="${dia}"]`);
+
+          // Se preencheu horário, automaticamente desmarca folga
+          if (entrada1 || saida1) {
+            if (folgaCheck.is(':checked')) {
+              folgaCheck.prop('checked', false);
+              $(`tr[data-dia="${dia}"]`).removeClass('table-secondary');
+              $(`tr[data-dia="${dia}"]`).find('.horario-input').prop('disabled', false);
+            }
+          } else {
+            // Se limpou todos os horários, marca como folga
+            const entrada2 = $(`#entrada2_${dia}`).val();
+            const saida2 = $(`#saida2_${dia}`).val();
+            if (!entrada2 && !saida2 && !folgaCheck.is(':checked')) {
+              folgaCheck.prop('checked', true);
+              $(`tr[data-dia="${dia}"]`).addClass('table-secondary');
+              $(`#horas_${dia}`).text('Folga');
+            }
+          }
+
+          calcularHorasDia(dia);
+          calcularCargaSemanal();
+        });
+      });
+
+      // Alterna entre modo normal (grade de horários) e plantão
+      function atualizarModoJornada() {
+        const tipo = $('#tipo').val();
+        if (tipo === 'PLANTAO') {
+          $('#secaoPlantao').show();
+          $('#secaoHorarios').hide();
+        } else {
+          $('#secaoPlantao').hide();
+          $('#secaoHorarios').show();
+        }
+      }
+
+      // Atualiza valores da escala de plantão
+      function atualizarEscalaPlantao() {
+        const escala = $('#escalaPlantao').val();
+        const escalas = {
+          '12x36': { trabalho: 12, folga: 36, entrada: '07:00', saida: '19:00' },
+          '24x48': { trabalho: 24, folga: 48, entrada: '07:00', saida: '07:00' },
+          '24x72': { trabalho: 24, folga: 72, entrada: '07:00', saida: '07:00' },
+        };
+
+        if (escalas[escala]) {
+          $('#horasPlantao').val(escalas[escala].trabalho).prop('readonly', true);
+          $('#horasFolga').val(escalas[escala].folga).prop('readonly', true);
+          $('#horarioEntradaPlantao').val(escalas[escala].entrada);
+          $('#horarioSaidaPlantao').val(escalas[escala].saida);
+        } else {
+          $('#horasPlantao').prop('readonly', false);
+          $('#horasFolga').prop('readonly', false);
+        }
+      }
+
+      function calcularHorasDia(dia) {
+        const entrada1 = $(`#entrada1_${dia}`).val();
+        const saida1 = $(`#saida1_${dia}`).val();
+        const entrada2 = $(`#entrada2_${dia}`).val();
+        const saida2 = $(`#saida2_${dia}`).val();
+
+        let totalMinutos = 0;
+
+        // Primeiro turno
+        if (entrada1 && saida1) {
+          const [h1, m1] = entrada1.split(':').map(Number);
+          const [h2, m2] = saida1.split(':').map(Number);
+          totalMinutos += (h2 * 60 + m2) - (h1 * 60 + m1);
+        }
+
+        // Segundo turno
+        if (entrada2 && saida2) {
+          const [h1, m1] = entrada2.split(':').map(Number);
+          const [h2, m2] = saida2.split(':').map(Number);
+          totalMinutos += (h2 * 60 + m2) - (h1 * 60 + m1);
+        }
+
+        const horas = Math.floor(totalMinutos / 60);
+        const minutos = totalMinutos % 60;
+        $(`#horas_${dia}`).text(minutos > 0 ? `${horas}h${minutos}` : `${horas}h`);
+
+        return totalMinutos;
+      }
+
+      function calcularCargaSemanal() {
+        let totalMinutos = 0;
+        for (let dia = 0; dia <= 6; dia++) {
+          const isFolga = $(`.folga-check[data-dia="${dia}"]`).is(':checked');
+          if (!isFolga) {
+            totalMinutos += calcularHorasDia(dia);
+          }
+        }
+
+        const horas = Math.floor(totalMinutos / 60);
+        const minutos = totalMinutos % 60;
+        $('#cargaHorariaSemanal').text(minutos > 0 ? `${horas}h${minutos}` : `${horas}h`);
+
+        return totalMinutos;
+      }
+
+      function copiarPrimeiroParaTodos() {
+        const entrada1 = $('#entrada1_1').val();
+        const saida1 = $('#saida1_1').val();
+        const entrada2 = $('#entrada2_1').val();
+        const saida2 = $('#saida2_1').val();
+
+        // Copia para terça a sexta (dias 2-5)
+        for (let dia = 2; dia <= 5; dia++) {
+          const isFolga = $(`.folga-check[data-dia="${dia}"]`).is(':checked');
+          if (!isFolga) {
+            $(`#entrada1_${dia}`).val(entrada1);
+            $(`#saida1_${dia}`).val(saida1);
+            $(`#entrada2_${dia}`).val(entrada2);
+            $(`#saida2_${dia}`).val(saida2);
+            calcularHorasDia(dia);
+          }
+        }
+        calcularCargaSemanal();
+        toastr.info('Horários copiados de Segunda para Terça a Sexta');
+      }
+
+      function limparHorarios() {
+        $('.horario-input').val('');
+        for (let dia = 0; dia <= 6; dia++) {
+          $(`#horas_${dia}`).text($(`.folga-check[data-dia="${dia}"]`).is(':checked') ? 'Folga' : '0h');
+        }
+        $('#cargaHorariaSemanal').text('0h');
+      }
+
+      async function carregarDados() {
+        try {
+          const res = await fetch('/api/jornadas');
+          const json = await res.json();
+
+          if (table) table.destroy();
+
+          table = $('#tabelaJornadas').DataTable({
+            data: json.data || [],
+            columns: [
+              { data: 'codigo', defaultContent: '-' },
+              { data: 'nome' },
+              { 
+                data: 'tipo',
+                render: (data) => {
+                  const tipos = { 'NORMAL': 'Normal', 'PLANTAO': 'Plantão', 'CORRIDA': 'Corrida' };
+                  return tipos[data] || 'Normal';
+                }
+              },
+              { 
+                data: 'carga_horaria_semanal',
+                render: (data) => {
+                  if (!data) return '-';
+                  const horas = Math.floor(data / 60);
+                  const minutos = data % 60;
+                  return minutos > 0 ? `${horas}h${minutos}` : `${horas}h`;
+                }
+              },
+              { 
+                data: 'horarios',
+                render: (data) => {
+                  if (!data || !Array.isArray(data)) return '-';
+                  const diasTrab = data.filter(h => !h.folga).length;
+                  return `${diasTrab} dias`;
+                }
+              },
+              { 
+                data: 'ativo',
+                render: (data) => data !== false
+                  ? '<span class="badge bg-success">Ativo</span>'
+                  : '<span class="badge bg-danger">Inativo</span>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editar(${data.id})" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="excluir(${data.id}, '${data.nome}')" title="Excluir">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                `
+              }
+            ],
+            order: [[1, 'asc']]
+          });
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao carregar dados');
+        }
+      }
+
+      async function editar(id) {
+        try {
+          const res = await fetch(`/api/jornadas/${id}`);
+          const item = await res.json();
+          
+          $('#jornadaId').val(item.id);
+          $('#codigo').val(item.codigo);
+          $('#nome').val(item.nome);
+          $('#tipo').val(item.tipo || 'NORMAL');
+          $('#tolerancia_minutos').val(item.tolerancia_minutos || 10);
+          $('#descricao').val(item.descricao);
+          $('#ativo').prop('checked', item.ativo !== false);
+          $('#ativoLabel').text(item.ativo !== false ? 'Ativo' : 'Inativo');
+
+          // Alterna para o modo correto (plantão ou normal)
+          atualizarModoJornada();
+
+          // Se for plantão, preenche campos de plantão
+          if (item.tipo === 'PLANTAO') {
+            $('#horasPlantao').val(item.horas_plantao || 12);
+            $('#horasFolga').val(item.horas_folga || 36);
+            $('#horarioEntradaPlantao').val(item.horario_entrada?.substring(0,5) || '07:00');
+            $('#horarioSaidaPlantao').val(item.horario_saida?.substring(0,5) || '19:00');
+            
+            // Detecta escala
+            const hTrab = item.horas_plantao, hFolga = item.horas_folga;
+            if (hTrab === 12 && hFolga === 36) $('#escalaPlantao').val('12x36');
+            else if (hTrab === 24 && hFolga === 48) $('#escalaPlantao').val('24x48');
+            else if (hTrab === 24 && hFolga === 72) $('#escalaPlantao').val('24x72');
+            else $('#escalaPlantao').val('custom');
+          } else {
+            // Limpa horários da grade
+            limparHorarios();
+            
+            // Preenche horários por dia
+            if (item.horarios && Array.isArray(item.horarios)) {
+              item.horarios.forEach(h => {
+                const dia = h.dia_semana;
+                $(`.folga-check[data-dia="${dia}"]`).prop('checked', h.folga).trigger('change');
+                
+                if (!h.folga) {
+                  $(`#entrada1_${dia}`).val(h.entrada_1?.substring(0,5) || '');
+                  $(`#saida1_${dia}`).val(h.saida_1?.substring(0,5) || '');
+                  $(`#entrada2_${dia}`).val(h.entrada_2?.substring(0,5) || '');
+                  $(`#saida2_${dia}`).val(h.saida_2?.substring(0,5) || '');
+                  calcularHorasDia(dia);
+                }
+              });
+            } else {
+              // Compatibilidade com jornadas antigas (horário único)
+              if (item.horario_entrada) {
+                for (let dia = 1; dia <= 5; dia++) {
+                  $(`.folga-check[data-dia="${dia}"]`).prop('checked', false).trigger('change');
+                  $(`#entrada1_${dia}`).val(item.horario_entrada?.substring(0,5) || '');
+                  $(`#saida1_${dia}`).val(item.horario_inicio_intervalo?.substring(0,5) || '');
+                  $(`#entrada2_${dia}`).val(item.horario_fim_intervalo?.substring(0,5) || '');
+                  $(`#saida2_${dia}`).val(item.horario_saida?.substring(0,5) || '');
+                  calcularHorasDia(dia);
+                }
+              }
+            }
+            
+            calcularCargaSemanal();
+          }
+          
+          $('.modal-title').text('Editar Jornada');
+          new bootstrap.Modal(document.getElementById('modalJornada')).show();
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao carregar jornada');
+        }
+      }
+
+      async function salvar(e) {
+        e.preventDefault();
+        const id = $('#jornadaId').val();
+        
+        // Coleta horários por dia
+        const horarios = [];
+        for (let dia = 0; dia <= 6; dia++) {
+          const isFolga = $(`.folga-check[data-dia="${dia}"]`).is(':checked');
+          horarios.push({
+            dia_semana: dia,
+            folga: isFolga,
+            entrada_1: isFolga ? null : ($(`#entrada1_${dia}`).val() || null),
+            saida_1: isFolga ? null : ($(`#saida1_${dia}`).val() || null),
+            entrada_2: isFolga ? null : ($(`#entrada2_${dia}`).val() || null),
+            saida_2: isFolga ? null : ($(`#saida2_${dia}`).val() || null)
+          });
+        }
+
+        const tipo = $('#tipo').val();
+
+        // Para plantão, calcula carga horária diferente
+        let cargaSemanalMinutos, cargaDiariaMinutos;
+        if (tipo === 'PLANTAO') {
+          const horasPlantao = parseInt($('#horasPlantao').val()) || 12;
+          // Plantão: considera média semanal (depende da escala)
+          cargaDiariaMinutos = horasPlantao * 60;
+          cargaSemanalMinutos = cargaDiariaMinutos * 3; // aproximação (3 plantões por semana)
+        } else {
+          cargaSemanalMinutos = calcularCargaSemanal();
+          const diasTrabalhados = horarios.filter(h => !h.folga).length;
+          cargaDiariaMinutos = diasTrabalhados > 0 ? Math.round(cargaSemanalMinutos / diasTrabalhados) : 0;
+        }
+
+        const data = {
+          codigo: $('#codigo').val() || null,
+          nome: $('#nome').val(),
+          tipo: tipo,
+          carga_horaria_semanal: cargaSemanalMinutos,
+          carga_horaria_diaria: cargaDiariaMinutos,
+          tolerancia_minutos: parseInt($('#tolerancia_minutos').val()) || 10,
+          descricao: $('#descricao').val() || null,
+          ativo: $('#ativo').is(':checked'),
+          // Campos de plantão
+          horas_plantao: tipo === 'PLANTAO' ? parseInt($('#horasPlantao').val()) : null,
+          horas_folga: tipo === 'PLANTAO' ? parseInt($('#horasFolga').val()) : null,
+          horario_entrada: tipo === 'PLANTAO' ? $('#horarioEntradaPlantao').val() : null,
+          horario_saida: tipo === 'PLANTAO' ? $('#horarioSaidaPlantao').val() : null,
+          // Horários por dia (só para jornada normal)
+          horarios: tipo !== 'PLANTAO' ? horarios : []
+        };
+        
+        try {
+          const res = await fetch(id ? `/api/jornadas/${id}` : '/api/jornadas', {
+            method: id ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Jornada atualizada!' : 'Jornada cadastrada!');
+            bootstrap.Modal.getInstance(document.getElementById('modalJornada')).hide();
+            carregarDados();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluir(id, nome) {
+        if (!await confirmar(`Deseja excluir a jornada "${nome}"?`, { tipo: 'danger', titulo: 'Excluir Jornada' })) return;
+
+        try {
+          const res = await fetch(`/api/jornadas/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
+          });
+          if (res.ok) {
+            toastr.success('Jornada excluída!');
+            carregarDados();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      function limparForm() {
+        $('#formJornada')[0].reset();
+        $('#jornadaId').val('');
+        $('#codigo').val('');
+        $('#tipo').val('NORMAL');
+        $('#tolerancia_minutos').val(10);
+        $('#ativo').prop('checked', true);
+        $('#ativoLabel').text('Ativo');
+        
+        // Reset plantão
+        $('#escalaPlantao').val('12x36');
+        $('#horasPlantao').val(12);
+        $('#horasFolga').val(36);
+        $('#horarioEntradaPlantao').val('07:00');
+        $('#horarioSaidaPlantao').val('19:00');
+        
+        // Reset folgas (Seg-Sex trabalha, Sab-Dom folga)
+        for (let dia = 1; dia <= 5; dia++) {
+          $(`.folga-check[data-dia="${dia}"]`).prop('checked', false).trigger('change');
+        }
+        $(`.folga-check[data-dia="0"]`).prop('checked', true).trigger('change');
+        $(`.folga-check[data-dia="6"]`).prop('checked', true).trigger('change');
+        
+        limparHorarios();
+        atualizarModoJornada(); // Mostra grade de horários (modo normal)
+        $('.modal-title').text('Nova Jornada');
+      }
+
+      $('#modalJornada').on('hidden.bs.modal', limparForm);
+    </script>
+  @end
+@end

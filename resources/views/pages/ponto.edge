@@ -1,0 +1,679 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">
+          Registros de Ponto
+          <span id="wsStatus" class="badge bg-secondary ms-2" style="font-size: 0.6em;">Conectando...</span>
+        </h4>
+        <p class="text-muted mb-0">Visualizar e gerenciar marcações de ponto <small class="text-success">(atualização em tempo real)</small></p>
+      </div>
+      <div class="d-flex gap-2">
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-download me-2"></i>Exportar
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="exportar('excel')"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
+            <li><a class="dropdown-item" href="#" onclick="exportar('pdf')"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
+          </ul>
+        </div>
+        <button class="btn btn-danger" id="btnExcluirSelecionados" style="display: none;" onclick="excluirSelecionados()">
+          <i class="bi bi-trash me-2"></i>Excluir Selecionados (<span id="countSelecionados">0</span>)
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMarcacao" onclick="novaMarcacao()">
+          <i class="bi bi-plus-lg me-2"></i>Nova Marcação
+        </button>
+      </div>
+    </div>
+
+    {{-- Cards de indicadores --}}
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card border-0 bg-primary bg-opacity-10">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
+                <i class="bi bi-clock-history fs-4"></i>
+              </div>
+              <div>
+                <h6 class="mb-0 text-muted">Total Registros</h6>
+                <h3 class="mb-0" id="indTotalRegistros">-</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
+                <i class="bi bi-box-arrow-in-right fs-4"></i>
+              </div>
+              <div>
+                <h6 class="mb-0 text-muted">Entradas</h6>
+                <h3 class="mb-0" id="indEntradas">-</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-danger bg-opacity-10">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
+                <i class="bi bi-box-arrow-right fs-4"></i>
+              </div>
+              <div>
+                <h6 class="mb-0 text-muted">Saídas</h6>
+                <h3 class="mb-0" id="indSaidas">-</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
+                <i class="bi bi-pencil-square fs-4"></i>
+              </div>
+              <div>
+                <h6 class="mb-0 text-muted">Manuais</h6>
+                <h3 class="mb-0" id="indManuais">-</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Filtros com Select2 e filtragem automática --}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Funcionário</label>
+            <select class="form-select filtro-select2" id="filtroFuncionario">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Lotação</label>
+            <select class="form-select filtro-select2" id="filtroLotacao">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Origem</label>
+            <select class="form-select" id="filtroOrigem">
+              <option value="">Todas</option>
+              <option value="REP">REP</option>
+              <option value="MANUAL">Manual</option>
+              <option value="AJUSTE">Ajuste</option>
+              <option value="APP">App</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control filtro-data" id="filtroDataInicio">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control filtro-data" id="filtroDataFim">
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-outline-secondary w-100" onclick="limparFiltros()" title="Limpar filtros">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaPonto" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="checkAll" onclick="toggleCheckAll(this)"></th>
+              <th>Data/Hora</th>
+              <th>Funcionário</th>
+              <th>Matrícula</th>
+              <th>Tipo</th>
+              <th>Origem</th>
+              <th>Equipamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal Marcação Manual --}}
+    <div class="modal fade" id="modalMarcacao" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalMarcacaoTitle">Nova Marcação Manual</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formMarcacao" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" name="id" id="marcacaoId">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Funcionário *</label>
+                  <select class="form-select" name="funcionario_id" id="funcionario_id" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Data *</label>
+                  <input type="date" class="form-control" name="data" id="data" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Hora *</label>
+                  <input type="time" class="form-control" name="hora" id="hora" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Sentido</label>
+                  <select class="form-select" name="sentido" id="sentido">
+                    <option value="">Automático</option>
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SAIDA">Saída</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Origem</label>
+                  <select class="form-select" name="origem" id="origem">
+                    <option value="MANUAL">Manual</option>
+                    <option value="AJUSTE">Ajuste</option>
+                  </select>
+                </div>
+                <div class="col-12" id="justificativaGroup">
+                  <label class="form-label">Justificativa <span id="justificativaObg" class="text-danger d-none">*</span></label>
+                  <textarea class="form-control" name="justificativa_edicao" id="justificativa_edicao" rows="2" placeholder="Motivo da edição/marcação..."></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Mapa -->
+    <div class="modal fade" id="modalMapa" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-geo-alt me-2"></i>Localização do Registro
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-0">
+            <div id="mapaRegistro" style="height: 400px;"></div>
+            <div class="p-3 bg-light">
+              <p class="mb-1"><strong id="mapaFuncionario"></strong></p>
+              <p class="mb-1 text-muted"><i class="bi bi-clock me-1"></i><span id="mapaDataHora"></span></p>
+              <p class="mb-0 text-muted"><i class="bi bi-geo me-1"></i><span id="mapaCoordenadas"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+      let dataTable;
+      let socket;
+
+      // Inicializa WebSocket
+      function initWebSocket() {
+        const municipioId = {{ municipio?.id || 1 }};
+
+        socket = io({
+          path: '/ws',
+          transports: ['websocket', 'polling']
+        });
+
+        socket.on('connect', () => {
+          console.log('[WS] Conectado:', socket.id);
+          document.getElementById('wsStatus').className = 'badge bg-success ms-2';
+          document.getElementById('wsStatus').textContent = 'Online';
+
+          // Inscreve no município
+          socket.emit('subscribe', municipioId);
+        });
+
+        socket.on('disconnect', () => {
+          console.log('[WS] Desconectado');
+          document.getElementById('wsStatus').className = 'badge bg-danger ms-2';
+          document.getElementById('wsStatus').textContent = 'Offline';
+        });
+
+        socket.on('connect_error', (err) => {
+          console.log('[WS] Erro de conexão:', err.message);
+          document.getElementById('wsStatus').className = 'badge bg-warning ms-2';
+          document.getElementById('wsStatus').textContent = 'Reconectando...';
+        });
+
+        // Escuta novas batidas
+        socket.on('nova-batida', (batida) => {
+          console.log('[WS] Nova batida:', batida);
+
+          // Mostra notificação
+          toastr.info(`${batida.funcionario_nome} - ${batida.sentido}`, 'Nova Batida');
+
+          // Recarrega a tabela para mostrar o novo registro
+          carregarRegistros();
+        });
+      }
+
+      $(document).ready(function() {
+        // Inicializa WebSocket
+        initWebSocket();
+        // Define data padrão (primeiro dia do mês até hoje)
+        const hoje = new Date();
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const hojeStr = hoje.toISOString().split('T')[0];
+        const primeiroDiaStr = primeiroDiaMes.toISOString().split('T')[0];
+        $('#filtroDataInicio').val(primeiroDiaStr);
+        $('#filtroDataFim').val(hojeStr);
+        $('#data').val(hojeStr);
+
+        // Inicializa Select2 nos filtros
+        $('.filtro-select2').select2({
+          theme: 'bootstrap-5',
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Eventos de mudança - filtra automaticamente ao selecionar
+        $('.filtro-select2').on('change', function() {
+          carregarRegistros();
+        });
+
+        // Filtro automático ao mudar datas e origem
+        $('.filtro-data, #filtroOrigem').on('change', function() {
+          carregarRegistros();
+        });
+
+        carregarFuncionarios();
+        carregarLotacoes();
+        carregarRegistros();
+
+        $('#formMarcacao').on('submit', async function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const data = Object.fromEntries(formData.entries());
+          const id = data.id;
+          delete data.id;
+
+          // Validação: justificativa obrigatória para edição
+          if (id && !data.justificativa_edicao?.trim()) {
+            toastr.error('Justificativa obrigatória para edição');
+            return;
+          }
+
+          // Combina data e hora
+          data.data_hora = `${data.data}T${data.hora}:00`;
+          delete data.data;
+          delete data.hora;
+
+          try {
+            const url = id ? `/api/ponto/registros/${id}` : '/api/ponto/registros';
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+              },
+              body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+              toastr.success(id ? 'Marcação atualizada!' : 'Marcação registrada!');
+              bootstrap.Modal.getInstance(document.getElementById('modalMarcacao')).hide();
+              carregarRegistros();
+            } else {
+              const err = await response.json();
+              toastr.error(err.error || 'Erro ao salvar');
+            }
+          } catch (error) {
+            console.error(error);
+            toastr.error('Erro ao processar requisição');
+          }
+        });
+      });
+
+      async function carregarFuncionarios() {
+        try {
+          const response = await fetch('/api/funcionarios');
+          const result = await response.json();
+
+          const select1 = $('#funcionario_id');
+          const select2 = $('#filtroFuncionario');
+
+          (result.data || []).forEach(f => {
+            select1.append(`<option value="${f.id}">${f.nome} (${f.matricula})</option>`);
+            select2.append(`<option value="${f.id}">${f.nome}</option>`);
+          });
+        } catch (error) {
+          console.error('Erro ao carregar funcionários:', error);
+        }
+      }
+
+      async function carregarLotacoes() {
+        try {
+          const response = await fetch('/api/lotacoes');
+          const result = await response.json();
+
+          const select = $('#filtroLotacao');
+          (result.data || result || []).forEach(l => {
+            select.append(`<option value="${l.id}">${l.nome}</option>`);
+          });
+        } catch (error) {
+          console.error('Erro ao carregar lotações:', error);
+        }
+      }
+
+      function getQueryParams() {
+        const params = new URLSearchParams();
+
+        const funcionario = $('#filtroFuncionario').val();
+        const lotacao = $('#filtroLotacao').val();
+        const origem = $('#filtroOrigem').val();
+        const dataInicio = $('#filtroDataInicio').val();
+        const dataFim = $('#filtroDataFim').val();
+
+        if (funcionario) params.append('funcionario_id', funcionario);
+        if (lotacao) params.append('lotacao_id', lotacao);
+        if (origem) params.append('origem', origem);
+        if (dataInicio) params.append('data_inicio', dataInicio);
+        if (dataFim) params.append('data_fim', dataFim);
+
+        return params.toString();
+      }
+
+      function limparFiltros() {
+        $('#filtroFuncionario').val('').trigger('change');
+        $('#filtroLotacao').val('').trigger('change');
+        $('#filtroOrigem').val('');
+        const hoje = new Date();
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        $('#filtroDataInicio').val(primeiroDiaMes.toISOString().split('T')[0]);
+        $('#filtroDataFim').val(hoje.toISOString().split('T')[0]);
+        carregarRegistros();
+      }
+
+      function exportar(formato) {
+        const params = getQueryParams();
+        window.open(`/api/ponto/registros/exportar?formato=${formato}&${params}`, '_blank');
+      }
+
+      function atualizarIndicadores(data) {
+        const total = data.length;
+        const entradas = data.filter(r => r.tipo === 'ENTRADA').length;
+        const saidas = data.filter(r => r.tipo === 'SAIDA').length;
+        const manuais = data.filter(r => ['MANUAL', 'AJUSTE'].includes(r.origem)).length;
+
+        $('#indTotalRegistros').text(total);
+        $('#indEntradas').text(entradas);
+        $('#indSaidas').text(saidas);
+        $('#indManuais').text(manuais);
+      }
+
+      async function carregarRegistros() {
+        try {
+          const queryParams = getQueryParams();
+          const response = await fetch(`/api/ponto/registros?${queryParams}`);
+          const result = await response.json();
+
+          // Atualiza indicadores
+          atualizarIndicadores(result.data || []);
+
+          if (dataTable) {
+            dataTable.destroy();
+          }
+
+          dataTable = $('#tabelaPonto').DataTable({
+            data: result.data || [],
+            columns: [
+              {
+                data: 'id',
+                orderable: false,
+                render: function(data) {
+                  return `<input type="checkbox" class="check-registro" value="${data}" onclick="atualizarContadorSelecionados()">`;
+                }
+              },
+              {
+                data: 'data_hora',
+                render: function(data) {
+                  return data ? new Date(data).toLocaleString('pt-BR') : '-';
+                }
+              },
+              { data: 'funcionario_nome', defaultContent: '-' },
+              { data: 'matricula', defaultContent: '-' },
+              {
+                data: 'tipo',
+                render: function(data) {
+                  const badges = { 'ENTRADA': 'bg-success', 'SAIDA': 'bg-danger' };
+                  return `<span class="badge ${badges[data] || 'bg-secondary'}">${data || 'REG'}</span>`;
+                }
+              },
+              {
+                data: 'origem',
+                render: function(data) {
+                  const badges = {
+                    'REP': 'bg-primary',
+                    'MANUAL': 'bg-warning',
+                    'AJUSTE': 'bg-info',
+                    'APP': 'bg-secondary'
+                  };
+                  return `<span class="badge ${badges[data] || 'bg-secondary'}">${data || 'REP'}</span>`;
+                }
+              },
+              { data: 'equipamento_nome', defaultContent: '-' },
+              {
+                data: null,
+                orderable: false,
+                render: function(data) {
+                  const btnMapa = data.latitude && data.longitude
+                    ? `<button class="btn btn-outline-success" onclick="verMapa(${data.latitude}, ${data.longitude}, '${data.funcionario_nome || ''}', '${data.data_hora}')" title="Ver no Mapa">
+                        <i class="bi bi-geo-alt"></i>
+                      </button>`
+                    : '';
+                  return `
+                    <div class="btn-group btn-group-sm">
+                      ${btnMapa}
+                      <button class="btn btn-outline-primary" onclick="editarMarcacao(${data.id})" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" onclick="excluirMarcacao(${data.id})" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  `;
+                }
+              }
+            ],
+            order: [[1, 'desc']]
+          });
+
+          // Reseta checkbox "selecionar todos"
+          document.getElementById('checkAll').checked = false;
+          atualizarContadorSelecionados();
+        } catch (error) {
+          console.error('Erro:', error);
+        }
+      }
+
+      function novaMarcacao() {
+        $('#modalMarcacaoTitle').text('Nova Marcação Manual');
+        $('#formMarcacao')[0].reset();
+        $('#marcacaoId').val('');
+        $('#data').val(new Date().toISOString().split('T')[0]);
+        $('#hora').val(new Date().toTimeString().substring(0, 5));
+        $('#origem').val('MANUAL');
+        $('#justificativaObg').addClass('d-none');
+      }
+
+      async function editarMarcacao(id) {
+        try {
+          const response = await fetch(`/api/ponto/registros/${id}`);
+          const reg = await response.json();
+
+          const dataHora = new Date(reg.data_hora);
+
+          $('#modalMarcacaoTitle').text('Editar Marcação');
+          $('#marcacaoId').val(reg.id);
+          $('#funcionario_id').val(reg.funcionario_id);
+          $('#data').val(dataHora.toISOString().split('T')[0]);
+          $('#hora').val(dataHora.toTimeString().substring(0, 5));
+          $('#sentido').val(reg.sentido);
+          $('#origem').val(reg.origem || 'AJUSTE');
+          $('#justificativa_edicao').val('');
+          $('#justificativaObg').removeClass('d-none');
+
+          new bootstrap.Modal(document.getElementById('modalMarcacao')).show();
+        } catch (error) {
+          toastr.error('Erro ao carregar marcação');
+        }
+      }
+
+      let mapaRegistroInstance = null;
+
+      function verMapa(lat, lng, funcionario, dataHora) {
+        // Formatar data/hora
+        const dt = new Date(dataHora);
+        const dataFormatada = dt.toLocaleDateString('pt-BR') + ' às ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        // Atualizar informações
+        document.getElementById('mapaFuncionario').textContent = funcionario || 'Funcionário';
+        document.getElementById('mapaDataHora').textContent = dataFormatada;
+        document.getElementById('mapaCoordenadas').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+        // Abrir modal
+        const modal = new bootstrap.Modal(document.getElementById('modalMapa'));
+        modal.show();
+
+        // Aguardar modal abrir para inicializar mapa
+        document.getElementById('modalMapa').addEventListener('shown.bs.modal', function initMap() {
+          // Remover listener para não duplicar
+          this.removeEventListener('shown.bs.modal', initMap);
+
+          // Destruir mapa anterior se existir
+          if (mapaRegistroInstance) {
+            mapaRegistroInstance.remove();
+          }
+
+          // Criar novo mapa
+          mapaRegistroInstance = L.map('mapaRegistro').setView([lat, lng], 17);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+          }).addTo(mapaRegistroInstance);
+
+          // Adicionar marcador
+          L.marker([lat, lng])
+            .addTo(mapaRegistroInstance)
+            .bindPopup(`<strong>${funcionario || 'Registro'}</strong><br>${dataFormatada}`)
+            .openPopup();
+
+          // Forçar redimensionamento
+          setTimeout(() => mapaRegistroInstance.invalidateSize(), 100);
+        }, { once: true });
+      }
+
+      async function excluirMarcacao(id) {
+        if (!await confirmar('Deseja realmente excluir esta marcação?', { tipo: 'danger', titulo: 'Excluir Marcação' })) return;
+
+        try {
+          const response = await fetch(`/api/ponto/registros/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+          });
+
+          if (response.ok) {
+            toastr.success('Marcação excluída!');
+            carregarRegistros();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (error) {
+          toastr.error('Erro ao processar');
+        }
+      }
+
+      // Funções de seleção em massa
+      function toggleCheckAll(checkbox) {
+        const checks = document.querySelectorAll('.check-registro');
+        checks.forEach(c => c.checked = checkbox.checked);
+        atualizarContadorSelecionados();
+      }
+
+      function atualizarContadorSelecionados() {
+        const selecionados = document.querySelectorAll('.check-registro:checked').length;
+        document.getElementById('countSelecionados').textContent = selecionados;
+        document.getElementById('btnExcluirSelecionados').style.display = selecionados > 0 ? 'inline-block' : 'none';
+      }
+
+      async function excluirSelecionados() {
+        const checks = document.querySelectorAll('.check-registro:checked');
+        const ids = Array.from(checks).map(c => c.value);
+
+        if (ids.length === 0) {
+          toastr.warning('Nenhum registro selecionado');
+          return;
+        }
+
+        if (!await confirmar(`Deseja realmente excluir ${ids.length} registro(s)?`, { tipo: 'danger', titulo: 'Excluir Registros' })) return;
+
+        try {
+          const response = await fetch('/api/ponto/registros/bulk-delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ ids })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            toastr.success(`${result.deleted} registro(s) excluído(s)!`);
+            carregarRegistros();
+          } else {
+            toastr.error('Erro ao excluir registros');
+          }
+        } catch (error) {
+          console.error(error);
+          toastr.error('Erro ao processar');
+        }
+      }
+    </script>
+  @end
+@end

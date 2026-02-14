@@ -1,0 +1,277 @@
+@component('layouts/main')
+  @slot('content')
+    {{-- Terminologia baseada no tipo de entidade --}}
+    @let(isPrivada = entidade?.tipo === 'PRIVADA')
+    @let(titulo = isPrivada ? 'Setores' : 'Lotações')
+    @let(tituloSingular = isPrivada ? 'Setor' : 'Lotação')
+    @let(labelSecretaria = isPrivada ? 'Departamento' : 'Secretaria')
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">{{ titulo }}</h4>
+        <p class="text-muted mb-0">Gerenciamento de {{ titulo.toLowerCase() }}</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalLotacao" onclick="limparForm()">
+        <i class="bi bi-plus-lg me-2"></i>Novo {{ tituloSingular }}
+      </button>
+    </div>
+
+    {{-- Filtros com Select2 e filtragem automática --}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ labelSecretaria }}</label>
+            <select id="filtroSecretaria" class="form-select filtro-select2">
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaLotacoes" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nome</th>
+              <th>{{ labelSecretaria }}</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal --}}
+    <div class="modal fade" id="modalLotacao" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLotacaoTitle">Novo {{ tituloSingular }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formLotacao" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="lotacaoId" name="id">
+
+              <div class="mb-3">
+                <label class="form-label">{{ labelSecretaria }} <span class="text-danger">*</span></label>
+                <select class="form-select" id="secretaria_id" name="secretaria_id" required>
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Código</label>
+                <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Automático">
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nome" name="nome" required>
+              </div>
+              
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="ativo" name="ativo" checked style="width: 3em; height: 1.5em;">
+                <label class="form-check-label ms-2" for="ativo" id="ativoLabel">Ativo</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let table;
+
+      $(document).ready(function() {
+        carregarSecretarias();
+        carregarDados();
+        $('#formLotacao').on('submit', salvar);
+
+        // Select2 para filtro com filtragem automática
+        $('.filtro-select2').select2({
+          theme: 'bootstrap-5',
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Filtro automático ao mudar seleção
+        $('.filtro-select2').on('change', function() {
+          carregarDados();
+        });
+
+        // Select2 para modal
+        $('#secretaria_id').select2({
+          theme: 'bootstrap-5',
+          dropdownParent: $('#modalLotacao'),
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Atualiza label do switch
+        $('#ativo').on('change', function() {
+          $('#ativoLabel').text(this.checked ? 'Ativo' : 'Inativo');
+        });
+      });
+
+      async function carregarSecretarias() {
+        try {
+          const res = await fetch('/api/secretarias');
+          const json = await res.json();
+          const options = (json.data || []).map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+          $('#secretaria_id').append(options);
+          $('#filtroSecretaria').append(options);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function carregarDados() {
+        try {
+          const secretariaId = $('#filtroSecretaria').val();
+          let url = '/api/lotacoes';
+          if (secretariaId) url += `?secretaria_id=${secretariaId}`;
+          
+          const res = await fetch(url);
+          const json = await res.json();
+
+          if (table) table.destroy();
+
+          table = $('#tabelaLotacoes').DataTable({
+            data: json.data || [],
+            columns: [
+              { data: 'codigo', defaultContent: '-' },
+              { data: 'nome' },
+              { data: 'secretaria_nome', defaultContent: '-' },
+              { 
+                data: 'ativo',
+                render: (data) => data !== false
+                  ? '<span class="badge bg-success">Ativo</span>'
+                  : '<span class="badge bg-danger">Inativo</span>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editar(${data.id})" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="excluir(${data.id}, '${data.nome}')" title="Excluir">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                `
+              }
+            ],
+            order: [[1, 'asc']]
+          });
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao carregar dados');
+        }
+      }
+
+      function filtrar() {
+        carregarDados();
+      }
+
+      async function editar(id) {
+        try {
+          const res = await fetch(`/api/lotacoes/${id}`);
+          const item = await res.json();
+          $('#lotacaoId').val(item.id);
+          $('#secretaria_id').val(item.secretaria_id);
+          $('#codigo').val(item.codigo);
+          $('#nome').val(item.nome);
+          $('#ativo').prop('checked', item.ativo !== false);
+          $('#ativoLabel').text(item.ativo !== false ? 'Ativo' : 'Inativo');
+          $('.modal-title').text('Editar Lotação');
+          new bootstrap.Modal(document.getElementById('modalLotacao')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar lotação');
+        }
+      }
+
+      async function salvar(e) {
+        e.preventDefault();
+        const id = $('#lotacaoId').val();
+        const data = {
+          secretaria_id: parseInt($('#secretaria_id').val()),
+          codigo: $('#codigo').val() || null,
+          nome: $('#nome').val(),
+          ativo: $('#ativo').is(':checked')
+        };
+        
+        try {
+          const res = await fetch(id ? `/api/lotacoes/${id}` : '/api/lotacoes', {
+            method: id ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Lotação atualizada!' : 'Lotação cadastrada!');
+            bootstrap.Modal.getInstance(document.getElementById('modalLotacao')).hide();
+            carregarDados();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluir(id, nome) {
+        if (!await confirmar(`Deseja excluir a lotação "${nome}"?`, { tipo: 'danger', titulo: 'Excluir Lotação' })) return;
+
+        try {
+          const res = await fetch(`/api/lotacoes/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
+          });
+          if (res.ok) {
+            toastr.success('Lotação excluída!');
+            carregarDados();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      function limparForm() {
+        $('#formLotacao')[0].reset();
+        $('#lotacaoId').val('');
+        $('#ativo').prop('checked', true);
+        $('#ativoLabel').text('Ativo');
+        $('#secretaria_id').val('').trigger('change');
+        $('.modal-title').text('Nova Lotação');
+      }
+
+      $('#modalLotacao').on('hidden.bs.modal', limparForm);
+    </script>
+  @end
+@end

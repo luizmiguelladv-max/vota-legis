@@ -38,6 +38,7 @@ router.use([
   () => import('@adonisjs/shield/shield_middleware'),
   () => import('@adonisjs/auth/initialize_auth_middleware'),
   () => import('#middleware/tenant_middleware'),
+  () => import('#middleware/audit_middleware'),
 ])
 
 /**
@@ -49,4 +50,7 @@ export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
   requireMunicipio: () => import('#middleware/require_municipio_middleware'),
   requireSuperAdmin: () => import('#middleware/require_super_admin_middleware'),
+  requireProfile: () => import('#middleware/require_profile_middleware'),
+  maintenance: () => import('#middleware/maintenance_middleware'),
+  rateLimit: () => import('#middleware/rate_limit_middleware'),
 })

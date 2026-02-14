@@ -1,0 +1,634 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Afastamentos</h4>
+        <p class="text-muted mb-0">Gestão de férias, atestados, licenças e afastamentos</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovoAfastamento">
+        <i class="bi bi-plus-lg me-2"></i>Novo Afastamento
+      </button>
+    </div>
+
+    {{-- Cards de Resumo --}}
+    <div class="row mb-4 g-3">
+      <div class="col-md-3">
+        <div class="card stat-card h-100" style="border-color: var(--cor-primaria);">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-2">Férias</h6>
+              <h3 class="mb-0" id="totalFerias">0</h3>
+            </div>
+            <i class="bi bi-sun stat-icon" style="color: var(--cor-primaria);"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100" style="border-color: #ffc107;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-2">Atestados</h6>
+              <h3 class="mb-0" id="totalAtestados">0</h3>
+            </div>
+            <i class="bi bi-file-medical stat-icon text-warning"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100" style="border-color: #17a2b8;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-2">Licenças</h6>
+              <h3 class="mb-0" id="totalLicencas">0</h3>
+            </div>
+            <i class="bi bi-file-text stat-icon text-info"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100" style="border-color: #6c757d;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-2">Pendentes</h6>
+              <h3 class="mb-0" id="totalPendentes">0</h3>
+            </div>
+            <i class="bi bi-clock stat-icon text-secondary"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Filtros --}}
+    <div class="card mb-4">
+      <div class="card-body py-3">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small">Funcionário</label>
+            <select class="form-select select2-funcionarios" id="filtroFuncionario">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Tipo</label>
+            <select class="form-select" id="filtroTipo">
+              <option value="">Todos</option>
+              <option value="FERIAS">Férias</option>
+              <option value="ATESTADO_MEDICO">Atestado Médico</option>
+              <option value="LICENCA_MEDICA">Licença Médica</option>
+              <option value="LICENCA_MATERNIDADE">Licença Maternidade</option>
+              <option value="FALTA_JUSTIFICADA">Falta Justificada</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Status</label>
+            <select class="form-select" id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="PENDENTE">Pendente</option>
+              <option value="APROVADO">Aprovado</option>
+              <option value="REJEITADO">Rejeitado</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Data Início</label>
+            <input type="date" class="form-control" id="filtroDataInicio">
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-primary w-100" onclick="carregarAfastamentos()">
+              <i class="bi bi-search me-2"></i>Filtrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela de Afastamentos --}}
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="tabelaAfastamentos">
+            <thead class="table-dark">
+              <tr>
+                <th>Funcionário</th>
+                <th>Tipo</th>
+                <th>Período</th>
+                <th class="text-center">Dias</th>
+                <th>Motivo</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabela">
+              {{-- Carregado via JavaScript --}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Novo Afastamento --}}
+    <div class="modal fade" id="modalNovoAfastamento" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Novo Afastamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formAfastamento" data-parsley-validate>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Funcionário *</label>
+                  <select class="form-select select2-funcionarios" id="funcionarioId" name="funcionario_id" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tipo de Afastamento *</label>
+                  <select class="form-select" id="tipoAfastamento" name="tipo" required>
+                    <option value="">Selecione...</option>
+                    <optgroup label="Férias">
+                      <option value="FERIAS">Férias</option>
+                      <option value="FERIAS_ABONO">Abono de Férias</option>
+                    </optgroup>
+                    <optgroup label="Atestados">
+                      <option value="ATESTADO_MEDICO">Atestado Médico</option>
+                      <option value="ATESTADO_ACOMPANHANTE">Atestado Acompanhante</option>
+                    </optgroup>
+                    <optgroup label="Licenças">
+                      <option value="LICENCA_MATERNIDADE">Licença Maternidade</option>
+                      <option value="LICENCA_PATERNIDADE">Licença Paternidade</option>
+                      <option value="LICENCA_MEDICA">Licença Médica</option>
+                      <option value="LICENCA_CASAMENTO">Licença Casamento</option>
+                      <option value="LICENCA_OBITO">Licença Óbito</option>
+                    </optgroup>
+                    <optgroup label="Outros">
+                      <option value="FALTA_JUSTIFICADA">Falta Justificada</option>
+                      <option value="FALTA_INJUSTIFICADA">Falta Injustificada</option>
+                      <option value="FOLGA_COMPENSATORIA">Folga Compensatória</option>
+                      <option value="AFASTAMENTO_INSS">Afastamento INSS</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Data Início *</label>
+                  <input type="date" class="form-control" id="dataInicio" name="data_inicio" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Data Fim <span id="dataFimAsterisco">*</span></label>
+                  <input type="date" class="form-control" id="dataFim" name="data_fim">
+                  <small id="dataFimHint" class="text-info d-none">
+                    <i class="bi bi-info-circle"></i> Opcional para licença médica/INSS (retorno indefinido)
+                  </small>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">CID (opcional)</label>
+                  <input type="text" class="form-control" id="cid" name="cid" placeholder="Ex: J11" maxlength="10">
+                </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" id="acidenteTrabalho" name="acidente_trabalho">
+                    <label class="form-check-label" for="acidenteTrabalho">
+                      <strong class="text-danger">Acidente de Trabalho</strong>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Motivo</label>
+                  <textarea class="form-control" id="motivo" name="motivo" rows="2"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Observação</label>
+                  <textarea class="form-control" id="observacao" name="observacao" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+
+    {{-- Modal INSS/eSocial --}}
+    <div class="modal fade" id="modalINSS" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title"><i class="bi bi-calculator me-2"></i>Cálculo INSS / eSocial</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="inssAfastamentoId">
+            
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card border-primary h-100">
+                  <div class="card-header bg-primary text-white">
+                    <i class="bi bi-building me-2"></i>Empresa (15 dias)
+                  </div>
+                  <div class="card-body text-center">
+                    <h2 id="diasEmpresa" class="text-primary mb-0">0</h2>
+                    <small class="text-muted">dias pagos pela empresa</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card border-success h-100">
+                  <div class="card-header bg-success text-white">
+                    <i class="bi bi-bank me-2"></i>INSS
+                  </div>
+                  <div class="card-body text-center">
+                    <h2 id="diasINSS" class="text-success mb-0">0</h2>
+                    <small class="text-muted">dias pagos pelo INSS</small>
+                    <div id="infoINSS" class="mt-2 small"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="alertaINSS" class="alert alert-warning d-none">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>Atenção:</strong> Este afastamento excede 15 dias. É necessário dar entrada no benefício INSS.
+            </div>
+
+            <div id="formINSS" class="d-none">
+              <hr>
+              <h6><i class="bi bi-file-earmark-code me-2"></i>Dados para eSocial (S-2230)</h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Número do Benefício</label>
+                  <input type="text" class="form-control" id="numeroBeneficio" placeholder="Ex: 123456789-0">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Tipo de Benefício</label>
+                  <select class="form-select" id="tipoBeneficio">
+                    <option value="B31">B31 - Auxílio-doença previdenciário</option>
+                    <option value="B91">B91 - Auxílio-doença acidentário</option>
+                    <option value="B94">B94 - Auxílio-acidente</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Recibo eSocial</label>
+                  <input type="text" class="form-control" id="reciboEsocial" placeholder="Após envio">
+                </div>
+              </div>
+            </div>
+
+            <div id="xmlContainer" class="mt-3 d-none">
+              <h6><i class="bi bi-code-slash me-2"></i>XML S-2230 Gerado</h6>
+              <pre id="xmlPreview" class="bg-dark text-light p-3 rounded" style="max-height: 200px; overflow: auto; font-size: 0.75rem;"></pre>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-info" id="btnGerarXML" onclick="gerarS2230()">
+              <i class="bi bi-file-earmark-code me-2"></i>Gerar XML S-2230
+            </button>
+            <button type="button" class="btn btn-success d-none" id="btnConfirmarINSS" onclick="confirmarEnvioINSS()">
+              <i class="bi bi-check-lg me-2"></i>Confirmar Envio
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+        carregarFuncionarios()
+        carregarAfastamentos()
+
+        // Inicializa Select2
+        $('.select2-funcionarios').select2({ theme: 'bootstrap-5', allowClear: true, placeholder: 'Selecione...' })
+
+        // Tipos que permitem data_fim opcional (sem data de retorno)
+        const tiposSemDataFim = ['LICENCA_MEDICA', 'AFASTAMENTO_INSS']
+        
+        // Listener para mostrar/esconder hint de data_fim
+        $('#tipoAfastamento').on('change', function() {
+          const tipo = $(this).val()
+          if (tiposSemDataFim.includes(tipo)) {
+            $('#dataFimHint').removeClass('d-none')
+            $('#dataFimAsterisco').addClass('d-none')
+            $('#dataFim').removeAttr('required')
+          } else {
+            $('#dataFimHint').addClass('d-none')
+            $('#dataFimAsterisco').removeClass('d-none')
+            $('#dataFim').attr('required', true)
+          }
+        })
+
+        // Form submit
+        $('#formAfastamento').on('submit', async function(e) {
+          e.preventDefault()
+          await salvarAfastamento()
+        })
+      })
+
+      async function carregarFuncionarios() {
+        try {
+          const res = await fetch('/api/funcionarios?ativos=true&limit=1000')
+          const data = await res.json()
+          
+          const selects = document.querySelectorAll('.select2-funcionarios')
+          selects.forEach(select => {
+            (data.data || []).forEach(f => {
+              const option = new Option(`${f.nome} (${f.matricula})`, f.id, false, false)
+              select.appendChild(option)
+            })
+          })
+        } catch (e) {
+          console.error('Erro ao carregar funcionários:', e)
+        }
+      }
+
+      async function carregarAfastamentos() {
+        const funcionarioId = $('#filtroFuncionario').val()
+        const tipo = $('#filtroTipo').val()
+        const status = $('#filtroStatus').val()
+        const dataInicio = $('#filtroDataInicio').val()
+
+        try {
+          const params = new URLSearchParams()
+          if (funcionarioId) params.append('funcionario_id', funcionarioId)
+          if (tipo) params.append('tipo', tipo)
+          if (status) params.append('status', status)
+          if (dataInicio) params.append('data_inicio', dataInicio)
+
+          const res = await fetch(`/api/afastamentos?${params}`)
+          const data = await res.json()
+
+          renderizarTabela(data.afastamentos || [])
+          atualizarResumo(data.resumo || {})
+        } catch (e) {
+          console.error('Erro ao carregar afastamentos:', e)
+          toastr.error('Erro ao carregar afastamentos')
+        }
+      }
+
+      function renderizarTabela(afastamentos) {
+        const corpo = $('#corpoTabela')
+        corpo.empty()
+
+        if (afastamentos.length === 0) {
+          corpo.append('<tr><td colspan="7" class="text-center text-muted py-4">Nenhum afastamento encontrado</td></tr>')
+          return
+        }
+
+        afastamentos.forEach(a => {
+          const tipoLabel = getTipoLabel(a.tipo)
+          const statusBadge = getStatusBadge(a.status)
+          const dataInicioFormatada = new Date(a.data_inicio).toLocaleDateString('pt-BR')
+          const dataFimFormatada = a.data_fim ? new Date(a.data_fim + 'T12:00:00').toLocaleDateString('pt-BR') : '<span class="badge bg-warning">Em aberto</span>'
+
+          corpo.append(`
+            <tr>
+              <td>
+                <strong>${a.funcionario_nome || '-'}</strong><br>
+                <small class="text-muted">${a.matricula || ''}</small>
+              </td>
+              <td><span class="badge bg-light text-dark">${tipoLabel}</span></td>
+              <td>${dataInicioFormatada} a ${dataFimFormatada}</td>
+              <td class="text-center"><span class="badge bg-secondary">${a.dias_corridos || '-'}</span></td>
+              <td class="text-muted small">${a.motivo || '-'}</td>
+              <td class="text-center">${statusBadge}</td>
+              <td class="text-center">
+                ${a.status === 'PENDENTE' ? `
+                  <button class="btn btn-sm btn-success me-1" onclick="aprovarAfastamento(${a.id})" title="Aprovar">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="rejeitarAfastamento(${a.id})" title="Rejeitar">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                ` : ''}
+                ${a.status === 'APROVADO' && a.dias_corridos > 15 ? `<button class="btn btn-sm btn-info me-1" onclick="abrirModalINSS(${a.id})" title="INSS/eSocial"><i class="bi bi-calculator"></i></button>` : ''}
+                <button class="btn btn-sm btn-outline-danger" onclick="excluirAfastamento(${a.id})" title="Excluir">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `)
+        })
+      }
+
+      function getTipoLabel(tipo) {
+        const labels = {
+          'FERIAS': 'Férias',
+          'FERIAS_ABONO': 'Abono Férias',
+          'ATESTADO_MEDICO': 'Atestado Médico',
+          'ATESTADO_ACOMPANHANTE': 'Atestado Acomp.',
+          'LICENCA_MATERNIDADE': 'Lic. Maternidade',
+          'LICENCA_PATERNIDADE': 'Lic. Paternidade',
+          'LICENCA_MEDICA': 'Licença Médica',
+          'LICENCA_CASAMENTO': 'Lic. Casamento',
+          'LICENCA_OBITO': 'Lic. Óbito',
+          'FALTA_JUSTIFICADA': 'Falta Justificada',
+          'FALTA_INJUSTIFICADA': 'Falta Injustificada',
+          'FOLGA_COMPENSATORIA': 'Folga Comp.',
+          'AFASTAMENTO_INSS': 'Afast. INSS'
+        }
+        return labels[tipo] || tipo
+      }
+
+      function getStatusBadge(status) {
+        const badges = {
+          'PENDENTE': '<span class="badge bg-warning text-dark">Pendente</span>',
+          'APROVADO': '<span class="badge bg-success">Aprovado</span>',
+          'REJEITADO': '<span class="badge bg-danger">Rejeitado</span>',
+          'CANCELADO': '<span class="badge bg-secondary">Cancelado</span>'
+        }
+        return badges[status] || status
+      }
+
+      function atualizarResumo(resumo) {
+        $('#totalFerias').text(resumo.ferias || 0)
+        $('#totalAtestados').text(resumo.atestados || 0)
+        $('#totalLicencas').text(resumo.licencas || 0)
+        $('#totalPendentes').text(resumo.pendentes || 0)
+      }
+
+      async function salvarAfastamento() {
+        const form = $('#formAfastamento')
+        if (!form.parsley().validate()) return
+
+        const data = {
+          funcionario_id: $('#funcionarioId').val(),
+          tipo: $('#tipoAfastamento').val(),
+          data_inicio: $('#dataInicio').val(),
+          data_fim: $('#dataFim').val() || null,
+          cid: $('#cid').val(),
+          motivo: $('#motivo').val(),
+          observacao: $('#observacao').val(),
+          acidente_trabalho: $('#acidenteTrabalho').is(':checked')
+        }
+
+        try {
+          const res = await fetch('/api/afastamentos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify(data)
+          })
+
+          if (!res.ok) throw new Error('Erro ao salvar')
+
+          toastr.success('Afastamento registrado com sucesso!')
+          $('#modalNovoAfastamento').modal('hide')
+          form[0].reset()
+          carregarAfastamentos()
+        } catch (e) {
+          toastr.error('Erro ao salvar afastamento')
+        }
+      }
+
+      async function aprovarAfastamento(id) {
+        if (!await confirmar('Tem certeza que deseja aprovar este afastamento?')) return
+
+        try {
+          await fetch(`/api/afastamentos/${id}/aprovar`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
+          })
+          toastr.success('Afastamento aprovado!')
+          carregarAfastamentos()
+        } catch (e) {
+          toastr.error('Erro ao aprovar')
+        }
+      }
+
+      async function rejeitarAfastamento(id) {
+        const motivo = await prompt('Motivo da rejeição:')
+        if (!motivo) return
+
+        try {
+          await fetch(`/api/afastamentos/${id}/rejeitar`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ motivo })
+          })
+          toastr.success('Afastamento rejeitado!')
+          carregarAfastamentos()
+        } catch (e) {
+          toastr.error('Erro ao rejeitar')
+        }
+      }
+
+      async function excluirAfastamento(id) {
+        if (!await confirmar('Tem certeza que deseja excluir este afastamento?', 'danger')) return
+
+        try {
+          await fetch(`/api/afastamentos/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
+          })
+          toastr.success('Afastamento excluído!')
+          carregarAfastamentos()
+        } catch (e) {
+          toastr.error('Erro ao excluir')
+        }
+      }
+      // Funções INSS carregadas
+
+      // === FUNÇÕES INSS/ESOCIAL ===
+      async function abrirModalINSS(id) {
+        document.getElementById('inssAfastamentoId').value = id
+        document.getElementById('diasEmpresa').textContent = '...'
+        document.getElementById('diasINSS').textContent = '...'
+        document.getElementById('infoINSS').innerHTML = ''
+        document.getElementById('alertaINSS').classList.add('d-none')
+        document.getElementById('formINSS').classList.add('d-none')
+        document.getElementById('xmlContainer').classList.add('d-none')
+        document.getElementById('btnGerarXML').classList.remove('d-none')
+        document.getElementById('btnConfirmarINSS').classList.add('d-none')
+        
+        new bootstrap.Modal(document.getElementById('modalINSS')).show()
+        
+        try {
+          const res = await fetch(`/api/afastamentos/${id}/calculo-inss`)
+          const data = await res.json()
+          
+          document.getElementById('diasEmpresa').textContent = data.dias_empresa
+          document.getElementById('diasINSS').textContent = data.dias_inss
+          
+          if (data.precisa_inss) {
+            document.getElementById('alertaINSS').classList.remove('d-none')
+            document.getElementById('formINSS').classList.remove('d-none')
+            document.getElementById('infoINSS').innerHTML = `
+              <strong>Data início INSS:</strong> ${new Date(data.data_inicio_inss + 'T12:00:00').toLocaleDateString('pt-BR')}<br>
+              <strong>Benefício sugerido:</strong> ${data.tipo_beneficio}
+            `
+            document.getElementById('tipoBeneficio').value = data.tipo_beneficio
+          } else {
+            document.getElementById('btnGerarXML').classList.add('d-none')
+          }
+        } catch (e) {
+          toastr.error('Erro ao calcular INSS')
+        }
+      }
+
+      async function gerarS2230() {
+        const id = document.getElementById('inssAfastamentoId').value
+        try {
+          const res = await fetch(`/api/afastamentos/${id}/gerar-s2230`, { method: 'POST' })
+          const data = await res.json()
+          
+          if (!res.ok) {
+            toastr.warning(data.error || 'Não foi possível gerar')
+            return
+          }
+          
+          document.getElementById('xmlContainer').classList.remove('d-none')
+          document.getElementById('xmlPreview').textContent = data.xml
+          document.getElementById('btnConfirmarINSS').classList.remove('d-none')
+          
+          toastr.success('XML S-2230 gerado!')
+        } catch (e) {
+          toastr.error('Erro ao gerar XML')
+        }
+      }
+
+      async function confirmarEnvioINSS() {
+        const id = document.getElementById('inssAfastamentoId').value
+        const recibo = document.getElementById('reciboEsocial').value
+        const numero_beneficio = document.getElementById('numeroBeneficio').value
+        const tipo_beneficio = document.getElementById('tipoBeneficio').value
+        
+        try {
+          await fetch(`/api/afastamentos/${id}/confirmar-inss`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recibo, numero_beneficio, tipo_beneficio })
+          })
+          toastr.success('Dados INSS salvos!')
+          bootstrap.Modal.getInstance(document.getElementById('modalINSS')).hide()
+          carregarAfastamentos()
+        } catch (e) {
+          toastr.error('Erro ao salvar')
+        }
+      }
+
+      function downloadXML() {
+        const xml = document.getElementById('xmlPreview').textContent
+        const blob = new Blob([xml], { type: 'application/xml' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `S2230_${document.getElementById('inssAfastamentoId').value}.xml`
+        a.click()
+      }
+
+    </script>
+  @end
+@end
