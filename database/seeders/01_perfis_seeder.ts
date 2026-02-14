@@ -16,17 +16,15 @@ export default class extends BaseSeeder {
     ]
 
     for (const perfil of perfis) {
-      await db
-        .table('perfis')
-        .insert({
-          codigo: perfil.codigo,
-          nome: perfil.nome,
-          descricao: perfil.descricao,
-          ativo: true,
-          created_at: new Date(),
-        })
-        .onConflict('codigo')
-        .ignore()
+      // Usar SQL direto para evitar incompatibilidade de types do QueryBuilder com onConflict.
+      await db.rawQuery(
+        `
+          INSERT INTO perfis (codigo, nome, descricao, ativo, created_at, updated_at)
+          VALUES ($1, $2, $3, true, $4, $4)
+          ON CONFLICT (codigo) DO NOTHING
+        `,
+        [perfil.codigo, perfil.nome, perfil.descricao, new Date()]
+      )
     }
 
     console.log('Perfis inseridos com sucesso!')

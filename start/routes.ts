@@ -64,7 +64,7 @@ router.group(() => {
   router.get('/municipio-pendente', async ({ view }) => {
     return view.render('pages/municipio-pendente')
   }).as('municipio-pendente')
-}).use(middleware.auth())
+}).use(middleware.auth({}))
 
 // ============================================
 // ROTAS COM MUNICIPIO OBRIGATORIO
@@ -162,7 +162,7 @@ router.group(() => {
   router.get('/materias/historico-ia', [MateriasIAController, 'historico']).as('materias.historico-ia')
   router.get('/sessoes/:sessaoId/gerar-ata', [MateriasIAController, 'gerarAta']).as('sessoes.gerar-ata')
 
-}).use([middleware.auth(), middleware.requireMunicipio()])
+}).use([middleware.auth({}), middleware.requireMunicipio()])
 
 // ============================================
 // ROTAS DE ADMIN (Super Admin apenas)
@@ -192,7 +192,7 @@ router.group(() => {
     return view.render('pages/admin/backups', { backups: [], totalBackups: 0, ultimoBackup: null, espacoUsado: '0 MB' })
   }).as('admin.backups')
 
-}).prefix('/admin').use([middleware.auth(), middleware.requireSuperAdmin()])
+}).prefix('/admin').use([middleware.auth({}), middleware.requireSuperAdmin()])
 
 // ============================================
 // API ROUTES
@@ -204,11 +204,11 @@ router.group(() => {
   })
 
   // SSE - Server-Sent Events (tempo real)
-  router.get('/sse/sessao/:sessaoId', [SSEController, 'sessao']).use(middleware.auth())
-  router.get('/sse/controle/:sessaoId', [SSEController, 'controle']).use(middleware.auth())
-  router.get('/sse/presidente/:sessaoId', [SSEController, 'presidente']).use(middleware.auth())
+  router.get('/sse/sessao/:sessaoId', [SSEController, 'sessao']).use(middleware.auth({}))
+  router.get('/sse/controle/:sessaoId', [SSEController, 'controle']).use(middleware.auth({}))
+  router.get('/sse/presidente/:sessaoId', [SSEController, 'presidente']).use(middleware.auth({}))
   router.get('/sse/painel/:codigo/:sessaoId', [SSEController, 'painel']) // Público
-  router.get('/sse/stats', [SSEController, 'stats']).use(middleware.auth())
+  router.get('/sse/stats', [SSEController, 'stats']).use(middleware.auth({}))
 
   // API autenticada
   router.group(() => {
@@ -244,6 +244,6 @@ router.group(() => {
     router.post('/materias/melhorar', [MateriasIAController, 'melhorar'])
     router.post('/materias/sugerir-ementa', [MateriasIAController, 'sugerirEmenta'])
 
-  }).use(middleware.auth())
+  }).use(middleware.auth({}))
 
 }).prefix('/api')

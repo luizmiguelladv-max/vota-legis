@@ -68,20 +68,21 @@ export default class VotacaoService {
     const numeroVotacao = ultimaVotacao.rows[0].proximo
 
     // Cria a votação
-    const result = await db.rawQuery(`
-      INSERT INTO "${this.schemaName}".votacoes (
-        sessao_id, materia_id, numero_votacao, tipo, quorum_tipo,
-        descricao, status, hora_inicio, created_at, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, 'em_andamento', NOW(), NOW(), NOW())
-      RETURNING id
-    `, [
-      sessaoId,
-      materiaId,
-      numeroVotacao,
-      config.tipo,
-      config.quorumTipo
-    ])
+	    const result = await db.rawQuery(`
+	      INSERT INTO "${this.schemaName}".votacoes (
+	        sessao_id, materia_id, numero_votacao, tipo, quorum_tipo,
+	        descricao, status, hora_inicio, created_at, updated_at
+	      )
+	      VALUES ($1, $2, $3, $4, $5, $6, 'em_andamento', NOW(), NOW(), NOW())
+	      RETURNING id
+	    `, [
+	      sessaoId,
+	      materiaId,
+	      numeroVotacao,
+	      config.tipo,
+	      config.quorumTipo,
+	      descricao,
+	    ])
 
     const votacaoId = result.rows[0].id
 
@@ -235,12 +236,7 @@ export default class VotacaoService {
     const quorumInfo = await this.calcularQuorum(sessaoId, votacao.rows[0].quorum_tipo)
 
     // Determina resultado
-    const resultado = this.determinarResultado(
-      parseInt(votos.votos_sim),
-      parseInt(votos.votos_nao),
-      votacao.rows[0].quorum_tipo,
-      quorumInfo.quorumNecessario
-    )
+    const resultado = this.determinarResultado(parseInt(votos.votos_sim), quorumInfo.quorumNecessario)
 
     // Atualiza votação
     await db.rawQuery(`
@@ -383,8 +379,6 @@ export default class VotacaoService {
    */
   private determinarResultado(
     votosSim: number,
-    votosNao: number,
-    quorumTipo: string,
     quorumNecessario: number
   ): { aprovado: boolean } {
     // Verifica se atingiu o quórum mínimo de votos SIM
