@@ -1,8 +1,8 @@
 {
-    "name": "Ponto Mobile",
-    "short_name": "Ponto",
-    "description": "Sistema de Ponto Eletrônico - Registre seu ponto com selfie e GPS",
-    "start_url": "/app-mobile",
+    "name": "Votacao Legislativa",
+    "short_name": "VotaLegis",
+    "description": "Sistema de Votacao Eletronica Legislativa para Camaras Municipais",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#2563eb",
     "theme_color": "#2563eb",

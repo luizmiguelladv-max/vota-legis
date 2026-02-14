@@ -1,13 +1,12 @@
-// Service Worker para PWA de Ponto Eletronico
-const CACHE_NAME = 'ponto-eletronico-v8';
-const DB_NAME = 'ponto-offline-db';
+// Service Worker para PWA do VotaLegis
+const CACHE_NAME = 'vota-legis-v1';
+const DB_NAME = 'vota-legis-offline-db';
 const DB_VERSION = 2;
 const STORE_NAME = 'pontos-pendentes';
 const USER_STORE_NAME = 'user-info';
 
 const urlsToCache = [
-    '/app-mobile',
-    '/app-facial',
+    '/',
     '/manifest.json',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
@@ -238,7 +237,7 @@ self.addEventListener('push', event => {
             { action: 'close', title: 'Fechar' }
         ]
     };
-    event.waitUntil(self.registration.showNotification(data.title || 'Ponto Eletronico', options));
+    event.waitUntil(self.registration.showNotification(data.title || 'VotaLegis', options));
 });
 
 // Sincronizacao em background

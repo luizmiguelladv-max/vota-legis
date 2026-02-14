@@ -11,7 +11,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrfToken }}">
-  <title>Selecionar Município - Sistema de Ponto Eletrônico</title>
+  <title>Selecionar Câmara Municipal - Votação Eletrônica Legislativa</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <style>
@@ -571,8 +571,8 @@
         <div class="icon-building">
           <i class="bi bi-building"></i>
         </div>
-        <h4>Selecione o Município</h4>
-        <p>Escolha o município para acessar o sistema</p>
+        <h4>Selecione a Câmara Municipal</h4>
+        <p>Escolha o município para acessar o sistema de votação</p>
       </div>
 
       {{-- Body --}}
@@ -652,23 +652,6 @@
           </div>
         </div>
 
-        {{-- Entidades List (hidden initially) --}}
-        <div id="stepEntidade" style="display: none;">
-          <div class="info-alert" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fcd34d;">
-            <i class="bi bi-building" style="color: #d97706;"></i>
-            <span style="color: #92400e;"><strong id="municipioNome">Município</strong> - Selecione a entidade</span>
-          </div>
-          <button class="btn btn-link text-decoration-none mb-2 p-0" onclick="voltarMunicipio()">
-            <i class="bi bi-arrow-left me-1"></i>Voltar para municípios
-          </button>
-          <div class="municipios-list" id="entidadesList">
-            <div class="empty-state" id="loadingEntidades">
-              <i class="bi bi-hourglass-split"></i>
-              <p>Carregando entidades...</p>
-            </div>
-          </div>
-        </div>
-
         {{-- Buttons --}}
         <button class="btn-entrar" id="btnEntrar" onclick="entrarSistema()" disabled>
           <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
@@ -685,8 +668,6 @@
 
   <script>
     let municipioSelecionado = null;
-    let entidadeSelecionada = null;
-    let municipioNomeSelecionado = '';
 
     function selecionarMunicipio(el) {
       // Remove seleção anterior
@@ -697,91 +678,7 @@
       // Adiciona seleção
       el.classList.add('selected');
       municipioSelecionado = el.dataset.id;
-      municipioNomeSelecionado = el.dataset.nome;
-
-      // Carrega entidades do município
-      carregarEntidades(municipioSelecionado);
-    }
-
-    async function carregarEntidades(municipioId) {
-      document.getElementById('stepMunicipio').style.display = 'none';
-      document.getElementById('stepEntidade').style.display = 'block';
-      document.getElementById('municipioNome').textContent = municipioNomeSelecionado;
-      document.getElementById('searchBox').style.display = 'none';
-      document.getElementById('btnEntrar').disabled = true;
-      entidadeSelecionada = null;
-
-      try {
-        const response = await fetch(`/api/entidades?municipioId=${municipioId}`);
-        const data = await response.json();
-        const entidades = data.data || [];
-
-        const lista = document.getElementById('entidadesList');
-
-        if (entidades.length === 0) {
-          lista.innerHTML = `
-            <div class="empty-state">
-              <i class="bi bi-building-x"></i>
-              <p>Nenhuma entidade cadastrada neste município</p>
-              <small class="text-muted">Cadastre entidades no painel administrativo</small>
-            </div>
-          `;
-        } else {
-          lista.innerHTML = entidades.map(ent => `
-            <div class="municipio-item" data-id="${ent.id}" data-nome="${ent.nome}" onclick="selecionarEntidade(this)">
-              <div class="municipio-icon">
-                <i class="bi bi-${ent.categoria === 'PREFEITURA' ? 'bank' : ent.categoria === 'CAMARA' ? 'building-fill' : 'briefcase'}"></i>
-              </div>
-              <div class="municipio-info">
-                <div class="municipio-nome">${ent.nome}</div>
-                <div class="municipio-detalhes">
-                  <span><i class="bi bi-tag me-1"></i>${ent.categoria || 'Entidade'}</span>
-                  <span><i class="bi bi-people me-1"></i>${ent.totalFuncionarios || 0} funcionários</span>
-                </div>
-              </div>
-              <div class="municipio-check">
-                <i class="bi bi-check"></i>
-              </div>
-            </div>
-          `).join('');
-
-          // Se só tem uma entidade, seleciona automaticamente
-          if (entidades.length === 1) {
-            const item = lista.querySelector('.municipio-item');
-            selecionarEntidade(item);
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar entidades:', error);
-        document.getElementById('entidadesList').innerHTML = `
-          <div class="empty-state">
-            <i class="bi bi-exclamation-triangle"></i>
-            <p>Erro ao carregar entidades</p>
-          </div>
-        `;
-      }
-    }
-
-    function selecionarEntidade(el) {
-      // Remove seleção anterior
-      document.querySelectorAll('#entidadesList .municipio-item').forEach(item => {
-        item.classList.remove('selected');
-      });
-
-      // Adiciona seleção
-      el.classList.add('selected');
-      entidadeSelecionada = el.dataset.id;
-
-      // Habilita botão
       document.getElementById('btnEntrar').disabled = false;
-    }
-
-    function voltarMunicipio() {
-      document.getElementById('stepEntidade').style.display = 'none';
-      document.getElementById('stepMunicipio').style.display = 'block';
-      document.getElementById('searchBox').style.display = 'block';
-      document.getElementById('btnEntrar').disabled = true;
-      entidadeSelecionada = null;
     }
 
     function filtrarMunicipios() {
@@ -799,7 +696,7 @@
     }
 
     async function entrarSistema() {
-      if (!municipioSelecionado || !entidadeSelecionada) return;
+      if (!municipioSelecionado) return;
 
       const btn = document.getElementById('btnEntrar');
       btn.disabled = true;
@@ -814,8 +711,7 @@
           },
           credentials: 'include',
           body: JSON.stringify({
-            municipioId: parseInt(municipioSelecionado),
-            entidadeId: parseInt(entidadeSelecionada)
+            municipioId: parseInt(municipioSelecionado)
           })
         });
 
@@ -843,6 +739,7 @@
     document.querySelectorAll('#municipiosList .municipio-item').forEach(item => {
       item.addEventListener('dblclick', function() {
         selecionarMunicipio(this);
+        entrarSistema();
       });
     });
 
