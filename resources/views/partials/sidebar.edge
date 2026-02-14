@@ -1,0 +1,122 @@
+<nav class="sidebar d-flex flex-column" id="sidebar">
+  <div class="sidebar-header text-center">
+    <i class="bi bi-check2-square text-white" style="font-size: 2rem;"></i>
+    <h6 class="text-white mb-0 mt-2">{{ tenant?.municipio?.nome || 'Sistema de Votacao' }}</h6>
+    <small class="text-white-50">VotaLegis</small>
+  </div>
+
+  <ul class="nav flex-column mt-3 flex-grow-1">
+    <li class="nav-item">
+      <a class="nav-link {{ request.url() === '/dashboard' ? 'active' : '' }}" href="/dashboard" title="Dashboard">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+
+    @set('isAdminArea', request.url().startsWith('/admin'))
+
+    @if(!isAdminArea)
+      <li class="sidebar-section-title">SESSOES</li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/sessoes') ? 'active' : '' }}" href="/sessoes" title="Sessoes">
+          <i class="bi bi-calendar-event"></i>
+          <span>Sessoes</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/votacoes') ? 'active' : '' }}" href="/votacoes" title="Votacoes">
+          <i class="bi bi-check2-square"></i>
+          <span>Votacoes</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/painel') ? 'active' : '' }}" href="/painel" title="Painel Eletronico">
+          <i class="bi bi-display"></i>
+          <span>Painel Eletronico</span>
+        </a>
+      </li>
+
+      <li class="sidebar-section-title">CADASTROS</li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/vereadores') ? 'active' : '' }}" href="/vereadores" title="Vereadores">
+          <i class="bi bi-people"></i>
+          <span>Vereadores</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/partidos') ? 'active' : '' }}" href="/partidos" title="Partidos">
+          <i class="bi bi-flag"></i>
+          <span>Partidos</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/legislaturas') ? 'active' : '' }}" href="/legislaturas" title="Legislaturas">
+          <i class="bi bi-calendar3"></i>
+          <span>Legislaturas</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/materias') ? 'active' : '' }}" href="/materias" title="Materias">
+          <i class="bi bi-file-text"></i>
+          <span>Materias</span>
+        </a>
+      </li>
+
+      <li class="sidebar-section-title">CONFIGURACOES</li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/configuracoes/aparencia') ? 'active' : '' }}" href="/configuracoes/aparencia" title="Aparencia">
+          <i class="bi bi-palette"></i>
+          <span>Aparencia</span>
+        </a>
+      </li>
+    @end
+
+    @if(tenant && tenant.isSuperAdmin)
+      <li class="sidebar-section-title">ADMINISTRACAO</li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/admin/municipios') ? 'active' : '' }}" href="/admin/municipios" title="Camaras">
+          <i class="bi bi-buildings"></i>
+          <span>Camaras</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/admin/usuarios') ? 'active' : '' }}" href="/admin/usuarios" title="Usuarios Master">
+          <i class="bi bi-person-gear"></i>
+          <span>Usuarios Master</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/admin/auditoria') ? 'active' : '' }}" href="/admin/auditoria" title="Auditoria">
+          <i class="bi bi-shield-check"></i>
+          <span>Auditoria</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/admin/monitoramento') ? 'active' : '' }}" href="/admin/monitoramento" title="Monitoramento">
+          <i class="bi bi-activity"></i>
+          <span>Monitoramento</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ request.url().startsWith('/admin/backups') ? 'active' : '' }}" href="/admin/backups" title="Backups">
+          <i class="bi bi-cloud-download"></i>
+          <span>Backups</span>
+        </a>
+      </li>
+
+      @if(isAdminArea)
+        <li class="sidebar-section-title mt-3">NAVEGACAO</li>
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard" title="Voltar ao Sistema">
+            <i class="bi bi-arrow-left-circle"></i>
+            <span>Voltar ao Sistema</span>
+          </a>
+        </li>
+      @end
+    @end
+  </ul>
+
+  <div class="sidebar-footer mt-auto">
+    <small class="text-white-50">v1.0.0 - LhSystem</small>
+  </div>
+</nav>

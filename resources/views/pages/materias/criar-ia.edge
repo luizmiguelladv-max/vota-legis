@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrfToken }}">
+  <title>Criar Matéria com IA - VotaLegis</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --cor-primaria: {{ municipio.cor_primaria || '#1a56db' }};
+      --cor-secundaria: {{ municipio.cor_secundaria || '#1e40af' }};
+    }
+    
+    body {
+      background: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .card-header {
+      background: transparent;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1.25rem 1.5rem;
+    }
+    
+    .tipo-card {
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    
+    .tipo-card:hover {
+      border-color: var(--cor-primaria);
+      transform: translateY(-2px);
+    }
+    
+    .tipo-card.selected {
+      border-color: var(--cor-primaria);
+      background: rgba(26, 86, 219, 0.05);
+    }
+    
+    .tipo-card .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .btn-gerar {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 12px;
+    }
+    
+    .btn-gerar:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+    
+    .resultado-card {
+      border-left: 4px solid var(--cor-primaria);
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    .loading-content {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid #e5e7eb;
+      border-top-color: var(--cor-primaria);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .ai-badge {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    textarea {
+      resize: none;
+    }
+    
+    .resultado-section {
+      display: none;
+    }
+    
+    .resultado-section.show {
+      display: block;
+    }
+    
+    .editable-content {
+      min-height: 200px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+    
+    .editable-content:focus {
+      outline: none;
+      border-color: var(--cor-primaria);
+      background: white;
+    }
+  </style>
+</head>
+<body x-data="criarMateriaIA()">
+  {{-- Loading Overlay --}}
+  <div class="loading-overlay" x-show="gerando" x-cloak>
+    <div class="loading-content">
+      <div class="loading-spinner mx-auto mb-3"></div>
+      <h5>Gerando matéria...</h5>
+      <p class="text-muted mb-0">A IA está criando seu documento</p>
+    </div>
+  </div>
+
+  {{-- Header --}}
+  <div class="header">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-1">
+            <i class="bi bi-stars me-2"></i>
+            Criar Matéria com IA
+          </h4>
+          <p class="mb-0 opacity-75">
+            {{ municipio.nome }} | {{ vereador?.nome_parlamentar || vereador?.nome || 'Vereador' }}
+          </p>
+        </div>
+        <div>
+          <a href="{{ route('vereador.index') }}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left"></i> Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+    {{-- Etapa 1: Seleção do Tipo --}}
+    <div class="card mb-4" x-show="etapa === 1">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <span class="badge bg-primary rounded-circle me-2">1</span>
+            Selecione o tipo de matéria
+          </h5>
+          <span class="ai-badge">
+            <i class="bi bi-cpu me-1"></i> Powered by AI
+          </span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {{-- Requerimento --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3" 
+                 :class="{ 'selected': tipoSelecionado === 'requerimento' }"
+                 @click="selecionarTipo('requerimento')">
+              <div class="icon bg-primary bg-opacity-10 text-primary mx-auto">
+                <i class="bi bi-file-earmark-text"></i>
+              </div>
+              <h6 class="text-center mb-1">Requerimento</h6>
+              <small class="text-muted text-center d-block">Solicitar providências ou informações</small>
+            </div>
+          </div>
+          
+          {{-- Indicação --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3"
+                 :class="{ 'selected': tipoSelecionado === 'indicacao' }"
+                 @click="selecionarTipo('indicacao')">
+              <div class="icon bg-success bg-opacity-10 text-success mx-auto">
+                <i class="bi bi-hand-index-thumb"></i>
+              </div>
+              <h6 class="text-center mb-1">Indicação</h6>
+              <small class="text-muted text-center d-block">Sugestão ao Poder Executivo</small>
+            </div>
+          </div>
+          
+          {{-- Moção --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3"
+                 :class="{ 'selected': tipoSelecionado === 'mocao' }"
+                 @click="selecionarTipo('mocao')">
+              <div class="icon bg-warning bg-opacity-10 text-warning mx-auto">
+                <i class="bi bi-chat-heart"></i>
+              </div>
+              <h6 class="text-center mb-1">Moção</h6>
+              <small class="text-muted text-center d-block">Aplauso, pesar, repúdio</small>
+            </div>
+          </div>
+          
+          {{-- Projeto de Lei --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3"
+                 :class="{ 'selected': tipoSelecionado === 'projeto_lei_ordinaria' }"
+                 @click="selecionarTipo('projeto_lei_ordinaria')">
+              <div class="icon bg-info bg-opacity-10 text-info mx-auto">
+                <i class="bi bi-journal-text"></i>
+              </div>
+              <h6 class="text-center mb-1">Projeto de Lei</h6>
+              <small class="text-muted text-center d-block">Criar ou alterar leis</small>
+            </div>
+          </div>
+          
+          {{-- Projeto de Resolução --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3"
+                 :class="{ 'selected': tipoSelecionado === 'projeto_resolucao' }"
+                 @click="selecionarTipo('projeto_resolucao')">
+              <div class="icon bg-secondary bg-opacity-10 text-secondary mx-auto">
+                <i class="bi bi-building"></i>
+              </div>
+              <h6 class="text-center mb-1">Resolução</h6>
+              <small class="text-muted text-center d-block">Norma interna da Câmara</small>
+            </div>
+          </div>
+          
+          {{-- Decreto Legislativo --}}
+          <div class="col-md-4 col-6">
+            <div class="card tipo-card h-100 p-3"
+                 :class="{ 'selected': tipoSelecionado === 'projeto_decreto_legislativo' }"
+                 @click="selecionarTipo('projeto_decreto_legislativo')">
+              <div class="icon bg-danger bg-opacity-10 text-danger mx-auto">
+                <i class="bi bi-award"></i>
+              </div>
+              <h6 class="text-center mb-1">Decreto Legislativo</h6>
+              <small class="text-muted text-center d-block">Títulos e homenagens</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button class="btn btn-primary btn-lg" 
+                  :disabled="!tipoSelecionado"
+                  @click="etapa = 2">
+            Continuar <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {{-- Etapa 2: Descrição --}}
+    <div class="card mb-4" x-show="etapa === 2">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <span class="badge bg-primary rounded-circle me-2">2</span>
+            Descreva o que você deseja
+          </h5>
+          <button class="btn btn-sm btn-outline-secondary" @click="etapa = 1">
+            <i class="bi bi-arrow-left"></i> Voltar
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info border-0">
+          <i class="bi bi-lightbulb me-2"></i>
+          <strong>Dica:</strong> Descreva com suas palavras o que você quer. 
+          A IA vai transformar em um documento formal. Quanto mais detalhes, melhor!
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">
+            Tipo selecionado: 
+            <span class="text-primary" x-text="tipoSelecionado?.replace(/_/g, ' ').toUpperCase()"></span>
+          </label>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">O que você quer solicitar/propor?</label>
+          <textarea class="form-control" rows="6" 
+                    x-model="descricao"
+                    placeholder="Ex: Quero solicitar ao prefeito que faça a pavimentação da Rua das Flores, no bairro Centro, pois a via está muito deteriorada e causa transtornos aos moradores, especialmente em dias de chuva..."></textarea>
+          <div class="form-text">
+            <span x-text="descricao.length"></span>/1000 caracteres
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <button class="btn btn-outline-secondary" @click="etapa = 1">
+            <i class="bi bi-arrow-left"></i> Voltar
+          </button>
+          <button class="btn btn-gerar text-white btn-lg" 
+                  :disabled="descricao.length < 20 || gerando"
+                  @click="gerarMateria()">
+            <i class="bi bi-stars me-2"></i>
+            Gerar com IA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {{-- Etapa 3: Resultado --}}
+    <div class="resultado-section" :class="{ 'show': etapa === 3 }">
+      <div class="card resultado-card mb-4">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <span class="badge bg-success rounded-circle me-2">3</span>
+              Revise e ajuste
+            </h5>
+            <button class="btn btn-sm btn-outline-primary" @click="regenerar()">
+              <i class="bi bi-arrow-clockwise"></i> Gerar novamente
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-success border-0 mb-4">
+            <i class="bi bi-check-circle me-2"></i>
+            Matéria gerada com sucesso! Revise o conteúdo e faça ajustes se necessário.
+          </div>
+
+          {{-- Ementa --}}
+          <div class="mb-4">
+            <label class="form-label fw-bold">EMENTA</label>
+            <div class="editable-content" 
+                 contenteditable="true"
+                 x-ref="ementa"
+                 x-text="resultado?.ementa"></div>
+          </div>
+
+          {{-- Texto --}}
+          <div class="mb-4">
+            <label class="form-label fw-bold">TEXTO</label>
+            <div class="editable-content" 
+                 contenteditable="true"
+                 x-ref="texto"
+                 style="min-height: 300px; white-space: pre-wrap;"
+                 x-text="resultado?.texto"></div>
+          </div>
+
+          {{-- Justificativa --}}
+          <div class="mb-4">
+            <label class="form-label fw-bold">JUSTIFICATIVA</label>
+            <div class="editable-content" 
+                 contenteditable="true"
+                 x-ref="justificativa"
+                 style="min-height: 200px; white-space: pre-wrap;"
+                 x-text="resultado?.justificativa"></div>
+          </div>
+
+          <hr>
+
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-outline-secondary" @click="etapa = 2">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </button>
+            <div>
+              <button class="btn btn-outline-primary me-2" @click="copiarTexto()">
+                <i class="bi bi-clipboard"></i> Copiar
+              </button>
+              <button class="btn btn-success btn-lg" @click="salvarMateria()">
+                <i class="bi bi-check-lg me-2"></i>
+                Salvar Matéria
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script>
+    function criarMateriaIA() {
+      return {
+        etapa: 1,
+        tipoSelecionado: null,
+        descricao: '',
+        gerando: false,
+        resultado: null,
+
+        selecionarTipo(tipo) {
+          this.tipoSelecionado = tipo;
+        },
+
+        async gerarMateria() {
+          if (this.descricao.length < 20) {
+            alert('Descreva melhor o que você deseja (mínimo 20 caracteres)');
+            return;
+          }
+
+          this.gerando = true;
+
+          try {
+            const response = await fetch('/api/materias/gerar', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+              },
+              body: JSON.stringify({
+                tipo: this.tipoSelecionado,
+                descricao: this.descricao
+              })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              this.resultado = data.materia;
+              this.etapa = 3;
+            } else {
+              alert(data.error || 'Erro ao gerar matéria');
+            }
+          } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro de conexão. Tente novamente.');
+          } finally {
+            this.gerando = false;
+          }
+        },
+
+        regenerar() {
+          this.etapa = 2;
+        },
+
+        copiarTexto() {
+          const ementa = this.$refs.ementa.innerText;
+          const texto = this.$refs.texto.innerText;
+          const justificativa = this.$refs.justificativa.innerText;
+
+          const conteudo = `EMENTA:\n${ementa}\n\nTEXTO:\n${texto}\n\nJUSTIFICATIVA:\n${justificativa}`;
+
+          navigator.clipboard.writeText(conteudo).then(() => {
+            alert('Conteúdo copiado!');
+          });
+        },
+
+        async salvarMateria() {
+          const ementa = this.$refs.ementa.innerText;
+          const texto = this.$refs.texto.innerText;
+          const justificativa = this.$refs.justificativa.innerText;
+
+          // TODO: Implementar salvamento via form
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/materias/salvar-ia';
+
+          const campos = {
+            '_csrf': document.querySelector('meta[name="csrf-token"]').content,
+            'tipo': this.tipoSelecionado,
+            'ementa': ementa,
+            'texto': texto,
+            'justificativa': justificativa
+          };
+
+          for (const [key, value] of Object.entries(campos)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+          }
+
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  @include('partials/head')
+  <style>
+    .color-preview {
+      width: 50px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid #dee2e6;
+      cursor: pointer;
+    }
+    .preview-bar {
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .preset-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-color:hover {
+      transform: scale(1.1);
+      border-color: #333;
+    }
+    .info-card {
+      background: rgba(var(--bs-primary-rgb), 0.1);
+      border-left: 4px solid var(--cor-primaria);
+    }
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    @include('partials/sidebar')
+
+    <div class="main-content flex-grow-1">
+      @include('partials/navbar')
+
+      <main class="p-4">
+        <h4 class="section-title">
+          <i class="bi bi-palette me-2"></i>Aparencia
+        </h4>
+        <p class="text-muted mb-4">Configuracoes de aparencia do painel administrativo</p>
+
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="card mb-4">
+              <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Cores e Tema</h6>
+              </div>
+              <div class="card-body">
+                <div class="row mb-4">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tema</label>
+                    <div class="d-flex gap-3">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tema" id="temaClaro" value="light">
+                        <label class="form-check-label" for="temaClaro">
+                          <i class="bi bi-sun me-1"></i>Claro
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tema" id="temaEscuro" value="dark">
+                        <label class="form-check-label" for="temaEscuro">
+                          <i class="bi bi-moon me-1"></i>Escuro
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Menu Lateral</label>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="sidebarRecolhido">
+                      <label class="form-check-label" for="sidebarRecolhido">Iniciar recolhido</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cor Primaria</label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="color" class="color-preview" id="corPrimaria" value="#1a73e8">
+                      <input type="text" class="form-control" id="corPrimariaHex" value="#1a73e8" style="max-width: 120px;">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cor Secundaria</label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="color" class="color-preview" id="corSecundaria" value="#4285f4">
+                      <input type="text" class="form-control" id="corSecundariaHex" value="#4285f4" style="max-width: 120px;">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Pre-visualizacao</label>
+                  <div class="preview-bar" id="previewBar">
+                    <span>Painel Administrativo</span>
+                    <button class="btn btn-sm btn-light">Exemplo</button>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Cores Predefinidas</label>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <div class="preset-color" style="background: linear-gradient(135deg, #1a73e8, #4285f4);" data-primary="#1a73e8" data-secondary="#4285f4" title="Azul (Padrao)"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #10b981, #34d399);" data-primary="#10b981" data-secondary="#34d399" title="Verde"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);" data-primary="#8b5cf6" data-secondary="#a78bfa" title="Roxo"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #ef4444, #f87171);" data-primary="#ef4444" data-secondary="#f87171" title="Vermelho"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);" data-primary="#f59e0b" data-secondary="#fbbf24" title="Laranja"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #14b8a6, #2dd4bf);" data-primary="#14b8a6" data-secondary="#2dd4bf" title="Teal"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #37474f, #607d8b);" data-primary="#37474f" data-secondary="#607d8b" title="Cinza"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #0ea5e9, #38bdf8);" data-primary="#0ea5e9" data-secondary="#38bdf8" title="Azul Claro"></div>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary" id="btnSalvar">
+                    <i class="bi bi-check me-1"></i>Salvar Configuracoes
+                  </button>
+                  <button class="btn btn-outline-secondary" id="btnRestaurar">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar Padrao
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card info-card">
+              <div class="card-body">
+                <h6><i class="bi bi-info-circle me-2"></i>Informacoes</h6>
+                <p class="small text-muted mb-2">
+                  As configuracoes de aparencia do painel administrativo sao salvas localmente no navegador.
+                </p>
+                <p class="small text-muted mb-2">
+                  Cada municipio pode ter suas proprias cores personalizadas.
+                </p>
+                <p class="small mb-0">
+                  <strong>Dica:</strong> Use cores escuras para melhor contraste com o texto branco na sidebar.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  @include('partials/scripts')
+
+  <script>
+    // Elementos
+    const corPrimariaInput = document.getElementById('corPrimaria');
+    const corPrimariaHex = document.getElementById('corPrimariaHex');
+    const corSecundariaInput = document.getElementById('corSecundaria');
+    const corSecundariaHex = document.getElementById('corSecundariaHex');
+    const previewBar = document.getElementById('previewBar');
+    const temaClaro = document.getElementById('temaClaro');
+    const temaEscuro = document.getElementById('temaEscuro');
+    const sidebarRecolhido = document.getElementById('sidebarRecolhido');
+
+    // Carregar configuracoes salvas
+    function carregarConfiguracoes() {
+      const corPrimaria = localStorage.getItem('corPrimaria') || '#1a73e8';
+      const corSecundaria = localStorage.getItem('corSecundaria') || '#4285f4';
+      const tema = localStorage.getItem('theme') || 'light';
+      const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+      corPrimariaInput.value = corPrimaria;
+      corPrimariaHex.value = corPrimaria;
+      corSecundariaInput.value = corSecundaria;
+      corSecundariaHex.value = corSecundaria;
+
+      if (tema === 'dark') {
+        temaEscuro.checked = true;
+      } else {
+        temaClaro.checked = true;
+      }
+
+      sidebarRecolhido.checked = sidebarCollapsed;
+      atualizarPreview();
+    }
+
+    // Atualizar preview
+    function atualizarPreview() {
+      const corPrimaria = corPrimariaInput.value;
+      const corSecundaria = corSecundariaInput.value;
+      previewBar.style.background = `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 100%)`;
+    }
+
+    // Sincronizar color picker com hex input
+    corPrimariaInput.addEventListener('input', () => {
+      corPrimariaHex.value = corPrimariaInput.value;
+      atualizarPreview();
+    });
+
+    corPrimariaHex.addEventListener('input', () => {
+      if (/^#[0-9A-Fa-f]{6}$/.test(corPrimariaHex.value)) {
+        corPrimariaInput.value = corPrimariaHex.value;
+        atualizarPreview();
+      }
+    });
+
+    corSecundariaInput.addEventListener('input', () => {
+      corSecundariaHex.value = corSecundariaInput.value;
+      atualizarPreview();
+    });
+
+    corSecundariaHex.addEventListener('input', () => {
+      if (/^#[0-9A-Fa-f]{6}$/.test(corSecundariaHex.value)) {
+        corSecundariaInput.value = corSecundariaHex.value;
+        atualizarPreview();
+      }
+    });
+
+    // Cores predefinidas
+    document.querySelectorAll('.preset-color').forEach(el => {
+      el.addEventListener('click', () => {
+        const primary = el.dataset.primary;
+        const secondary = el.dataset.secondary;
+        corPrimariaInput.value = primary;
+        corPrimariaHex.value = primary;
+        corSecundariaInput.value = secondary;
+        corSecundariaHex.value = secondary;
+        atualizarPreview();
+      });
+    });
+
+    // Salvar configuracoes
+    document.getElementById('btnSalvar').addEventListener('click', () => {
+      const corPrimaria = corPrimariaInput.value;
+      const corSecundaria = corSecundariaInput.value;
+      const tema = temaEscuro.checked ? 'dark' : 'light';
+      const sidebarCollapsed = sidebarRecolhido.checked;
+
+      localStorage.setItem('corPrimaria', corPrimaria);
+      localStorage.setItem('corSecundaria', corSecundaria);
+      localStorage.setItem('theme', tema);
+      localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+
+      // Aplicar imediatamente
+      document.documentElement.style.setProperty('--cor-primaria', corPrimaria);
+      document.documentElement.style.setProperty('--cor-secundaria', corSecundaria);
+      document.documentElement.setAttribute('data-bs-theme', tema);
+
+      toastr.success('Configuracoes salvas com sucesso!');
+
+      // Recarregar para aplicar todas as mudancas
+      setTimeout(() => location.reload(), 1000);
+    });
+
+    // Restaurar padrao
+    document.getElementById('btnRestaurar').addEventListener('click', () => {
+      localStorage.removeItem('corPrimaria');
+      localStorage.removeItem('corSecundaria');
+      localStorage.removeItem('theme');
+      localStorage.removeItem('sidebarCollapsed');
+
+      toastr.info('Configuracoes restauradas para o padrao!');
+      setTimeout(() => location.reload(), 1000);
+    });
+
+    // Inicializar
+    carregarConfiguracoes();
+  </script>
+</body>
+</html>

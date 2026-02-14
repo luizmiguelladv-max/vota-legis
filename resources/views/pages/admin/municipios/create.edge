@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  @include('partials/head')
+</head>
+<body>
+  <div class="d-flex">
+    @include('partials/sidebar')
+
+    <div class="main-content flex-grow-1">
+      @include('partials/navbar')
+
+      <main class="p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="section-title mb-0">
+            <i class="bi bi-plus-lg me-2"></i>Nova Camara
+          </h4>
+          <a href="/admin/municipios" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+          </a>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <form method="POST" action="/admin/municipios">
+              {{ csrfField() }}
+              
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label class="form-label">Nome da Camara *</label>
+                  <input type="text" class="form-control" name="nome" required placeholder="Ex: Camara Municipal de Sao Paulo">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">UF *</label>
+                  <select class="form-select" name="uf" required>
+                    <option value="">Selecione...</option>
+                    <option value="AC">Acre</option>
+                    <option value="AL">Alagoas</option>
+                    <option value="AP">Amapa</option>
+                    <option value="AM">Amazonas</option>
+                    <option value="BA">Bahia</option>
+                    <option value="CE">Ceara</option>
+                    <option value="DF">Distrito Federal</option>
+                    <option value="ES">Espirito Santo</option>
+                    <option value="GO">Goias</option>
+                    <option value="MA">Maranhao</option>
+                    <option value="MT">Mato Grosso</option>
+                    <option value="MS">Mato Grosso do Sul</option>
+                    <option value="MG">Minas Gerais</option>
+                    <option value="PA">Para</option>
+                    <option value="PB">Paraiba</option>
+                    <option value="PR">Parana</option>
+                    <option value="PE">Pernambuco</option>
+                    <option value="PI">Piaui</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="RN">Rio Grande do Norte</option>
+                    <option value="RS">Rio Grande do Sul</option>
+                    <option value="RO">Rondonia</option>
+                    <option value="RR">Roraima</option>
+                    <option value="SC">Santa Catarina</option>
+                    <option value="SP">Sao Paulo</option>
+                    <option value="SE">Sergipe</option>
+                    <option value="TO">Tocantins</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">CNPJ</label>
+                  <input type="text" class="form-control" name="cnpj" placeholder="00.000.000/0000-00">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Telefone</label>
+                  <input type="text" class="form-control" name="telefone" placeholder="(00) 0000-0000">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" name="email" placeholder="contato@camara.gov.br">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Total de Vereadores</label>
+                  <input type="number" class="form-control" name="total_vereadores" value="9" min="5" max="55">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Endereco</label>
+                  <input type="text" class="form-control" name="endereco" placeholder="Endereco completo">
+                </div>
+              </div>
+
+              <hr class="my-4">
+              
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-lg me-1"></i>Salvar
+                </button>
+                <a href="/admin/municipios" class="btn btn-outline-secondary">Cancelar</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  @include('partials/scripts')
+</body>
+</html>

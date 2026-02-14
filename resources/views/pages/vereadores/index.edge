@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  @include('partials/head')
+</head>
+<body>
+  <div class="d-flex">
+    @include('partials/sidebar')
+    <div class="main-content flex-grow-1">
+      @include('partials/navbar')
+      <main class="p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="section-title mb-0"><i class="bi bi-people me-2"></i>Vereadores</h4>
+          <a href="/vereadores/criar" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Novo Vereador</a>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <table class="table table-hover" id="tabela">
+              <thead><tr><th>Nome</th><th>Partido</th><th>Status</th><th width="100">Acoes</th></tr></thead>
+              <tbody>
+                @each(vereador in vereadores)
+                  <tr>
+                    <td>{{ vereador.nome }}</td>
+                    <td>{{ vereador.partido?.sigla || '-' }}</td>
+                    <td><span class="badge bg-{{ vereador.ativo ? 'success' : 'danger' }}">{{ vereador.ativo ? 'Ativo' : 'Inativo' }}</span></td>
+                    <td>
+                      <a href="/vereadores/{{ vereador.id }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                      <a href="/vereadores/{{ vereador.id }}/editar" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    </td>
+                  </tr>
+                @else
+                  <tr><td colspan="4" class="text-center text-muted py-4">Nenhum vereador cadastrado</td></tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  @include('partials/scripts')
+  <script>$(document).ready(function(){$('#tabela').DataTable({language:{url:'//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'}});});</script>
+</body>
+</html>

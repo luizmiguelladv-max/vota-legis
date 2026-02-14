@@ -1,0 +1,240 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">
+          <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </h4>
+        <p class="text-muted mb-0">Bem-vindo ao VotaLegis</p>
+      </div>
+      <div class="badge bg-primary fs-6 py-2 px-3">
+        <i class="bi bi-calendar3 me-1"></i>
+        {{ new Date().toLocaleDateString('pt-BR') }}
+      </div>
+    </div>
+
+    {{-- Estatísticas --}}
+    <div class="row g-4 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1">Vereadores</h6>
+              <h3 class="mb-0">{{ stats.vereadoresAtivos || 0 }}</h3>
+              <small class="text-muted">ativos</small>
+            </div>
+            <i class="bi bi-people stat-icon text-primary"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #28a745 !important;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1">Sessões {{ new Date().getFullYear() }}</h6>
+              <h3 class="mb-0">{{ stats.sessoesAno || 0 }}</h3>
+              <small class="text-muted">realizadas</small>
+            </div>
+            <i class="bi bi-calendar-check stat-icon text-success"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #ffc107 !important;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1">Votações</h6>
+              <h3 class="mb-0">{{ stats.votacoesAno || 0 }}</h3>
+              <small class="text-muted">este ano</small>
+            </div>
+            <i class="bi bi-hand-thumbs-up stat-icon text-warning"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #17a2b8 !important;">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted mb-1">Matérias</h6>
+              <h3 class="mb-0">{{ stats.materiasAno || 0 }}</h3>
+              <small class="text-muted">tramitando</small>
+            </div>
+            <i class="bi bi-file-text stat-icon text-info"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      {{-- Coluna Principal --}}
+      <div class="col-lg-8">
+        {{-- Ações Rápidas --}}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações Rápidas</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4 col-6">
+                <a href="/votacao/sessoes/criar" class="btn btn-outline-primary w-100 py-3">
+                  <i class="bi bi-plus-circle d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Nova Sessão
+                </a>
+              </div>
+              <div class="col-md-4 col-6">
+                <a href="/votacao/materias/criar-ia" class="btn btn-outline-success w-100 py-3">
+                  <i class="bi bi-stars d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Criar com IA
+                </a>
+              </div>
+              <div class="col-md-4 col-6">
+                <a href="/votacao/vereadores" class="btn btn-outline-info w-100 py-3">
+                  <i class="bi bi-people d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Vereadores
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{-- Próxima Sessão --}}
+        @if(stats.proximaSessao)
+        <div class="card border-0 shadow-sm mb-4 border-start border-4 border-primary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Próxima Sessão</h6>
+                <h4 class="mb-1">
+                  Sessão {{ stats.proximaSessao.tipo }} {{ stats.proximaSessao.numero }}/{{ stats.proximaSessao.ano }}
+                </h4>
+                <p class="mb-0">
+                  <i class="bi bi-calendar me-1"></i>
+                  {{ new Date(stats.proximaSessao.data).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) }}
+                  @if(stats.proximaSessao.hora_inicio)
+                    às {{ stats.proximaSessao.hora_inicio }}
+                  @endif
+                </p>
+              </div>
+              <div>
+                <a href="/votacao/controle/{{ stats.proximaSessao.id }}" class="btn btn-primary btn-lg">
+                  <i class="bi bi-play-fill me-2"></i>Iniciar
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        @else
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 text-muted">Nenhuma sessão agendada</h5>
+            <p class="text-muted mb-3">Agende uma nova sessão para iniciar os trabalhos legislativos.</p>
+            <a href="/votacao/sessoes/criar" class="btn btn-primary">
+              <i class="bi bi-plus me-2"></i>Agendar Sessão
+            </a>
+          </div>
+        </div>
+        @endif
+
+        {{-- Como Funciona --}}
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-info-circle text-info me-2"></i>Como usar o VotaLegis</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-primary">1</span>
+                  </div>
+                  <h6>Agende a Sessão</h6>
+                  <small class="text-muted">Crie uma nova sessão com data, horário e pauta</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-success">2</span>
+                  </div>
+                  <h6>Controle em Tempo Real</h6>
+                  <small class="text-muted">Registre presenças, votações e falas pelo painel</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-warning">3</span>
+                  </div>
+                  <h6>Vereadores Votam</h6>
+                  <small class="text-muted">Cada vereador vota pelo celular em tempo real</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Coluna Lateral --}}
+      <div class="col-lg-4">
+        {{-- Módulos --}}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-grid text-primary me-2"></i>Módulos</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+              <a href="/votacao/vereador" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-phone text-success me-3 fs-4"></i>
+                <div>
+                  <strong>App do Vereador</strong>
+                  <small class="d-block text-muted">Votar e marcar presença</small>
+                </div>
+              </a>
+              <a href="/votacao/painel/{{ tenant?.municipio?.slug || tenant?.municipio?.id }}" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-display text-info me-3 fs-4"></i>
+                <div>
+                  <strong>Painel do Plenário</strong>
+                  <small class="d-block text-muted">TV com votação ao vivo</small>
+                </div>
+              </a>
+              <a href="/votacao/materias/criar-ia" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-stars text-warning me-3 fs-4"></i>
+                <div>
+                  <strong>Criar Matéria com IA</strong>
+                  <small class="d-block text-muted">Gerar documentos automaticamente</small>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {{-- Links Úteis --}}
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-link-45deg text-secondary me-2"></i>Acesso Rápido</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <a href="/votacao/sessoes" class="btn btn-outline-primary text-start">
+                <i class="bi bi-calendar-event me-2"></i>Todas as Sessões
+              </a>
+              <a href="/votacao/legislaturas" class="btn btn-outline-secondary text-start">
+                <i class="bi bi-calendar3 me-2"></i>Legislaturas
+              </a>
+              <a href="/votacao/partidos" class="btn btn-outline-secondary text-start">
+                <i class="bi bi-flag me-2"></i>Partidos
+              </a>
+              @if(tenant && tenant.isSuperAdmin)
+              <hr class="my-2">
+              <a href="/admin/municipios" class="btn btn-outline-danger text-start">
+                <i class="bi bi-buildings me-2"></i>Gerenciar Câmaras
+              </a>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @end
+@end
