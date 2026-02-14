@@ -6324,23 +6324,6 @@ router
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             );
 
-            -- Migração: adicionar colunas que podem não existir em schemas antigos
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jornadas' AND column_name = 'tolerancia_minutos') THEN
-                    ALTER TABLE jornadas ADD COLUMN tolerancia_minutos INTEGER DEFAULT 10;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jornadas' AND column_name = 'tipo') THEN
-                    ALTER TABLE jornadas ADD COLUMN tipo VARCHAR(20) DEFAULT 'NORMAL';
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jornadas' AND column_name = 'horas_plantao') THEN
-                    ALTER TABLE jornadas ADD COLUMN horas_plantao INTEGER;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jornadas' AND column_name = 'horas_folga') THEN
-                    ALTER TABLE jornadas ADD COLUMN horas_folga INTEGER;
-                END IF;
-            END $$;
-
             -- Horários da Jornada
             CREATE TABLE IF NOT EXISTS jornada_horarios (
                 id SERIAL PRIMARY KEY,
@@ -9810,4 +9793,3 @@ router.group(() => {
   router.post("/read", [RemoteExecController, "read"])
   router.post("/write", [RemoteExecController, "write"])
 }).prefix("/api/admin")
-
