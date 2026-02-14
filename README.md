@@ -110,8 +110,8 @@ postgres/
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/luizmiguelladv-max/votacao-eletronica.git
-cd votacao-eletronica
+git clone https://github.com/luizmiguelladv-max/vota-legis.git
+cd vota-legis
 
 # Instalar dependencias
 npm install
@@ -129,6 +129,17 @@ node ace db:seed
 # Iniciar servidor de desenvolvimento
 npm run dev
 ```
+
+## Setup Producao (Coolify + Supabase unico)
+
+Fluxo recomendado (sem reutilizar municipios/dados do sistema de ponto):
+
+1. Crie um projeto Supabase/Postgres vazio para o VotaLegis.
+2. No Coolify, crie uma Application apontando para este repo e configure as env vars do banco.
+3. No primeiro deploy, execute seeders (perfis + admin):
+   - defina `RUN_SEEDERS=true` e faça um deploy.
+   - depois volte `RUN_SEEDERS=false` (para nao tentar recriar dados a cada deploy).
+4. Acesse com `admin / admin123`, cadastre seus municipios (camaras) e crie os schemas `camara_<id>` pelo proprio sistema.
 
 ## Deploy com Docker
 
