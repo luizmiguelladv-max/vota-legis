@@ -1,5 +1,7 @@
 import { defineConfig } from '@adonisjs/core/app'
 
+const enablePontoServices = process.env.ENABLE_PONTO_SERVICES === 'true'
+
 export default defineConfig({
   /*
   |--------------------------------------------------------------------------
@@ -52,11 +54,15 @@ export default defineConfig({
     () => import('@adonisjs/lucid/database_provider'),
     () => import('@adonisjs/auth/auth_provider'),
     () => import('./providers/websocket_provider.js'),
-    () => import('./providers/rep_proxy_provider.js'),
-    () => import('./providers/deepface_provider.js'),
-    () => import('./providers/futronic_provider.js'),
-    () => import('./providers/rep_sync_provider.js'),
-    () => import('./providers/anomalias_provider.js')
+    ...(enablePontoServices
+      ? [
+          () => import('./providers/rep_proxy_provider.js'),
+          () => import('./providers/deepface_provider.js'),
+          () => import('./providers/futronic_provider.js'),
+          () => import('./providers/rep_sync_provider.js'),
+          () => import('./providers/anomalias_provider.js'),
+        ]
+      : []),
   ],
 
   /*

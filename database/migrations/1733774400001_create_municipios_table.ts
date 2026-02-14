@@ -4,6 +4,12 @@ export default class extends BaseSchema {
   protected tableName = 'municipios'
 
   async up() {
+    // DBs antigos podem ter a tabela criada sem registro em adonis_schema.
+    // Evita falhar o boot por "relation already exists".
+    if (await this.schema.hasTable(this.tableName)) {
+      return
+    }
+
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 

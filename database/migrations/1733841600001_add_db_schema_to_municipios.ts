@@ -4,17 +4,17 @@ export default class extends BaseSchema {
   protected tableName = 'municipios'
 
   async up() {
+    if (!(await this.schema.hasTable(this.tableName))) {
+      return
+    }
+
+    // Evita falhar em DBs antigos (coluna ja existente).
+    if (await this.schema.hasColumn(this.tableName, 'db_schema')) {
+      return
+    }
+
     this.schema.alterTable(this.tableName, (table) => {
       table.string('db_schema', 100).nullable().after('db_password')
-    })
-
-    // Atualiza o município de Santo André com o schema correto
-    this.defer(async (db) => {
-      await db.rawQuery(`
-        UPDATE municipios 
-        SET db_schema = 'santo_andre' 
-        WHERE slug = 'santo-andre' OR codigo_ibge = '2513851'
-      `)
     })
   }
 
