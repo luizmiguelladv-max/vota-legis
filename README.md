@@ -9,7 +9,7 @@ Sistema completo para gerenciamento de votacoes em camaras municipais, desenvolv
 
 ## Credenciais Padrao
 
-- **Login**: admin
+- **Login**: master
 - **Senha**: admin123
 - **Perfil**: Super Admin
 
@@ -123,7 +123,7 @@ cp .env.example .env
 # Rodar migrations
 node ace migration:run
 
-# Rodar seeders (perfis e usuario admin)
+# Rodar seeders (perfis e usuario master)
 node ace db:seed
 
 # Iniciar servidor de desenvolvimento
@@ -136,10 +136,10 @@ Fluxo recomendado (sem reutilizar municipios/dados do sistema de ponto):
 
 1. Crie um projeto Supabase/Postgres vazio para o VotaLegis.
 2. No Coolify, crie uma Application apontando para este repo e configure as env vars do banco.
-3. No primeiro deploy, execute seeders (perfis + admin):
+3. No primeiro deploy, execute seeders (perfis + master):
    - defina `RUN_SEEDERS=true` e faça um deploy.
    - depois volte `RUN_SEEDERS=false` (para nao tentar recriar dados a cada deploy).
-4. Acesse com `admin / admin123`, cadastre seus municipios (camaras) e crie os schemas `camara_<id>` pelo proprio sistema.
+4. Acesse com `master / admin123`, cadastre seus municipios (camaras) e crie os schemas `camara_<id>` pelo proprio sistema.
 
 ## Deploy com Docker
 
