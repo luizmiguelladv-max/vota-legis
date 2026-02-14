@@ -17,14 +17,14 @@ export default class extends BaseSeeder {
 
     for (const perfil of perfis) {
       // Usar SQL direto para evitar incompatibilidade de types do QueryBuilder com onConflict.
-      await db.rawQuery(
-        `
-          INSERT INTO perfis (codigo, nome, descricao, ativo, created_at, updated_at)
-          VALUES ($1, $2, $3, true, $4, $4)
-          ON CONFLICT (codigo) DO NOTHING
-        `,
-        [perfil.codigo, perfil.nome, perfil.descricao, new Date()]
-      )
+      // Aqui fazemos o escape manual por serem valores fixos (sem input do usuario).
+      const esc = (value: string) => value.replace(/'/g, "''")
+
+      await db.rawQuery(`
+        INSERT INTO perfis (codigo, nome, descricao, ativo, created_at, updated_at)
+        VALUES ('${esc(perfil.codigo)}', '${esc(perfil.nome)}', '${esc(perfil.descricao)}', true, NOW(), NOW())
+        ON CONFLICT (codigo) DO NOTHING
+      `)
     }
 
     console.log('Perfis inseridos com sucesso!')
