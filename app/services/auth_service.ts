@@ -120,9 +120,9 @@ export default class AuthService {
     if (hash.startsWith('$2a$') || hash.startsWith('$2b$')) {
       return bcrypt.compare(password, hash)
     } else {
-      // AdonisJS hash.verify espera (plainText, hashedPassword)
+      // AdonisJS hash.verify espera (hashedValue, plainText)
       const hashService = (await import('@adonisjs/core/services/hash')).default
-      return hashService.verify(password, hash)
+      return hashService.verify(hash, password)
     }
   }
 
