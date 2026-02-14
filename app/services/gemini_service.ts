@@ -281,7 +281,8 @@ A ata deve ser formal, clara e registrar todos os fatos relevantes da sessão.
         throw new Error(`Erro na API Gemini: ${response.status}`)
       }
 
-      const data = await response.json()
+      // Gemini response typing is not stable across SDK versions/endpoints.
+      const data: any = await response.json()
       
       if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
         throw new Error('Resposta inválida da API Gemini')
