@@ -602,28 +602,8 @@ export default class AuthController {
     // SALVA NA SESSÃO
     // -------------------------------------------------------------------------
     session.put('municipioId', municipio.id)
-
-    // -------------------------------------------------------------------------
-    // VERIFICA SE TEM MÚLTIPLAS ENTIDADES
-    // -------------------------------------------------------------------------
-    const { dbManager } = await import('#services/database_manager_service')
-    const entidades = await dbManager.queryCentral(
-      `SELECT id FROM entidades WHERE municipio_id = $1 AND ativo = true AND status = 'ATIVO'`,
-      [municipio.id]
-    )
-
-    // Se tem mais de uma entidade, redireciona para seleção
-    if (entidades.length > 1) {
-      if (request.ajax()) {
-        return response.json({ success: true, redirectTo: '/selecionar-entidade' })
-      }
-      return response.redirect('/selecionar-entidade')
-    }
-
-    // Se tem exatamente uma entidade, seleciona automaticamente
-    if (entidades.length === 1) {
-      session.put('entidadeId', entidades[0].id)
-    }
+    // No vota-legis não usamos o conceito de "entidades".
+    session.forget('entidadeId')
 
     // -------------------------------------------------------------------------
     // RETORNA RESPOSTA
