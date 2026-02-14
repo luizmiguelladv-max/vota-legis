@@ -21,7 +21,8 @@ FROM base AS dependencies
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --ignore-scripts
+# Coolify exports NODE_ENV=production at build time. Force dev deps so `node ace build` works.
+RUN npm ci --include=dev --ignore-scripts
 
 # ---------------------------------------------------------------------------
 # STAGE 3: Build
