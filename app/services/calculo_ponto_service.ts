@@ -109,15 +109,40 @@ export class CalculoPontoService {
       ? DateTime.local(ano, mes, diaFechamento).endOf('day')
       : fimMesOriginal
 
-    // Busca data de início do sistema da entidade
-    const entidade = await dbManager.queryMunicipioOne<{ data_inicio_sistema: Date | null }>(
-      municipioId,
-      `SELECT data_inicio_sistema FROM public.entidades WHERE municipio_id = $1 LIMIT 1`,
-      [municipioId]
-    )
-    const dataInicioSistema = entidade?.data_inicio_sistema
-      ? DateTime.fromJSDate(entidade.data_inicio_sistema, { zone: 'America/Sao_Paulo' }).startOf('day')
-      : null
+    // Busca data de início do sistema.
+    // Prioridade:
+    // 1) configuracao_tenant (schema do município)
+    // 2) public.municipios (fallback para bases legadas)
+    let dataInicioSistema: DateTime | null = null
+
+    try {
+      const cfgTenant = await dbManager.queryMunicipioOne<{ data_inicio_sistema: Date | null }>(
+        municipioId,
+        `SELECT data_inicio_sistema FROM configuracao_tenant LIMIT 1`,
+        []
+      )
+
+      if (cfgTenant?.data_inicio_sistema) {
+        dataInicioSistema = DateTime.fromJSDate(cfgTenant.data_inicio_sistema, {
+          zone: 'America/Sao_Paulo',
+        }).startOf('day')
+      }
+    } catch {
+      // Ignora e tenta fallback no banco central
+    }
+
+    if (!dataInicioSistema) {
+      const [municipio] = await dbManager.queryCentral<{ data_inicio_sistema: Date | null }>(
+        `SELECT data_inicio_sistema FROM public.municipios WHERE id = $1 LIMIT 1`,
+        [municipioId]
+      )
+
+      if (municipio?.data_inicio_sistema) {
+        dataInicioSistema = DateTime.fromJSDate(municipio.data_inicio_sistema, {
+          zone: 'America/Sao_Paulo',
+        }).startOf('day')
+      }
+    }
     console.log(`[Espelho] dataInicioSistema=`, dataInicioSistema?.toISODate())
 
     // Busca funcionário e jornada
