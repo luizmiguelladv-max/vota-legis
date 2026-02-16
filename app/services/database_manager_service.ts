@@ -877,11 +877,22 @@ export default class DatabaseManagerService {
    * Útil para compatibilidade com código legado
    */
   async getEntidadeByMunicipioId(municipioId: number): Promise<number | null> {
-    const [entidade] = await this.queryCentral<{ id: number }>(
-      `SELECT id FROM entidades WHERE municipio_id = $1 AND ativo = true AND status = 'ATIVO' ORDER BY id LIMIT 1`,
-      [municipioId]
-    )
-    return entidade?.id || null
+    try {
+      const [entidade] = await this.queryCentral<{ id: number }>(
+        `SELECT id FROM public.entidades WHERE municipio_id = $1 AND ativo = true AND status = 'ATIVO' ORDER BY id LIMIT 1`,
+        [municipioId]
+      )
+      return entidade?.id || null
+    } catch (error: any) {
+      // Compatibilidade: algumas bases não possuem tabela entidades
+      if (error?.code === '42P01' || String(error?.message || '').includes('entidades')) {
+        logger.warn(
+          `[DBManager] Tabela public.entidades não encontrada para município ${municipioId}. Usando fallback por município.`
+        )
+        return null
+      }
+      throw error
+    }
   }
 
   /**
@@ -937,6 +948,9 @@ export default class DatabaseManagerService {
       if (entidadeId) {
         return this.queryEntidade<T>(entidadeId, sql, params)
       }
+
+      // Fallback quando não há entidade (modo município puro)
+      return this.queryMunicipio<T>(tenant.municipioId, sql, params)
     }
 
     // Nenhum tenant disponível
@@ -973,6 +987,9 @@ export default class DatabaseManagerService {
       if (entidadeId) {
         return this.transactionEntidade<T>(entidadeId, callback)
       }
+
+      // Fallback quando não há entidade (modo município puro)
+      return this.transactionMunicipio<T>(tenant.municipioId, callback)
     }
 
     throw new Error('Nenhum tenant (entidade ou município) selecionado')
