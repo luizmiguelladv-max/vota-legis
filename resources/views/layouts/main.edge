@@ -845,8 +845,6 @@
         @else
           <i class="bi bi-building text-white" style="font-size: 1.8rem;"></i>
         @endif
-        @let(orgBase = municipio?.razao_social || municipio?.nome)
-        @let(orgName = orgBase ? ((orgBase.toLowerCase().includes('camara') || orgBase.toLowerCase().includes('câmara')) ? orgBase : ('Câmara Municipal de ' + orgBase)) : 'VotaLegis')
         <h6 class="text-white mb-0">{{ orgName }}</h6>
         <small class="text-white-50">Votação Eletrônica</small>
       </div>
