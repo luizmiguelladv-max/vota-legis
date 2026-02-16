@@ -304,15 +304,40 @@
       border-color: #3b82f6;
     }
 
-    .municipio-item.selected .municipio-check i {
-      color: #fff;
-      font-size: 0.75rem;
-    }
+	    .municipio-item.selected .municipio-check i {
+	      color: #fff;
+	      font-size: 0.75rem;
+	    }
 
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
+	    /* Botão "entrar" direto no item (setinha) */
+	    .municipio-action {
+	      margin-left: 0.75rem;
+	      display: flex;
+	      align-items: center;
+	    }
+
+	    .btn-entrar-item {
+	      width: 36px;
+	      height: 36px;
+	      border: 0;
+	      border-radius: 10px;
+	      background: rgba(59, 130, 246, 0.12);
+	      color: #1d4ed8;
+	      display: inline-flex;
+	      align-items: center;
+	      justify-content: center;
+	      transition: all 0.15s ease;
+	    }
+
+	    .btn-entrar-item:hover {
+	      background: rgba(59, 130, 246, 0.18);
+	      transform: translateX(1px);
+	    }
+
+	    /* Empty State */
+	    .empty-state {
+	      text-align: center;
+	      padding: 2rem;
       color: #6b7280;
     }
 
@@ -627,27 +652,31 @@
                 <p>Nenhum município disponível</p>
               </div>
             @else
-              @each(municipio in municipios)
-                <div class="municipio-item" data-id="{{ municipio.id }}" data-nome="{{ municipio.nome }}" onclick="selecionarMunicipio(this)">
-                  <div class="municipio-icon">
-                    @if(municipio.logoUrl)
-                      <img src="{{ municipio.logoUrl }}" alt="{{ municipio.nome }}">
-                    @else
-                      <i class="bi bi-building"></i>
-                    @endif
-                  </div>
-                  <div class="municipio-info">
-                    <div class="municipio-nome">{{ municipio.nome }}</div>
-                    <div class="municipio-detalhes">
-                      <span><i class="bi bi-geo-alt me-1"></i>{{ municipio.uf || 'PB' }}</span>
-                      <span><i class="bi bi-people me-1"></i>{{ municipio.totalFuncionarios || 0 }} funcionários</span>
-                    </div>
-                  </div>
-                  <div class="municipio-check">
-                    <i class="bi bi-check"></i>
-                  </div>
-                </div>
-              @endeach
+	              @each(municipio in municipios)
+	                <div class="municipio-item" data-id="{{ municipio.id }}" data-nome="{{ municipio.nome }}" onclick="selecionarMunicipio(this)">
+	                  <div class="municipio-icon">
+	                    @if(municipio.logoUrl)
+	                      <img src="{{ municipio.logoUrl }}" alt="{{ municipio.nome }}">
+	                    @else
+	                      <i class="bi bi-building"></i>
+	                    @endif
+	                  </div>
+	                  <div class="municipio-info">
+	                    <div class="municipio-nome">{{ municipio.nome }}</div>
+	                    <div class="municipio-detalhes">
+	                      <span><i class="bi bi-geo-alt me-1"></i>{{ municipio.uf || 'PB' }}</span>
+	                    </div>
+	                  </div>
+	                  <div class="municipio-action">
+	                    <button type="button" class="btn-entrar-item" title="Entrar" onclick="entrarPeloItem(event, this)">
+	                      <i class="bi bi-arrow-right"></i>
+	                    </button>
+	                  </div>
+	                  <div class="municipio-check">
+	                    <i class="bi bi-check"></i>
+	                  </div>
+	                </div>
+	              @endeach
             @endif
           </div>
         </div>
@@ -695,8 +724,8 @@
       });
     }
 
-    async function entrarSistema() {
-      if (!municipioSelecionado) return;
+	    async function entrarSistema() {
+	      if (!municipioSelecionado) return;
 
       const btn = document.getElementById('btnEntrar');
       btn.disabled = true;
@@ -725,7 +754,16 @@
             alert(data.error || 'Erro ao selecionar');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Entrar';
-          }
+	    }
+
+	    function entrarPeloItem(event, btn) {
+	      event.preventDefault();
+	      event.stopPropagation();
+	      const item = btn.closest('.municipio-item');
+	      if (!item) return;
+	      selecionarMunicipio(item);
+	      entrarSistema();
+	    }
         }
       } catch (error) {
         console.error('Erro:', error);

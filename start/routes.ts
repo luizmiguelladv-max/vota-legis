@@ -7401,12 +7401,52 @@ router.get('/api/calculos/resumo', async ({ request, response, tenant }) => {
 // NOTIFICAÇÕES - ROTAS API
 // ==========================================
 
+async function ensureNotificacoesTables(tenant: any) {
+  if (!tenant?.municipioId) return
+  const { dbManager } = await import('#services/database_manager_service')
+
+  // Alguns schemas antigos podem não ter as tabelas de notificações.
+  // Isso evita erro 42P01 ("relation does not exist") nos endpoints e no badge do header.
+  await dbManager.queryTenant(
+    tenant,
+    `
+    CREATE TABLE IF NOT EXISTS notificacoes (
+      id SERIAL PRIMARY KEY,
+      funcionario_id INTEGER,
+      usuario_id INTEGER,
+      titulo VARCHAR(200) NOT NULL,
+      mensagem TEXT NOT NULL,
+      tipo VARCHAR(30) DEFAULT 'INFO',
+      categoria VARCHAR(30) DEFAULT 'SISTEMA',
+      action_url VARCHAR(500),
+      lida BOOLEAN DEFAULT false,
+      lida_em TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
+  )
+
+  await dbManager.queryTenant(
+    tenant,
+    `
+    CREATE TABLE IF NOT EXISTS notificacoes_leituras (
+      id SERIAL PRIMARY KEY,
+      notificacao_id INTEGER NOT NULL,
+      funcionario_id INTEGER NOT NULL,
+      lida_em TIMESTAMPTZ DEFAULT NOW(),
+      oculta BOOLEAN DEFAULT false
+    )
+  `
+  )
+}
+
 // API - Listar notificações
 router.get('/api/notificacoes', async ({ request, response, tenant, session }) => {
   if (!tenant?.municipioId) return response.json({ notificacoes: [], total: 0 })
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const { tipo, categoria, status, pagina = 1, por_pagina = 20 } = request.qs()
     const user = session.get('user')
 
@@ -7462,6 +7502,7 @@ router.post('/api/notificacoes/:id/lida', async ({ params, response, tenant }) =
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
 
     await dbManager.queryTenant(tenant, `
       UPDATE notificacoes SET lida = true, lida_em = NOW() WHERE id = $1
@@ -7479,6 +7520,7 @@ router.post('/api/notificacoes/marcar-todas-lidas', async ({ response, tenant, s
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const user = session.get('user')
 
     let query = `UPDATE notificacoes SET lida = true, lida_em = NOW() WHERE lida = false`
@@ -7503,6 +7545,7 @@ router.post('/api/notificacoes', async ({ request, response, tenant }) => {
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const { funcionario_id, usuario_id, titulo, mensagem, tipo, categoria, action_url } = request.body()
 
     const [notificacao] = await dbManager.queryTenant(tenant, `
@@ -7523,6 +7566,7 @@ router.delete('/api/notificacoes/:id', async ({ params, response, tenant }) => {
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const notificacaoId = params.id
 
     // Primeiro exclui as leituras relacionadas
@@ -7548,6 +7592,7 @@ router.post('/api/notificacoes/enviar', async ({ request, response, tenant, sess
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const { titulo, mensagem, tipo, categoria, funcionario_ids } = request.body()
     const user = session.get('user')
     const userId = user?.id || null
@@ -7675,6 +7720,7 @@ router.get('/api/notificacoes/enviadas', async ({ request, response, tenant }) =
 
   try {
     const { dbManager } = await import('#services/database_manager_service')
+    await ensureNotificacoesTables(tenant)
     const { pagina = 1, por_pagina = 20 } = request.qs()
     const offset = (Number(pagina) - 1) * Number(por_pagina)
 
@@ -7733,27 +7779,29 @@ router.get('/api/notificacoes/enviadas', async ({ request, response, tenant }) =
 // API - Contador de não lidas (para badge no menu)
 
     // Limpar notificações de teste
-    router.delete('/api/notificacoes/limpar-testes', async ({ response, tenant }) => {
-      if (!tenant?.municipioId) return response.badRequest({ error: 'Município não selecionado' })
-      if (!tenant.isSuperAdmin && tenant.usuario?.perfil !== 'ADMIN') {
-        return response.forbidden({ error: 'Sem permissão' })
-      }
-      try {
-        const { dbManager } = await import('#services/database_manager_service')
-        const result = await dbManager.queryTenant(tenant,
-          `DELETE FROM notificacoes WHERE UPPER(titulo) LIKE '%TESTE%' OR UPPER(mensagem) LIKE '%TESTE%'`)
-        return response.json({ success: true, message: 'Notificações de teste removidas' })
+	    router.delete('/api/notificacoes/limpar-testes', async ({ response, tenant }) => {
+	      if (!tenant?.municipioId) return response.badRequest({ error: 'Município não selecionado' })
+	      if (!tenant.isSuperAdmin && tenant.usuario?.perfil !== 'ADMIN') {
+	        return response.forbidden({ error: 'Sem permissão' })
+	      }
+	      try {
+	        const { dbManager } = await import('#services/database_manager_service')
+	        await ensureNotificacoesTables(tenant)
+	        const result = await dbManager.queryTenant(tenant,
+	          `DELETE FROM notificacoes WHERE UPPER(titulo) LIKE '%TESTE%' OR UPPER(mensagem) LIKE '%TESTE%'`)
+	        return response.json({ success: true, message: 'Notificações de teste removidas' })
       } catch (error: any) {
         return response.badRequest({ error: error.message })
       }
     })
 
-    router.get('/api/notificacoes/contador', async ({ response, tenant, session }) => {
-  if (!tenant?.municipioId) return response.json({ count: 0 })
+	    router.get('/api/notificacoes/contador', async ({ response, tenant, session }) => {
+	  if (!tenant?.municipioId) return response.json({ count: 0 })
 
-  try {
-    const { dbManager } = await import('#services/database_manager_service')
-    const user = session.get('user')
+	  try {
+	    const { dbManager } = await import('#services/database_manager_service')
+	    await ensureNotificacoesTables(tenant)
+	    const user = session.get('user')
 
     let query = `SELECT COUNT(*) as count FROM notificacoes WHERE lida = false`
     const params: any[] = []

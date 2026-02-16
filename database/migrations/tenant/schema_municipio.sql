@@ -442,3 +442,38 @@ CREATE TABLE IF NOT EXISTS funcionario_templates (
 
 CREATE INDEX IF NOT EXISTS idx_funcionario_templates_func ON funcionario_templates(funcionario_id);
 CREATE INDEX IF NOT EXISTS idx_funcionario_templates_pis ON funcionario_templates(pis);
+
+-- ============================================
+-- NOTIFICAÇÕES (compatibilidade)
+-- ============================================
+-- Alguns endpoints do sistema leem/escrevem notificações no schema do município.
+-- Garantimos a existência das tabelas aqui para evitar erro "relation does not exist".
+CREATE TABLE IF NOT EXISTS notificacoes (
+    id SERIAL PRIMARY KEY,
+    funcionario_id INTEGER REFERENCES funcionarios(id) ON DELETE CASCADE,
+    usuario_id INTEGER,
+    titulo VARCHAR(200) NOT NULL,
+    mensagem TEXT NOT NULL,
+    tipo VARCHAR(30) DEFAULT 'INFO',
+    categoria VARCHAR(30) DEFAULT 'SISTEMA',
+    action_url VARCHAR(500),
+    lida BOOLEAN DEFAULT false,
+    lida_em TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notificacoes_funcionario ON notificacoes(funcionario_id);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario ON notificacoes(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_lida ON notificacoes(lida);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_created ON notificacoes(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS notificacoes_leituras (
+    id SERIAL PRIMARY KEY,
+    notificacao_id INTEGER NOT NULL REFERENCES notificacoes(id) ON DELETE CASCADE,
+    funcionario_id INTEGER NOT NULL REFERENCES funcionarios(id) ON DELETE CASCADE,
+    lida_em TIMESTAMPTZ DEFAULT NOW(),
+    oculta BOOLEAN DEFAULT false
+);
+
+CREATE INDEX IF NOT EXISTS idx_notif_leituras_notificacao ON notificacoes_leituras(notificacao_id);
+CREATE INDEX IF NOT EXISTS idx_notif_leituras_funcionario ON notificacoes_leituras(funcionario_id);
