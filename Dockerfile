@@ -65,7 +65,7 @@ COPY --chown=nodejs:nodejs start.sh ./start.sh
 RUN chmod +x ./start.sh
 
 RUN mkdir -p /app/public/downloads /app/public/assets && \
-    chown -R nodejs:nodejs /app
+    chown -R nodejs:nodejs /app/public
 
 USER nodejs
 
