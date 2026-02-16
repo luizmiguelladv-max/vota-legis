@@ -856,186 +856,49 @@
             <span>Dashboard</span>
           </a>
         </li>
+        <li class="sidebar-section-title">SESSÕES</li>
         <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/funcionarios' ? 'active' : '' }}" href="/funcionarios" title="Funcionários">
-            <i class="bi bi-people"></i>
-            <span>Funcionários</span>
+          <a class="nav-link {{ request.url() === '/sessoes' ? 'active' : '' }}" href="/sessoes" title="Sessões">
+            <i class="bi bi-calendar-event"></i>
+            <span>Sessões</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/votacoes' ? 'active' : '' }}" href="/votacoes" title="Votações">
+            <i class="bi bi-check2-square"></i>
+            <span>Votações</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request.url() === '/painel' ? 'active' : '' }}" href="/painel" title="Painel Eletrônico">
+            <i class="bi bi-display"></i>
+            <span>Painel Eletrônico</span>
           </a>
         </li>
 
         <li class="sidebar-section-title">CADASTROS</li>
-        @if(entidade?.tipo === 'PUBLICA')
-          {{-- Menu para Entidades Públicas --}}
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/unidades-gestoras' ? 'active' : '' }}" href="/unidades-gestoras" title="Unidades Gestoras">
-              <i class="bi bi-building"></i>
-              <span>Unidades Gestoras</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/secretarias' ? 'active' : '' }}" href="/secretarias" title="Secretarias">
-              <i class="bi bi-diagram-3"></i>
-              <span>Secretarias</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/lotacoes' ? 'active' : '' }}" href="/lotacoes" title="Lotações">
-              <i class="bi bi-geo-alt"></i>
-              <span>Lotações</span>
-            </a>
-          </li>
-        @else
-          {{-- Menu para Entidades Privadas (Empresas) --}}
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/filiais' ? 'active' : '' }}" href="/filiais" title="Filiais">
-              <i class="bi bi-shop"></i>
-              <span>Filiais</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/secretarias' ? 'active' : '' }}" href="/secretarias" title="Departamentos">
-              <i class="bi bi-diagram-3"></i>
-              <span>Departamentos</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request.url() === '/lotacoes' ? 'active' : '' }}" href="/lotacoes" title="Setores">
-              <i class="bi bi-geo-alt"></i>
-              <span>Setores</span>
-            </a>
-          </li>
-        @endif
         <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/cargos' ? 'active' : '' }}" href="/cargos" title="Cargos">
-            <i class="bi bi-briefcase"></i>
-            <span>Cargos</span>
+          <a class="nav-link {{ request.url() === '/vereadores' ? 'active' : '' }}" href="/vereadores" title="Vereadores">
+            <i class="bi bi-people"></i>
+            <span>Vereadores</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/tipos-vinculo' ? 'active' : '' }}" href="/tipos-vinculo" title="Tipos de Vínculo">
-            <i class="bi bi-link-45deg"></i>
-            <span>Tipos de Vínculo</span>
+          <a class="nav-link {{ request.url() === '/partidos' ? 'active' : '' }}" href="/partidos" title="Partidos">
+            <i class="bi bi-flag"></i>
+            <span>Partidos</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/jornadas' ? 'active' : '' }}" href="/jornadas" title="Jornadas">
-            <i class="bi bi-clock"></i>
-            <span>Jornadas</span>
+          <a class="nav-link {{ request.url() === '/legislaturas' ? 'active' : '' }}" href="/legislaturas" title="Legislaturas">
+            <i class="bi bi-calendar3"></i>
+            <span>Legislaturas</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/escalas' ? 'active' : '' }}" href="/escalas" title="Escala de Trabalho">
-            <i class="bi bi-calendar-week"></i>
-            <span>Escala de Trabalho</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/gerador-escalas' ? 'active' : '' }}" href="/gerador-escalas" title="Gerar Escalas">
-            <i class="bi bi-calendar-plus"></i>
-            <span>Gerar Escalas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/banco-horas' ? 'active' : '' }}" href="/banco-horas" title="Banco de Horas">
-            <i class="bi bi-wallet2"></i>
-            <span>Banco de Horas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/notificacoes' ? 'active' : '' }}" href="/notificacoes" title="Notificações">
-            <i class="bi bi-bell"></i>
-            <span>Notificações</span>
-            <span id="badgeNotificacoes" class="badge bg-danger ms-auto d-none">0</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/relatorio-banco-horas' ? 'active' : '' }}" href="/relatorio-banco-horas" title="Relatório Banco de Horas">
-            <i class="bi bi-file-earmark-bar-graph"></i>
-            <span>Relatórios</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/afastamentos' ? 'active' : '' }}" href="/afastamentos" title="Afastamentos">
-            <i class="bi bi-calendar-x"></i>
-            <span>Afastamentos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/rondas' ? 'active' : '' }}" href="/rondas" title="Rondas/Presencas">
-            <i class="bi bi-shield-check"></i>
-            <span>Rondas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/atendimentos' ? 'active' : '' }}" href="/atendimentos" title="Atendimentos">
-            <i class="bi bi-house-door"></i>
-            <span>Atendimentos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/mapa-atendimentos' ? 'active' : '' }}" href="/mapa-atendimentos" title="Mapa de Apuração">
-            <i class="bi bi-geo-alt-fill"></i>
-            <span>Mapa de Apuração</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/anomalias' ? 'active' : '' }}" href="/anomalias" title="Anomalias de Ponto">
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Anomalias</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/esocial' ? 'active' : '' }}" href="/esocial" title="Exportação eSocial">
-            <i class="bi bi-building-check"></i>
-            <span>eSocial</span>
-          </a>
-        </li>
-
-        <li class="sidebar-section-title">PONTO</li>
-        @if(municipio?.moduloFacial !== false)
-          <li class="nav-item">
-            <a class="nav-link" href="/terminal" target="_blank" title="Terminal Facial (Camera)">
-              <i class="bi bi-camera"></i>
-              <span>Terminal Facial</span>
-            </a>
-          </li>
-        @endif
-        @if(municipio?.moduloDigital !== false)
-          <li class="nav-item">
-            <a class="nav-link" href="/terminal-digital" target="_blank" title="Terminal Digital (Biometria)">
-              <i class="bi bi-fingerprint"></i>
-              <span>Terminal Digital</span>
-            </a>
-          </li>
-        @endif
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/ponto' ? 'active' : '' }}" href="/ponto" title="Registros de Ponto">
-            <i class="bi bi-clock-history"></i>
-            <span>Registros de Ponto</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/espelho' ? 'active' : '' }}" href="/espelho" title="Espelho de Ponto">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Espelho de Ponto</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/equipamentos' ? 'active' : '' }}" href="/equipamentos" title="Equipamentos">
-            <i class="bi bi-router"></i>
-            <span>Equipamentos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/ocorrencias' ? 'active' : '' }}" href="/ocorrencias" title="Ocorrências">
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Ocorrências</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {{ request.url() === '/relatorios' ? 'active' : '' }}" href="/relatorios" title="Relatórios">
-            <i class="bi bi-file-earmark-bar-graph"></i>
-            <span>Relatórios</span>
+          <a class="nav-link {{ request.url() === '/materias' ? 'active' : '' }}" href="/materias" title="Matérias">
+            <i class="bi bi-file-text"></i>
+            <span>Matérias</span>
           </a>
         </li>
 

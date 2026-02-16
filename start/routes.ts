@@ -1792,6 +1792,57 @@ router
     // Dashboard
     router.get('/dashboard', [DashboardController, 'index']).as('dashboard')
 
+    // Módulos legislativos (interface de votação)
+    router.get('/sessoes', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Sessões',
+        descricao: 'Agendamento, abertura e acompanhamento das sessões legislativas.',
+        icon: 'bi-calendar-event',
+      })
+    })
+    router.get('/votacoes', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Votações',
+        descricao: 'Controle de votações em plenário e acompanhamento de resultado em tempo real.',
+        icon: 'bi-check2-square',
+      })
+    })
+    router.get('/vereadores', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Vereadores',
+        descricao: 'Cadastro de parlamentares, perfis e vínculos.',
+        icon: 'bi-people',
+      })
+    })
+    router.get('/partidos', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Partidos',
+        descricao: 'Cadastro de partidos e composição da casa legislativa.',
+        icon: 'bi-flag',
+      })
+    })
+    router.get('/legislaturas', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Legislaturas',
+        descricao: 'Gestão dos períodos legislativos e seus parâmetros.',
+        icon: 'bi-calendar3',
+      })
+    })
+    router.get('/materias', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Matérias',
+        descricao: 'Cadastro de matérias, pautas e tramitações.',
+        icon: 'bi-file-text',
+      })
+    })
+    router.get('/painel', async ({ view }) => {
+      return view.render('pages/votacao-modulo', {
+        titulo: 'Painel Eletrônico',
+        descricao: 'Exibição de sessão e votação para plenário/TV.',
+        icon: 'bi-display',
+      })
+    })
+
     // API Dashboard - com fallback
     router.get('/api/dashboard', async ({ response, tenant }) => {
       const data = {
