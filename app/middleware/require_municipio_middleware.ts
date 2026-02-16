@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
+import TenantSchemaService from '#services/tenant_schema_service'
 
 /**
  * Middleware que exige que um município esteja selecionado
@@ -30,6 +31,20 @@ export default class RequireMunicipioMiddleware {
           success: false,
           error: 'Banco de dados nao configurado',
           message: 'O banco de dados deste municipio ainda nao foi configurado',
+        })
+      }
+
+      return response.redirect().toRoute('municipio-pendente')
+    }
+
+    // Valida se o schema realmente existe (protege contra banco_criado inconsistente)
+    const schemaExists = await TenantSchemaService.schemaExists(tenant.municipioId)
+    if (!schemaExists) {
+      if (request.url().startsWith('/api/')) {
+        return response.serviceUnavailable({
+          success: false,
+          error: 'Schema do municipio nao encontrado',
+          message: 'O schema deste municipio ainda nao foi criado',
         })
       }
 
