@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrfToken }}">
+  <title>Verificar Código - Votação Eletrônica Legislativa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .verify-card {
+      max-width: 450px;
+      width: 100%;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    .verify-header {
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+      color: #fff;
+      padding: 2rem;
+      text-align: center;
+      border-radius: 1rem 1rem 0 0;
+    }
+    .verify-body {
+      padding: 2rem;
+    }
+    .form-control:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
+    }
+    .btn-verify {
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+      border: none;
+      padding: 0.75rem;
+      font-weight: 600;
+    }
+    .btn-verify:hover {
+      background: linear-gradient(135deg, #1557b0 0%, #3367c4 100%);
+    }
+    .code-input {
+      font-size: 2rem;
+      text-align: center;
+      letter-spacing: 0.5rem;
+      font-weight: 600;
+    }
+    .shield-icon {
+      font-size: 4rem;
+      color: #fff;
+    }
+    .resend-link {
+      color: #1a73e8;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .resend-link:hover {
+      text-decoration: underline;
+    }
+    .resend-link.disabled {
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+    .trust-device-check {
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .form-check-input:checked {
+      background-color: #1a73e8;
+      border-color: #1a73e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-card">
+    <div class="verify-header">
+      <i class="bi bi-shield-lock shield-icon"></i>
+      <h4 class="mt-3 mb-1">Verificacao em Duas Etapas</h4>
+      <p class="mb-0 small opacity-75">Digite o codigo enviado para seu celular</p>
+    </div>
+    <div class="verify-body">
+      <form id="verifyForm">
+        <div class="mb-3">
+          <label class="form-label text-center d-block">Codigo de 6 digitos</label>
+          <input type="text"
+                 class="form-control code-input"
+                 name="codigo"
+                 maxlength="6"
+                 pattern="[0-9]{6}"
+                 placeholder="000000"
+                 autocomplete="one-time-code"
+                 inputmode="numeric"
+                 required
+                 autofocus>
+          <div class="form-text text-center">
+            O codigo expira em <span id="countdown">5:00</span> minutos
+          </div>
+        </div>
+
+        <div class="trust-device-check">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="confiarDispositivo" name="confiarDispositivo">
+            <label class="form-check-label" for="confiarDispositivo">
+              <i class="bi bi-laptop me-1"></i>
+              Confiar neste dispositivo por 30 dias
+            </label>
+          </div>
+          <small class="text-muted d-block mt-1">
+            Nao sera solicitado codigo neste navegador por 30 dias
+          </small>
+        </div>
+
+        <div id="alertContainer" class="mt-3"></div>
+
+        <button type="submit" class="btn btn-primary btn-verify w-100 mt-3" id="btnVerify">
+          <span class="spinner-border spinner-border-sm d-none me-2" id="verifySpinner"></span>
+          <i class="bi bi-check-circle me-2"></i>
+          Verificar Codigo
+        </button>
+      </form>
+
+      <div class="text-center mt-4">
+        <p class="mb-2 text-muted small">Nao recebeu o codigo?</p>
+        <a href="javascript:void(0)" class="resend-link" id="resendLink" onclick="reenviarCodigo()">
+          <i class="bi bi-arrow-clockwise me-1"></i>
+          Reenviar codigo
+        </a>
+        <span id="resendCountdown" class="text-muted d-none"></span>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="/login" class="text-muted small">
+          <i class="bi bi-arrow-left me-1"></i>
+          Voltar ao login
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Contador regressivo para expiracao do codigo
+    let countdownTime = 5 * 60; // 5 minutos em segundos
+    let countdownInterval;
+
+    function updateCountdown() {
+      const minutes = Math.floor(countdownTime / 60);
+      const seconds = countdownTime % 60;
+      document.getElementById('countdown').textContent =
+        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      if (countdownTime <= 0) {
+        clearInterval(countdownInterval);
+        document.getElementById('alertContainer').innerHTML = `
+          <div class="alert alert-warning py-2">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Codigo expirado. Solicite um novo codigo.
+          </div>
+        `;
+      }
+      countdownTime--;
+    }
+
+    countdownInterval = setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Contador para reenvio
+    let resendCountdown = 0;
+    let resendInterval;
+
+    function startResendCountdown() {
+      resendCountdown = 60;
+      const resendLink = document.getElementById('resendLink');
+      const resendCountdownSpan = document.getElementById('resendCountdown');
+
+      resendLink.classList.add('d-none');
+      resendCountdownSpan.classList.remove('d-none');
+
+      resendInterval = setInterval(() => {
+        resendCountdown--;
+        resendCountdownSpan.textContent = `Aguarde ${resendCountdown}s para reenviar`;
+
+        if (resendCountdown <= 0) {
+          clearInterval(resendInterval);
+          resendLink.classList.remove('d-none');
+          resendCountdownSpan.classList.add('d-none');
+        }
+      }, 1000);
+    }
+
+    // Formatar input do codigo (apenas numeros)
+    document.querySelector('input[name="codigo"]').addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    // Reenviar codigo
+    async function reenviarCodigo() {
+      const alertContainer = document.getElementById('alertContainer');
+
+      try {
+        const response = await fetch('/api/auth/reenviar-codigo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alertContainer.innerHTML = `
+            <div class="alert alert-success py-2">
+              <i class="bi bi-check-circle me-2"></i>${data.message || 'Codigo reenviado com sucesso!'}
+            </div>
+          `;
+
+          // Reinicia contador de expiracao
+          countdownTime = 5 * 60;
+
+          // Inicia contador de reenvio
+          startResendCountdown();
+        } else {
+          alertContainer.innerHTML = `
+            <div class="alert alert-danger py-2">
+              <i class="bi bi-exclamation-circle me-2"></i>${data.error || 'Erro ao reenviar codigo'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        alertContainer.innerHTML = `
+          <div class="alert alert-danger py-2">
+            <i class="bi bi-exclamation-circle me-2"></i>Erro de conexao
+          </div>
+        `;
+      }
+    }
+
+    // Verificar codigo
+    document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const btn = document.getElementById('btnVerify');
+      const spinner = document.getElementById('verifySpinner');
+      const alertContainer = document.getElementById('alertContainer');
+
+      // Reset
+      alertContainer.innerHTML = '';
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+
+      try {
+        const formData = new FormData(e.target);
+        const codigo = formData.get('codigo');
+        const confiarDispositivo = document.getElementById('confiarDispositivo').checked;
+
+        if (!codigo || codigo.length !== 6) {
+          alertContainer.innerHTML = `
+            <div class="alert alert-warning py-2">
+              <i class="bi bi-exclamation-triangle me-2"></i>Digite o codigo de 6 digitos
+            </div>
+          `;
+          btn.disabled = false;
+          spinner.classList.add('d-none');
+          return;
+        }
+
+        const response = await fetch('/api/auth/verificar-codigo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          },
+          credentials: 'include', // Recebe cookie trusted_device
+          body: JSON.stringify({
+            codigo: codigo,
+            confiarDispositivo: confiarDispositivo
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          alertContainer.innerHTML = `
+            <div class="alert alert-success py-2">
+              <i class="bi bi-check-circle me-2"></i>${data.message || 'Codigo verificado!'}
+            </div>
+          `;
+
+          // Redireciona apos sucesso
+          setTimeout(() => {
+            window.location.href = data.redirectTo || '/selecionar-municipio';
+          }, 1000);
+        } else {
+          alertContainer.innerHTML = `
+            <div class="alert alert-danger py-2">
+              <i class="bi bi-exclamation-circle me-2"></i>${data.error || 'Codigo invalido'}
+            </div>
+          `;
+          btn.disabled = false;
+          spinner.classList.add('d-none');
+        }
+      } catch (error) {
+        alertContainer.innerHTML = `
+          <div class="alert alert-danger py-2">
+            <i class="bi bi-exclamation-circle me-2"></i>Erro de conexao
+          </div>
+        `;
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    });
+  </script>
+</body>
+</html>

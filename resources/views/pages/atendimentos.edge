@@ -1,0 +1,1114 @@
+@component('layouts/main')
+  
+  <style>
+    /* Leaflet CSS inline para evitar problemas de carregamento */
+    .leaflet-container {
+      height: 100%;
+      width: 100%;
+      background: #ddd;
+    }
+    .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow,
+    .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas,
+    .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .leaflet-tile-container img { width: 256px; height: 256px; }
+    .leaflet-control { position: relative; z-index: 800; pointer-events: visiblePainted; pointer-events: auto; }
+    .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; }
+    .leaflet-top { top: 0; }
+    .leaflet-right { right: 0; }
+    .leaflet-bottom { bottom: 0; }
+    .leaflet-left { left: 0; }
+
+    /* Dark mode fix para lista de configs */
+    [data-bs-theme="dark"] .list-group-item,
+    .dark-mode .list-group-item {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+      color: #e2e8f0 !important;
+    }
+    [data-bs-theme="dark"] .list-group-item strong,
+    .dark-mode .list-group-item strong {
+      color: #f1f5f9 !important;
+    }
+    [data-bs-theme="dark"] .list-group-item .text-muted,
+    .dark-mode .list-group-item .text-muted {
+      color: #94a3b8 !important;
+    }
+    [data-bs-theme="dark"] .modal-content,
+    .dark-mode .modal-content {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+      color: #e2e8f0 !important;
+    }
+    [data-bs-theme="dark"] .modal-header,
+    .dark-mode .modal-header {
+      border-color: #334155 !important;
+    }
+    [data-bs-theme="dark"] .modal-footer,
+    .dark-mode .modal-footer {
+      border-color: #334155 !important;
+    }
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select,
+    .dark-mode .form-control,
+    .dark-mode .form-select {
+      background-color: #0f172a !important;
+      border-color: #334155 !important;
+      color: #e2e8f0 !important;
+    }
+    [data-bs-theme="dark"] .form-label,
+    .dark-mode .form-label {
+      color: #e2e8f0 !important;
+    }
+    [data-bs-theme="dark"] .card,
+    .dark-mode .card {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+    }
+    [data-bs-theme="dark"] .card-body,
+    .dark-mode .card-body {
+      color: #e2e8f0 !important;
+    }
+  </style>
+
+  @slot('content')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1"><i class="bi bi-house-door me-2"></i>Atendimentos</h4>
+        <p class="text-muted mb-0">Gerencie visitas domiciliares e atendimentos externos</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="abrirModalConfig()">
+          <i class="bi bi-gear me-2"></i>Configurar Metas
+        </button>
+        <button class="btn btn-primary" onclick="exportarRelatorio()">
+          <i class="bi bi-download me-2"></i>Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Funcionario</label>
+            <select class="form-select" id="filtroFuncionario" onchange="carregarAtendimentos()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Inicio</label>
+            <input type="date" class="form-control" id="filtroDataInicio" onchange="carregarAtendimentos()">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" id="filtroDataFim" onchange="carregarAtendimentos()">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="filtroStatus" onchange="carregarAtendimentos()">
+              <option value="">Todos</option>
+              <option value="FINALIZADO">Finalizado</option>
+              <option value="EM_ANDAMENTO">Em Andamento</option>
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="filtroTipo" onchange="carregarAtendimentos()">
+              <option value="">Todos</option>
+              <option value="DOMICILIAR">Domiciliar</option>
+              <option value="EXTERNO">Externo</option>
+              <option value="VISITA">Visita</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards de Resumo com Progresso -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h6 class="text-muted mb-0">Hoje</h6>
+                <h3 class="mb-0"><span id="resumoHoje">0</span> <small class="text-muted fs-6">/ <span id="metaDiaria">0</span></small></h3>
+              </div>
+              <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-calendar-day"></i>
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-primary" id="progressHoje" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted" id="percentHoje">0% da meta</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h6 class="text-muted mb-0">Esta Semana</h6>
+                <h3 class="mb-0"><span id="resumoSemana">0</span> <small class="text-muted fs-6">/ <span id="metaSemanal">0</span></small></h3>
+              </div>
+              <div class="icon-circle bg-success bg-opacity-10 text-success">
+                <i class="bi bi-calendar-week"></i>
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-success" id="progressSemana" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted" id="percentSemana">0% da meta</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h6 class="text-muted mb-0">Este Mês</h6>
+                <h3 class="mb-0"><span id="resumoMes">0</span> <small class="text-muted fs-6">/ <span id="metaMensal">0</span></small></h3>
+              </div>
+              <div class="icon-circle bg-info bg-opacity-10 text-info">
+                <i class="bi bi-calendar-month"></i>
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-info" id="progressMes" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted" id="percentMes">0% da meta</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h6 class="text-muted mb-0">Tempo Médio</h6>
+                <h3 class="mb-0" id="resumoTempoMedio">0 min</h3>
+              </div>
+              <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-clock"></i>
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-warning" id="progressTempo" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted">por atendimento</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mapa de Atendimentos -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-map me-2"></i>Mapa de Atendimentos</span>
+        <div class="d-flex gap-2 align-items-center">
+          <select id="filtroFuncionarioMapa" class="form-select form-select-sm" style="width:200px;" onchange="filtrarMapaPorFuncionario()">
+            <option value="">Todos os funcionários</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div id="mapaAtendimentosContainer" style="height:300px;background:#f1f5f9;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela de Atendimentos -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span><i class="bi bi-map me-2"></i>Mapa de Atendimentos</span>
+      </div>
+      <div class="card-body p-0">
+        <div id="mapaAtendimentosContainer" style="height:300px;background:#f1f5f9;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela de Atendimentos -->
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover" id="tabelaAtendimentos">
+            <thead>
+              <tr>
+                <th>Funcionario</th>
+                <th>Tipo</th>
+                <th>Endereco</th>
+                <th>Atendido</th>
+                <th>Inicio</th>
+                <th>Fim</th>
+                <th>Duracao</th>
+                <th>Status</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="listaAtendimentos">
+              <tr>
+                <td colspan="9" class="text-center py-4 text-muted">
+                  <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                  Carregando atendimentos...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <nav id="paginacao" class="d-flex justify-content-center mt-3"></nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Configuracao de Metas -->
+  <div class="modal fade" id="modalConfig" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-gear me-2"></i>Configurar Metas de Atendimento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Lista de Configuracoes -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">Configuracoes Ativas</h6>
+              <button class="btn btn-sm btn-primary" onclick="novaConfig()">
+                <i class="bi bi-plus me-1"></i>Nova
+              </button>
+            </div>
+            <div id="listaConfigs" class="list-group">
+              <div class="text-center py-3 text-muted">Carregando...</div>
+            </div>
+          </div>
+
+          <!-- Form Nova/Editar Config -->
+          <div id="formConfigContainer" class="border rounded p-3 d-none">
+            <h6 class="mb-3" id="formConfigTitulo">Nova Configuracao</h6>
+            <form id="formConfig">
+              <input type="hidden" id="configId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Aplicar para</label>
+                  <select class="form-select" id="configTipo" onchange="toggleConfigCampos()">
+                    <option value="geral">Todos os Funcionarios</option>
+                    <option value="cargo">Cargo Especifico</option>
+                    <option value="lotacao">Lotacao Especifica</option>
+                    <option value="funcionario">Funcionario Especifico</option>
+                  </select>
+                </div>
+                <div class="col-md-6" id="divConfigCargo" style="display: none;">
+                  <label class="form-label">Cargo</label>
+                  <select class="form-select" id="configCargo">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="col-md-6" id="divConfigLotacao" style="display: none;">
+                  <label class="form-label">Lotacao</label>
+                  <select class="form-select" id="configLotacao">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="col-md-6" id="divConfigFuncionario" style="display: none;">
+                  <label class="form-label">Funcionario</label>
+                  <select class="form-select" id="configFuncionario">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                  <label class="form-label">Tipo Atendimento</label>
+                  <select class="form-select" id="configTipoAtendimento">
+                    <option value="DOMICILIAR">Domiciliar</option>
+                    <option value="EXTERNO">Externo</option>
+                    <option value="VISITA">Visita</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Meta Diaria</label>
+                  <input type="number" class="form-control" id="configMetaDiaria" min="0" value="0" onchange="calcularMetas()" onkeyup="calcularMetas()">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Meta Semanal <small class="text-muted">(diária × 5)</small></label>
+                  <input type="number" class="form-control" id="configMetaSemanal" min="0" value="0">
+                </div>
+              </div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                  <label class="form-label">Meta Mensal <small class="text-muted">(diária × 22)</small></label>
+                  <input type="number" class="form-control" id="configMetaMensal" min="0" value="0">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Tempo Minimo (min)</label>
+                  <input type="number" class="form-control" id="configTempoMinimo" min="0" value="5">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Tempo Maximo (min)</label>
+                  <input type="number" class="form-control" id="configTempoMaximo" min="0" value="120">
+                </div>
+              </div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="configExigeGPS" checked>
+                    <label class="form-check-label">Exige GPS</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="configExigeFoto">
+                    <label class="form-check-label">Exige Foto</label>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check me-1"></i>Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarConfig()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes Atendimento -->
+  <div class="modal fade" id="modalDetalhes" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalhes do Atendimento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detalhesContent">
+        </div>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script>
+    // Calcular metas semanal e mensal automaticamente
+    function calcularMetas() {
+      const metaDiaria = parseInt($('#configMetaDiaria').val()) || 0;
+      $('#configMetaSemanal').val(metaDiaria * 5);  // 5 dias úteis
+      $('#configMetaMensal').val(metaDiaria * 22); // ~22 dias úteis
+    }
+    
+    // === MAPA DE ATENDIMENTOS ===
+    // Configuração do mapa
+    let configMapa = {
+      latitude: -6.45,
+      longitude: -36.20,
+      zoom: 14,
+      cercaRaio: 0,
+      cercaLatitude: null,
+      cercaLongitude: null
+    };
+    let cercaCircle = null;
+    let todosAtendimentos = [];
+    
+    // Mapa de Atendimentos
+    let mapaAtendimentos = null;
+    let markersAtendimentos = [];
+    
+    async function carregarConfigMapa() {
+      try {
+        const res = await fetch('/api/atendimentos/config-mapa');
+        const data = await res.json();
+        if (data.config) {
+          configMapa = {
+            latitude: parseFloat(data.config.mapa_latitude) || -6.45,
+            longitude: parseFloat(data.config.mapa_longitude) || -36.20,
+            zoom: parseInt(data.config.mapa_zoom) || 14,
+            cercaRaio: parseInt(data.config.cerca_raio_metros) || 0,
+            cercaLatitude: data.config.cerca_latitude ? parseFloat(data.config.cerca_latitude) : null,
+            cercaLongitude: data.config.cerca_longitude ? parseFloat(data.config.cerca_longitude) : null
+          };
+        }
+      } catch (e) {
+        console.error('[ConfigMapa] Erro:', e);
+      }
+    }
+    
+    function inicializarMapaAtendimentos() {
+      const container = document.getElementById('mapaAtendimentosContainer');
+      if (!container) return;
+      
+      if (mapaAtendimentos) {
+        setTimeout(() => mapaAtendimentos.invalidateSize(), 100);
+        return;
+      }
+
+      try {
+        mapaAtendimentos = L.map('mapaAtendimentosContainer').setView([configMapa.latitude, configMapa.longitude], configMapa.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OSM'
+        }).addTo(mapaAtendimentos);
+        setTimeout(() => mapaAtendimentos.invalidateSize(), 200);
+        
+        // Desenhar cerca se configurada
+        if (configMapa.cercaRaio > 0 && configMapa.cercaLatitude && configMapa.cercaLongitude) {
+          cercaCircle = L.circle([configMapa.cercaLatitude, configMapa.cercaLongitude], {
+            radius: configMapa.cercaRaio,
+            color: '#3b82f6',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.1,
+            weight: 2,
+            dashArray: '5, 5'
+          }).addTo(mapaAtendimentos);
+          cercaCircle.bindPopup('<b>Cerca Eletrônica</b><br>Raio: ' + configMapa.cercaRaio + 'm');
+        }
+      } catch (e) {
+        console.error('[MapaAtendimentos] Erro:', e);
+      }
+    }
+    
+    function filtrarMapaPorFuncionario() {
+      const funcId = document.getElementById('filtroFuncionarioMapa')?.value;
+      if (funcId) {
+        const filtrados = todosAtendimentos.filter(a => a.funcionario_id == funcId);
+        atualizarMapaAtendimentos(filtrados, true);
+      } else {
+        atualizarMapaAtendimentos(todosAtendimentos, true);
+      }
+    }
+    
+    function atualizarMapaAtendimentos(atendimentos, skipStore = false) {
+      if (!skipStore) todosAtendimentos = atendimentos || [];
+      carregarConfigMapa().then(() => {
+      inicializarMapaAtendimentos();
+    });
+      if (!mapaAtendimentos) return;
+      
+      // Remove markers antigos
+      markersAtendimentos.forEach(m => mapaAtendimentos.removeLayer(m));
+      markersAtendimentos = [];
+      
+      const comGPS = (atendimentos || []).filter(a => a.latitude_inicio && a.longitude_inicio);
+      if (comGPS.length === 0) return;
+      
+      // Adiciona markers
+      comGPS.forEach((a, i) => {
+        const cor = a.status === 'FINALIZADO' ? '#22c55e' : '#f59e0b';
+        const icon = L.divIcon({
+          className: 'custom-marker',
+          html: '<div style="background:' + cor + ';width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">' + (i+1) + '</div>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+        
+        const lat = parseFloat(a.latitude_inicio);
+        const lng = parseFloat(a.longitude_inicio);
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        const marker = L.marker([lat, lng], { icon })
+          .addTo(mapaAtendimentos)
+          .bindPopup('<b>' + (a.funcionario_nome || '') + '</b><br>' + (a.endereco || 'Sem endereço'));
+        markersAtendimentos.push(marker);
+      });
+      
+      // Ajusta zoom para mostrar todos os markers
+      if (markersAtendimentos.length > 0) {
+        const group = L.featureGroup(markersAtendimentos);
+        mapaAtendimentos.fitBounds(group.getBounds().pad(0.1));
+      }
+    }
+
+    let paginaAtual = 1;
+    const porPagina = 20;
+
+    $(document).ready(function() {
+      // Define datas padrao (ultimos 30 dias)
+      const hoje = new Date();
+      const inicio = new Date(hoje);
+      inicio.setDate(inicio.getDate() - 30);
+
+      $('#filtroDataInicio').val(inicio.toISOString().split('T')[0]);
+      $('#filtroDataFim').val(hoje.toISOString().split('T')[0]);
+
+      carregarFuncionarios();
+      carregarAtendimentos();
+      carregarResumo();
+    });
+
+    async function carregarFuncionarios() {
+      try {
+        const res = await fetch('/api/funcionarios?ativo=true');
+        const data = await res.json();
+        const select = $('#filtroFuncionario');
+        (data.data || []).forEach(f => {
+          select.append(`<option value="${f.id}">${f.nome} - ${f.matricula || ''}</option>`);
+        });
+      } catch (e) {
+        console.error('Erro ao carregar funcionarios:', e);
+      }
+    }
+
+    function preencherSelectFuncionariosMapa(atendimentos) {
+      const select = document.getElementById('filtroFuncionarioMapa');
+      if (!select) return;
+      
+      const funcionarios = [...new Map(atendimentos.map(a => [a.funcionario_id, { id: a.funcionario_id, nome: a.funcionario_nome }])).values()];
+      
+      select.innerHTML = '<option value="">Todos os funcionários</option>' +
+        funcionarios.map(f => '<option value="' + f.id + '">' + f.nome + '</option>').join('');
+    }
+    
+    async function carregarAtendimentos() {
+      try {
+        const params = new URLSearchParams({
+          pagina: paginaAtual,
+          por_pagina: porPagina
+        });
+
+        const funcionario = $('#filtroFuncionario').val();
+        const dataInicio = $('#filtroDataInicio').val();
+        const dataFim = $('#filtroDataFim').val();
+        const status = $('#filtroStatus').val();
+        const tipo = $('#filtroTipo').val();
+
+        if (funcionario) params.append('funcionario_id', funcionario);
+        if (dataInicio) params.append('data_inicio', dataInicio);
+        if (dataFim) params.append('data_fim', dataFim);
+        if (status) params.append('status', status);
+        if (tipo) params.append('tipo', tipo);
+
+        const res = await fetch(`/api/atendimentos?${params}`);
+        const data = await res.json();
+
+        renderizarAtendimentos(data.atendimentos || []);
+        atualizarMapaAtendimentos(data.atendimentos || []);
+        preencherSelectFuncionariosMapa(data.atendimentos || []);
+        renderizarPaginacao(data.total || 0);
+      } catch (e) {
+        console.error('Erro ao carregar atendimentos:', e);
+        $('#listaAtendimentos').html(`
+          <tr><td colspan="9" class="text-center py-4 text-danger">
+            <i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>
+            Erro ao carregar atendimentos
+          </td></tr>
+        `);
+      }
+    }
+
+    function renderizarAtendimentos(atendimentos) {
+      const lista = $('#listaAtendimentos');
+
+      if (atendimentos.length === 0) {
+        lista.html(`
+          <tr><td colspan="9" class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            Nenhum atendimento encontrado
+          </td></tr>
+        `);
+        return;
+      }
+
+      lista.html(atendimentos.map(a => {
+        const statusClass = {
+          'FINALIZADO': 'success',
+          'EM_ANDAMENTO': 'warning',
+          'CANCELADO': 'danger'
+        }[a.status] || 'secondary';
+
+        const inicio = a.data_hora_inicio ? new Date(a.data_hora_inicio).toLocaleString('pt-BR') : '-';
+        const fim = a.data_hora_fim ? new Date(a.data_hora_fim).toLocaleString('pt-BR') : '-';
+        const duracao = a.duracao_minutos ? `${a.duracao_minutos} min` : '-';
+
+        return `
+          <tr>
+            <td>${a.funcionario_nome || '-'}</td>
+            <td><span class="badge bg-secondary">${a.tipo_atendimento || 'DOMICILIAR'}</span></td>
+            <td>${a.endereco || '-'}</td>
+            <td>${a.nome_atendido || '-'}</td>
+            <td>${inicio}</td>
+            <td>${fim}</td>
+            <td>${duracao}</td>
+            <td><span class="badge bg-${statusClass}">${a.status}</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" onclick="verDetalhes(${a.id})" title="Ver detalhes">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join(''));
+    }
+
+    function renderizarPaginacao(total) {
+      const totalPaginas = Math.ceil(total / porPagina);
+      if (totalPaginas <= 1) {
+        $('#paginacao').html('');
+        return;
+      }
+
+      let html = '<ul class="pagination">';
+      for (let i = 1; i <= totalPaginas; i++) {
+        html += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="irParaPagina(${i})">${i}</a>
+        </li>`;
+      }
+      html += '</ul>';
+      $('#paginacao').html(html);
+    }
+
+    function irParaPagina(pagina) {
+      paginaAtual = pagina;
+      carregarAtendimentos();
+    }
+
+    async function carregarResumo() {
+      try {
+        const funcionarioId = $('#filtroFuncionario').val();
+        const url = funcionarioId ? `/api/atendimentos/resumo?funcionario_id=${funcionarioId}` : '/api/atendimentos/resumo';
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Atualizar valores
+        $('#resumoHoje').text(data.hoje || 0);
+        $('#resumoSemana').text(data.semana || 0);
+        $('#resumoMes').text(data.mes || 0);
+        $('#resumoTempoMedio').text(`${data.tempo_medio || 0} min`);
+        
+        // Atualizar metas
+        $('#metaDiaria').text(data.meta_diaria || 0);
+        $('#metaSemanal').text(data.meta_semanal || 0);
+        $('#metaMensal').text(data.meta_mensal || 0);
+        
+        // Calcular e atualizar barras de progresso
+        const percentHoje = data.meta_diaria ? Math.min(100, Math.round((data.hoje / data.meta_diaria) * 100)) : 0;
+        const percentSemana = data.meta_semanal ? Math.min(100, Math.round((data.semana / data.meta_semanal) * 100)) : 0;
+        const percentMes = data.meta_mensal ? Math.min(100, Math.round((data.mes / data.meta_mensal) * 100)) : 0;
+        
+        $('#progressHoje').css('width', percentHoje + '%');
+        $('#progressSemana').css('width', percentSemana + '%');
+        $('#progressMes').css('width', percentMes + '%');
+        
+        // Atualizar textos de percentual
+        $('#percentHoje').text(percentHoje + '% da meta');
+        $('#percentSemana').text(percentSemana + '% da meta');
+        $('#percentMes').text(percentMes + '% da meta');
+        
+        // Atualizar barra do tempo médio (max 60 min = 100%)
+        const percentTempo = Math.min(100, Math.round((data.tempo_medio || 0) / 60 * 100));
+        $('#progressTempo').css('width', percentTempo + '%');
+        
+        // Mudar cor se bateu meta (verde) ou passou (dourado)
+        if (data.hoje >= data.meta_diaria && data.meta_diaria > 0) {
+          $('#progressHoje').removeClass('bg-primary').addClass(data.hoje > data.meta_diaria ? 'bg-warning' : 'bg-success');
+          $('#percentHoje').html('<i class="bi bi-check-circle"></i> Meta batida!');
+        }
+        if (data.semana >= data.meta_semanal && data.meta_semanal > 0) {
+          $('#progressSemana').removeClass('bg-success').addClass(data.semana > data.meta_semanal ? 'bg-warning' : 'bg-success');
+          $('#percentSemana').html('<i class="bi bi-check-circle"></i> Meta batida!');
+        }
+        if (data.mes >= data.meta_mensal && data.meta_mensal > 0) {
+          $('#progressMes').removeClass('bg-info').addClass(data.mes > data.meta_mensal ? 'bg-warning' : 'bg-success');
+          $('#percentMes').html('<i class="bi bi-check-circle"></i> Meta batida!');
+        }
+      } catch (e) {
+        console.error('Erro ao carregar resumo:', e);
+      }
+    }
+
+    async function verDetalhes(id) {
+      try {
+        const res = await fetch(`/api/atendimentos/${id}`);
+        const data = await res.json();
+
+        if (!data.atendimento) {
+          toastr.error('Atendimento nao encontrado');
+          return;
+        }
+
+        const a = data.atendimento;
+        const inicio = a.data_hora_inicio ? new Date(a.data_hora_inicio).toLocaleString('pt-BR') : '-';
+        const fim = a.data_hora_fim ? new Date(a.data_hora_fim).toLocaleString('pt-BR') : '-';
+
+        $('#detalhesContent').html(`
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted">Funcionario</h6>
+              <p>${a.funcionario_nome || '-'}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted">Status</h6>
+              <p><span class="badge bg-${a.status === 'FINALIZADO' ? 'success' : a.status === 'EM_ANDAMENTO' ? 'warning' : 'danger'}">${a.status}</span></p>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted">Endereco</h6>
+              <p>${a.endereco || ''} ${a.numero || ''}<br>${a.bairro || ''} ${a.cidade || ''}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted">Atendido</h6>
+              <p>${a.nome_atendido || '-'}<br>${a.telefone_atendido || ''}</p>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-md-4">
+              <h6 class="text-muted">Inicio</h6>
+              <p>${inicio}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted">Fim</h6>
+              <p>${fim}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted">Duracao</h6>
+              <p>${a.duracao_minutos ? a.duracao_minutos + ' minutos' : '-'}</p>
+            </div>
+          </div>
+          ${a.observacoes ? `<hr><h6 class="text-muted">Observacoes</h6><p>${a.observacoes}</p>` : ''}
+          ${a.latitude_inicio ? `<hr><h6 class="text-muted"><i class="bi bi-geo-alt me-1"></i>Localização</h6><div id="mapaModalContainer" style="height:200px;background:#f1f5f9;border-radius:8px;"></div>` : ''}
+          
+        `);
+
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+        modal.show();
+        
+        // Mapa do modal
+        if (a.latitude_inicio && a.longitude_inicio) {
+          setTimeout(() => {
+            const container = document.getElementById('mapaModalContainer');
+            if (!container || typeof L === 'undefined') return;
+            
+            try {
+              container.innerHTML = '';
+              if (container._leaflet_id) container._leaflet_id = null;
+              
+              const lat = parseFloat(a.latitude_inicio);
+              const lng = parseFloat(a.longitude_inicio);
+              
+              const mapModal = L.map(container).setView([lat, lng], 16);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OSM'
+              }).addTo(mapModal);
+              
+              L.marker([lat, lng]).addTo(mapModal).bindPopup('<b>Local do atendimento</b>');
+              
+              setTimeout(() => mapModal.invalidateSize(), 100);
+              setTimeout(() => mapModal.invalidateSize(), 300);
+            } catch (e) {
+              console.error('[MapaModal] Erro:', e);
+            }
+          }, 300);
+        }
+        
+        // Inicializar mapa do modal após abrir
+        if (a.latitude_inicio && a.longitude_inicio) {
+          setTimeout(() => {
+            const mapContainer = document.getElementById('mapModal');
+            if (mapContainer && typeof L !== 'undefined') {
+              // Limpar mapa anterior
+              mapContainer.innerHTML = '';
+              mapContainer._leaflet_id = null;
+              
+              const lat = parseFloat(a.latitude_inicio);
+              const lng = parseFloat(a.longitude_inicio);
+              const mapModal = L.map(mapContainer).setView([lat, lng], 16);
+              L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OSM'
+              }).addTo(mapModal);
+              L.marker([lat, lng]).addTo(mapModal).bindPopup('<b>Local do atendimento</b>');
+              setTimeout(() => mapModal.invalidateSize(), 100);
+            }
+          }, 300);
+        }
+
+        // mapa removido
+      } catch (e) {
+        console.error('Erro ao carregar detalhes:', e);
+        toastr.error('Erro ao carregar detalhes');
+      }
+    }
+
+    // === CONFIGURACOES ===
+    async function abrirModalConfig() {
+      const modal = new bootstrap.Modal(document.getElementById('modalConfig'));
+      modal.show();
+
+      // Carrega selects primeiro (independente das configs)
+      await Promise.all([
+        carregarCargos(),
+        carregarLotacoes(),
+        carregarFuncionariosConfig()
+      ]);
+
+      // Depois carrega as configs existentes
+      await carregarConfigs();
+    }
+
+    async function carregarConfigs() {
+      const lista = $('#listaConfigs');
+      lista.html('<div class="text-center py-3 text-muted">Carregando...</div>');
+
+      try {
+        const res = await fetch('/api/atendimentos/config');
+        const data = await res.json();
+
+        if (!data.configs || data.configs.length === 0) {
+          lista.html('<div class="text-center py-3 text-muted">Nenhuma configuracao cadastrada</div>');
+          return;
+        }
+
+        lista.html(data.configs.map(c => {
+          let descricao = 'Todos os funcionarios';
+          if (c.funcionario_nome) descricao = `Funcionario: ${c.funcionario_nome}`;
+          else if (c.cargo_nome) descricao = `Cargo: ${c.cargo_nome}`;
+          else if (c.lotacao_nome) descricao = `Lotacao: ${c.lotacao_nome}`;
+
+          return `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>${c.tipo_atendimento}</strong> - ${descricao}
+                <br><small class="text-muted">Meta: ${c.meta_diaria}/dia, ${c.meta_semanal}/sem, ${c.meta_mensal}/mes</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editarConfig(${c.id})">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="excluirConfig(${c.id})">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join(''));
+      } catch (e) {
+        console.error('Erro ao carregar configs:', e);
+        lista.html('<div class="text-center py-3 text-muted">Nenhuma configuracao cadastrada</div>');
+      }
+    }
+
+    async function carregarCargos() {
+      try {
+        const res = await fetch('/api/cargos');
+        const data = await res.json();
+        console.log('[Atendimentos] Cargos carregados:', data);
+        const select = $('#configCargo');
+        select.html('<option value="">Selecione...</option>');
+        const cargos = data.data || data.cargos || data || [];
+        cargos.forEach(c => {
+          select.append(`<option value="${c.id}">${c.nome}</option>`);
+        });
+      } catch (e) {
+        console.error('[Atendimentos] Erro ao carregar cargos:', e);
+      }
+    }
+
+    async function carregarLotacoes() {
+      try {
+        const res = await fetch('/api/lotacoes');
+        const data = await res.json();
+        console.log('[Atendimentos] Lotacoes carregadas:', data);
+        const select = $('#configLotacao');
+        select.html('<option value="">Selecione...</option>');
+        const lotacoes = data.data || data.lotacoes || data || [];
+        lotacoes.forEach(l => {
+          select.append(`<option value="${l.id}">${l.nome}</option>`);
+        });
+      } catch (e) {
+        console.error('[Atendimentos] Erro ao carregar lotacoes:', e);
+      }
+    }
+
+    async function carregarFuncionariosConfig() {
+      try {
+        const res = await fetch('/api/funcionarios?ativo=true');
+        const data = await res.json();
+        console.log('[Atendimentos] Funcionarios carregados:', data);
+        const select = $('#configFuncionario');
+        select.html('<option value="">Selecione...</option>');
+        const funcionarios = data.data || data.funcionarios || data || [];
+        funcionarios.forEach(f => {
+          select.append(`<option value="${f.id}">${f.nome}</option>`);
+        });
+      } catch (e) {
+        console.error('[Atendimentos] Erro ao carregar funcionarios:', e);
+      }
+    }
+
+    function toggleConfigCampos() {
+      const tipo = $('#configTipo').val();
+      $('#divConfigCargo, #divConfigLotacao, #divConfigFuncionario').hide();
+      if (tipo === 'cargo') $('#divConfigCargo').show();
+      if (tipo === 'lotacao') $('#divConfigLotacao').show();
+      if (tipo === 'funcionario') $('#divConfigFuncionario').show();
+    }
+
+    function novaConfig() {
+      $('#configId').val('');
+      $('#formConfigTitulo').text('Nova Configuracao');
+      $('#formConfig')[0].reset();
+      $('#configExigeGPS').prop('checked', true);
+      toggleConfigCampos();
+      $('#formConfigContainer').removeClass('d-none');
+    }
+
+    function cancelarConfig() {
+      $('#formConfigContainer').addClass('d-none');
+    }
+
+    async function editarConfig(id) {
+      try {
+        const res = await fetch(`/api/atendimentos/config/${id}`);
+        const data = await res.json();
+        const c = data.config;
+
+        $('#configId').val(c.id);
+        $('#formConfigTitulo').text('Editar Configuracao');
+
+        if (c.funcionario_id) {
+          $('#configTipo').val('funcionario');
+          $('#configFuncionario').val(c.funcionario_id);
+        } else if (c.cargo_id) {
+          $('#configTipo').val('cargo');
+          $('#configCargo').val(c.cargo_id);
+        } else if (c.lotacao_id) {
+          $('#configTipo').val('lotacao');
+          $('#configLotacao').val(c.lotacao_id);
+        } else {
+          $('#configTipo').val('geral');
+        }
+
+        toggleConfigCampos();
+        $('#configTipoAtendimento').val(c.tipo_atendimento);
+        $('#configMetaDiaria').val(c.meta_diaria);
+        $('#configMetaSemanal').val(c.meta_semanal);
+        $('#configMetaMensal').val(c.meta_mensal);
+        $('#configTempoMinimo').val(c.tempo_minimo_minutos);
+        $('#configTempoMaximo').val(c.tempo_maximo_minutos);
+        $('#configExigeGPS').prop('checked', c.exige_gps);
+        $('#configExigeFoto').prop('checked', c.exige_foto);
+
+        $('#formConfigContainer').removeClass('d-none');
+      } catch (e) {
+        toastr.error('Erro ao carregar configuracao');
+      }
+    }
+
+    $('#formConfig').on('submit', async function(e) {
+      e.preventDefault();
+
+      const tipo = $('#configTipo').val();
+      const dados = {
+        tipo_atendimento: $('#configTipoAtendimento').val(),
+        meta_diaria: parseInt($('#configMetaDiaria').val()) || 0,
+        meta_semanal: parseInt($('#configMetaSemanal').val()) || 0,
+        meta_mensal: parseInt($('#configMetaMensal').val()) || 0,
+        tempo_minimo_minutos: parseInt($('#configTempoMinimo').val()) || 5,
+        tempo_maximo_minutos: parseInt($('#configTempoMaximo').val()) || 120,
+        exige_gps: $('#configExigeGPS').is(':checked'),
+        exige_foto: $('#configExigeFoto').is(':checked')
+      };
+
+      if (tipo === 'cargo') dados.cargo_id = parseInt($('#configCargo').val());
+      if (tipo === 'lotacao') dados.lotacao_id = parseInt($('#configLotacao').val());
+      if (tipo === 'funcionario') dados.funcionario_id = parseInt($('#configFuncionario').val());
+
+      const id = $('#configId').val();
+      const url = id ? `/api/atendimentos/config/${id}` : '/api/atendimentos/config';
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+          toastr.success('Configuracao salva');
+          cancelarConfig();
+          carregarConfigs();
+        } else {
+          const err = await res.json();
+          toastr.error(err.error || 'Erro ao salvar');
+        }
+      } catch (e) {
+        toastr.error('Erro ao salvar');
+      }
+    });
+
+    async function excluirConfig(id) {
+      // Usar SweetAlert2 se disponível, senão usar modal Bootstrap
+      if (typeof Swal !== 'undefined') {
+        const result = await Swal.fire({
+          title: 'Confirmar exclusão',
+          text: 'Deseja realmente excluir esta configuração de meta?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Sim, excluir',
+          cancelButtonText: 'Cancelar'
+        });
+        if (!result.isConfirmed) return;
+      } else {
+        if (!confirm('Deseja excluir esta configuração?')) return;
+      }
+
+      try {
+        const res = await fetch(`/api/atendimentos/config/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        console.log('[Excluir Config] Resposta:', data);
+        
+        if (res.ok && data.success) {
+          toastr.success('Configuração excluída com sucesso');
+          carregarConfigs();
+        } else {
+          toastr.error(data.error || 'Erro ao excluir configuração');
+        }
+      } catch (e) {
+        console.error('[Excluir Config] Erro:', e);
+        toastr.error('Erro ao excluir configuração');
+      }
+    }
+
+    async function exportarRelatorio() {
+      const params = new URLSearchParams();
+      const funcionario = $('#filtroFuncionario').val();
+      const dataInicio = $('#filtroDataInicio').val();
+      const dataFim = $('#filtroDataFim').val();
+      const status = $('#filtroStatus').val();
+
+      if (funcionario) params.append('funcionario_id', funcionario);
+      if (dataInicio) params.append('data_inicio', dataInicio);
+      if (dataFim) params.append('data_fim', dataFim);
+      if (status) params.append('status', status);
+      params.append('formato', 'excel');
+
+      window.location.href = `/api/atendimentos/exportar?${params}`;
+    }
+  </script>
+  @end
+@end

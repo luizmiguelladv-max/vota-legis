@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GetPonto | Controle de Ponto Eletrônico Simples e Completo</title>
+  <meta name="description" content="O único sistema que une REP Físico, Leitor Digital e Reconhecimento Facial em uma só plataforma. Controle presença e rotas da sua equipe com precisão. Homologado Portaria 671.">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://getponto.inf.br">
+  <meta property="og:title" content="GetPonto | Controle de Ponto Eletrônico Simples e Completo">
+  <meta property="og:description" content="O único sistema que une REP Físico, Leitor Digital e Reconhecimento Facial em uma só plataforma.">
+  <meta property="og:image" content="https://getponto.inf.br/assets/og-image.png">
+  
+  <link rel="canonical" href="https://getponto.inf.br">
+  <link rel="icon" type="image/x-icon" href="/portal/favicon.ico">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --navy-900: #0f172a;
+      --navy-800: #1e293b;
+      --navy-700: #334155;
+      --blue-600: #2563eb;
+      --blue-500: #3b82f6;
+      --cyan-500: #06b6d4;
+      --cyan-400: #22d3ee;
+      --green-500: #10b981;
+      --purple-500: #a855f7;
+      --orange-500: #f97316;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --white: #ffffff;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      color: var(--gray-800);
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    
+    /* HEADER */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .header.scrolled {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+      text-decoration: none;
+    }
+    
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--cyan-500), var(--blue-500));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    
+    .nav-menu {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+    
+    .nav-link:hover {
+      color: var(--cyan-400);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.3s;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-500), var(--blue-500));
+      color: var(--white);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(6, 182, 212, 0.4);
+    }
+    
+    .btn-outline {
+      border-color: var(--white);
+      color: var(--white);
+      background: transparent;
+    }
+    
+    .btn-outline:hover {
+      background: var(--white);
+      color: var(--navy-900);
+    }
+    
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 50%, #1e3a8a 100%);
+      color: var(--white);
+      padding-top: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 50%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-text h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .hero-text p {
+      font-size: 1.2rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .hero-image {
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .hero-image img {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3));
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    /* SECTIONS */
+    .section {
+      padding: 5rem 0;
+    }
+    
+    .section-light {
+      background: var(--gray-50);
+    }
+    
+    .section-header {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 4rem;
+    }
+    
+    .section-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--cyan-500);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .section-header h2 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .section-header h2 .highlight {
+      background: linear-gradient(135deg, var(--cyan-500), var(--blue-500));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .section-header p {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+    }
+    
+    /* FEATURES GRID */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+    
+    .feature-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+      border-top: 4px solid transparent;
+      position: relative;
+    }
+    
+    .feature-card:nth-child(1) {
+      border-top-color: var(--cyan-500);
+    }
+    
+    .feature-card:nth-child(2) {
+      border-top-color: var(--purple-500);
+    }
+    
+    .feature-card:nth-child(3) {
+      border-top-color: var(--orange-500);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-card:nth-child(1) .feature-icon {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(6, 182, 212, 0.2));
+      color: var(--cyan-500);
+    }
+    
+    .feature-card:nth-child(2) .feature-icon {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.2));
+      color: var(--purple-500);
+    }
+    
+    .feature-card:nth-child(3) .feature-icon {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.2));
+      color: var(--orange-500);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 0.75rem;
+    }
+    
+    .feature-card p {
+      color: var(--gray-600);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-tag {
+      display: inline-block;
+      padding: 0.375rem 0.875rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .feature-card:nth-child(1) .feature-tag {
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--cyan-500);
+    }
+    
+    .feature-card:nth-child(2) .feature-tag {
+      background: rgba(168, 85, 247, 0.1);
+      color: var(--purple-500);
+    }
+    
+    .feature-card:nth-child(3) .feature-tag {
+      background: rgba(249, 115, 22, 0.1);
+      color: var(--orange-500);
+    }
+    
+    /* APP SECTION */
+    .app-section {
+      background: var(--white);
+    }
+    
+    .app-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    
+    .app-features {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .app-feature {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .app-feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--cyan-500), var(--blue-500));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    
+    .app-feature h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 0.5rem;
+    }
+    
+    .app-feature p {
+      color: var(--gray-600);
+    }
+    
+    .app-stores {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .store-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1.5rem;
+      background: var(--gray-800);
+      color: var(--white);
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .store-btn:hover {
+      background: var(--gray-700);
+      transform: translateY(-2px);
+    }
+    
+    .app-mockup {
+      position: relative;
+    }
+    
+    .app-mockup img {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+    }
+    
+    /* COMPLIANCE SECTION */
+    .compliance-section {
+      background: var(--gray-50);
+    }
+    
+    .compliance-content {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    .compliance-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green-500);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+    
+    .compliance-content h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--gray-800);
+      margin-bottom: 1.5rem;
+    }
+    
+    .compliance-content p {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    
+    .compliance-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .compliance-feature {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .compliance-feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--cyan-500);
+    }
+    
+    .compliance-feature h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+    
+    /* CTA SECTION */
+    .cta-section {
+      background: linear-gradient(135deg, var(--navy-900) 0%, #1e3a8a 100%);
+      color: var(--white);
+      text-align: center;
+      padding: 5rem 0;
+    }
+    
+    .cta-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    
+    .cta-section h2 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    
+    .cta-section p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      margin-bottom: 2.5rem;
+    }
+    
+    .cta-form {
+      display: flex;
+      gap: 1rem;
+      max-width: 500px;
+      margin: 0 auto 1rem;
+    }
+    
+    .cta-input {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .cta-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .cta-input:focus {
+      border-color: var(--cyan-400);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .cta-note {
+      font-size: 0.875rem;
+      opacity: 0.7;
+    }
+    
+    /* FOOTER */
+    .footer {
+      background: var(--navy-900);
+      color: var(--gray-600);
+      padding: 4rem 0 2rem;
+    }
+    
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    
+    .footer-brand p {
+      margin-top: 1rem;
+      line-height: 1.7;
+    }
+    
+    .footer-socials {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .social-link {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .social-link:hover {
+      background: var(--cyan-500);
+      transform: translateY(-2px);
+    }
+    
+    .footer-section h4 {
+      color: var(--white);
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .footer-link {
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-link:hover {
+      color: var(--cyan-400);
+    }
+    
+    .footer-bottom {
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .hero-content,
+      .app-content {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+      
+      .hero-image {
+        order: -1;
+      }
+      
+      .features-grid,
+      .compliance-features {
+        grid-template-columns: 1fr;
+      }
+      
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .nav-menu {
+        display: none;
+      }
+      
+      .hero-text h1 {
+        font-size: 2.5rem;
+      }
+      
+      .section-header h2 {
+        font-size: 2rem;
+      }
+      
+      .cta-form {
+        flex-direction: column;
+      }
+      
+      .footer-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container">
+      <nav class="navbar">
+        <a href="/" class="logo">
+          <div class="logo-icon">⏱️</div>
+          <span>GetPonto</span>
+        </a>
+        
+        <ul class="nav-menu">
+          <li><a href="#flexibilidade" class="nav-link">Flexibilidade</a></li>
+          <li><a href="#app" class="nav-link">App & Presença</a></li>
+          <li><a href="#compliance" class="nav-link">Compliance</a></li>
+        </ul>
+        
+        <a href="/login" class="btn btn-outline">Área do Cliente</a>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1>Gestão de Ponto Inteligente e Segura</h1>
+          <p>Conformidade total com a Portaria 671. Simplifique o controle de jornada com tecnologia avançada.</p>
+          <div class="hero-actions">
+            <a href="#demo" class="btn btn-primary">Solicite uma Demonstração Gratuita</a>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="/portal/assets/hero-devices-DiwffDYt.png" alt="GetPonto App" loading="eager">
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FEATURES -->
+  <section id="flexibilidade" class="section section-light">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">FEATURES</span>
+        <h2>Principais <span class="highlight">Funcionalidades</span></h2>
+        <p>O GetPonto se adapta à infraestrutura da sua empresa, integrando hardware e software.</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🕐</div>
+          <h3>REP Tradicional</h3>
+          <p>Integração completa com relógios de ponto eletrônico (REP) homologados das principais marcas (Control iD, Henry, Dimep).</p>
+          <span class="feature-tag">Para Indústrias</span>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">👆</div>
+          <h3>Biometria Digital</h3>
+          <p>Leitores de impressão digital USB conectados diretamente ao computador para registro rápido.</p>
+          <span class="feature-tag">Para Escritórios</span>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">😊</div>
+          <h3>Reconhecimento Facial</h3>
+          <p>Alta tecnologia que dispensa contato físico. Pode ser usado em tablets ou diretamente no celular.</p>
+          <span class="feature-tag">Para Todos</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- APP & PRESENÇA -->
+  <section id="app" class="section app-section">
+    <div class="container">
+      <div class="app-content">
+        <div>
+          <div class="section-header" style="text-align: left; margin: 0 0 2rem 0;">
+            <h2>Gestão de Presença e <span class="highlight">Rotas Externas</span></h2>
+            <p>Muito mais que um relógio de ponto. O App GetPonto é a ferramenta definitiva para equipes em campo, rondas e visitas.</p>
+          </div>
+          
+          <div class="app-features">
+            <div class="app-feature">
+              <div class="app-feature-icon"><i class="bi bi-geo-alt text-success"></i></div>
+              <div>
+                <h3>Marcação de Presença</h3>
+                <p>Confirmação de chegada em clientes ou postos de trabalho com apenas um toque.</p>
+              </div>
+            </div>
+            
+            <div class="app-feature">
+              <div class="app-feature-icon">🗺️</div>
+              <div>
+                <h3>Histórico de Rotas GPS</h3>
+                <p>Visualize no mapa o trajeto e os locais onde a presença foi marcada.</p>
+              </div>
+            </div>
+            
+            <div class="app-feature">
+              <div class="app-feature-icon"><i class="bi bi-shield-lock"></i></div>
+              <div>
+                <h3>Offline & Seguro</h3>
+                <p>Registros são salvos localmente e criptografados, sincronizando assim que houver internet.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="app-stores">
+            <a href="#" class="store-btn">
+              <span><i class="bi bi-phone"></i></span>
+              <div>
+                <div style="font-size: 0.75rem; opacity: 0.8;">Disponível no</div>
+                <div>Google Play</div>
+              </div>
+            </a>
+            <a href="#" class="store-btn">
+              <span>🍎</span>
+              <div>
+                <div style="font-size: 0.75rem; opacity: 0.8;">Baixe na</div>
+                <div>App Store</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        
+        <div class="app-mockup">
+          <img src="/portal/placeholder.svg" alt="App GetPonto" style="max-width: 400px;">
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- COMPLIANCE -->
+  <section id="compliance" class="section compliance-section">
+    <div class="container">
+      <div class="compliance-content">
+        <span class="compliance-badge">✓ REP-P Certificado</span>
+        <h2>Conformidade Legal</h2>
+        <p>O GetPonto atende rigorosamente à <strong>Portaria 671 do MTE</strong>, operando como REP-P (Registrador Eletrônico de Ponto via Programa). Emitimos comprovantes assinados digitalmente e arquivos fiscais (AFD/AEJ) prontos para auditoria.</p>
+        
+        <div class="compliance-features">
+          <div class="compliance-feature">
+            <div class="compliance-feature-icon">📄</div>
+            <h4>AFD/AEJ</h4>
+          </div>
+          <div class="compliance-feature">
+            <div class="compliance-feature-icon">🔏</div>
+            <h4>Assinatura Digital</h4>
+          </div>
+          <div class="compliance-feature">
+            <div class="compliance-feature-icon"><i class="bi bi-check-circle text-success"></i></div>
+            <h4>MTE Homologado</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <span class="cta-badge">✓ Teste grátis por 14 dias</span>
+      <h2>Escolha a solução completa.</h2>
+      <p>Do REP físico ao App com rastreamento. O GetPonto unifica tudo em uma única plataforma.</p>
+      
+      <form class="cta-form" action="/trial" method="POST">
+        <input type="email" name="email" class="cta-input" placeholder="Seu melhor e-mail" required>
+        <button type="submit" class="btn btn-primary">Começar Agora</button>
+      </form>
+      <p class="cta-note">Sem cartão de crédito. Cancele quando quiser.</p>
+    </div>
+  </section>
+  
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <a href="/" class="logo">
+            <div class="logo-icon">⏱️</div>
+            <span>GetPonto</span>
+          </a>
+          <p>A solução completa para controle de ponto eletrônico. REP, biometria e reconhecimento facial em uma única plataforma.</p>
+          <div class="footer-socials">
+            <a href="#" class="social-link" aria-label="LinkedIn">in</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="YouTube">▶️</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Produto</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Funcionalidades</a></li>
+            <li><a href="#" class="footer-link">App Mobile</a></li>
+            <li><a href="#" class="footer-link">Integrações</a></li>
+            <li><a href="#" class="footer-link">Preços</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Empresa</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Sobre nós</a></li>
+            <li><a href="#" class="footer-link">Blog</a></li>
+            <li><a href="#" class="footer-link">Carreiras</a></li>
+            <li><a href="#" class="footer-link">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Privacidade</a></li>
+            <li><a href="#" class="footer-link">Termos de Uso</a></li>
+            <li><a href="#" class="footer-link">LGPD</a></li>
+            <li><a href="#" class="footer-link">Compliance</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 GetPonto. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    // Navbar scroll effect
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+    
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

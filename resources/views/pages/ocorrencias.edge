@@ -1,0 +1,414 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Ocorrências</h4>
+        <p class="text-muted mb-0">Faltas, atestados, férias e afastamentos</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalOcorrencia" onclick="novaOcorrencia()">
+        <i class="bi bi-plus-lg me-2"></i>Nova Ocorrência
+      </button>
+    </div>
+
+    {{-- Filtros com Select2 e filtragem automática --}}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Funcionário</label>
+            <select class="form-select filtro-select2" id="filtroFuncionario">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo</label>
+            <select class="form-select filtro-select2" id="filtroTipo">
+              <option value="">Todos</option>
+              <option value="FALTA">Falta</option>
+              <option value="ATESTADO">Atestado</option>
+              <option value="FERIAS">Férias</option>
+              <option value="LICENCA">Licença</option>
+              <option value="ABONO">Abono</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select filtro-select2" id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="PENDENTE">Pendente</option>
+              <option value="APROVADO">Aprovado</option>
+              <option value="REJEITADO">Rejeitado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Tabela --}}
+    <div class="card">
+      <div class="card-body">
+        <table id="tabelaOcorrencias" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th>Funcionário</th>
+              <th>Tipo</th>
+              <th>Data Início</th>
+              <th>Data Fim</th>
+              <th>Dias</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- Modal Ocorrência --}}
+    <div class="modal fade" id="modalOcorrencia" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalOcorrenciaTitle">Nova Ocorrência</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formOcorrencia" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" name="id" id="ocorrenciaId">
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Funcionário *</label>
+                  <select class="form-select" name="funcionario_id" id="funcionario_id" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Tipo *</label>
+                  <select class="form-select" name="tipo" id="tipo" required>
+                    <option value="">Selecione...</option>
+                    <option value="FALTA">Falta</option>
+                    <option value="ATESTADO">Atestado Médico</option>
+                    <option value="FERIAS">Férias</option>
+                    <option value="LICENCA">Licença</option>
+                    <option value="ABONO">Abono</option>
+                    <option value="FOLGA">Folga/Compensação</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Data Início *</label>
+                  <input type="text" class="form-control datepicker-ocorrencia" name="data_inicio" id="data_inicio" placeholder="dd/mm/aaaa" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Data Fim *</label>
+                  <input type="text" class="form-control datepicker-ocorrencia" name="data_fim" id="data_fim" placeholder="dd/mm/aaaa" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Nº Documento/Atestado</label>
+                  <input type="text" class="form-control" name="numero_documento" id="numero_documento">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">CID (se atestado)</label>
+                  <input type="text" class="form-control" name="cid" id="cid" placeholder="Ex: J11">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Observações</label>
+                  <textarea class="form-control" name="observacoes" id="observacoes" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let dataTable;
+      let dataInicioPicker, dataFimPicker;
+
+      $(document).ready(function() {
+        carregarFuncionarios();
+        carregarOcorrencias();
+
+        // Select2 para selects dos filtros com filtragem automática
+        $('.filtro-select2').select2({
+          theme: 'bootstrap-5',
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Eventos de mudança - filtra automaticamente ao selecionar
+        $('.filtro-select2').on('change', function() {
+          carregarOcorrencias();
+        });
+
+        // Select2 para selects do modal
+        $('#funcionario_id, #tipo').select2({
+          theme: 'bootstrap-5',
+          dropdownParent: $('#modalOcorrencia'),
+          width: '100%',
+          placeholder: 'Selecione...',
+          allowClear: true
+        });
+
+        // Flatpickr para datas - usa função global
+        if (window.initDatepickers) {
+          const pickers = window.initDatepickers('.datepicker-ocorrencia', {
+            dateFormat: 'Y-m-d'  // Para o banco
+          });
+          dataInicioPicker = pickers['data_inicio'];
+          dataFimPicker = pickers['data_fim'];
+        } else {
+          // Fallback
+          const configPadrao = {
+            locale: 'pt',
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd/m/Y',
+            allowInput: true
+          };
+          dataInicioPicker = flatpickr('#data_inicio', configPadrao);
+          dataFimPicker = flatpickr('#data_fim', configPadrao);
+        }
+
+        $('#formOcorrencia').on('submit', async function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const data = Object.fromEntries(formData.entries());
+          const id = data.id;
+          delete data.id;
+
+          try {
+            const url = id ? `/api/ocorrencias/${id}` : '/api/ocorrencias';
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+              },
+              body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+              toastr.success(id ? 'Ocorrência atualizada!' : 'Ocorrência cadastrada!');
+              bootstrap.Modal.getInstance(document.getElementById('modalOcorrencia')).hide();
+              carregarOcorrencias();
+            } else {
+              const err = await response.json();
+              toastr.error(err.error || 'Erro ao salvar');
+            }
+          } catch (error) {
+            console.error(error);
+            toastr.error('Erro ao processar requisição');
+          }
+        });
+      });
+
+      async function carregarFuncionarios() {
+        try {
+          const response = await fetch('/api/funcionarios');
+          const result = await response.json();
+          
+          const select1 = $('#funcionario_id');
+          const select2 = $('#filtroFuncionario');
+          
+          (result.data || []).forEach(f => {
+            select1.append(`<option value="${f.id}">${f.nome} (${f.matricula})</option>`);
+            select2.append(`<option value="${f.id}">${f.nome}</option>`);
+          });
+        } catch (error) {
+          console.error('Erro ao carregar funcionários:', error);
+        }
+      }
+
+      async function carregarOcorrencias() {
+        try {
+          const response = await fetch('/api/ocorrencias');
+          const result = await response.json();
+
+          if (dataTable) {
+            dataTable.destroy();
+          }
+
+          dataTable = $('#tabelaOcorrencias').DataTable({
+            data: result.data || [],
+            columns: [
+              { data: 'funcionario_nome', defaultContent: '-' },
+              {
+                data: 'tipo',
+                render: function(data) {
+                  const badges = {
+                    'FALTA': 'bg-danger',
+                    'ATESTADO': 'bg-info',
+                    'FERIAS': 'bg-success',
+                    'LICENCA': 'bg-warning',
+                    'ABONO': 'bg-primary',
+                    'FOLGA': 'bg-secondary'
+                  };
+                  return `<span class="badge ${badges[data] || 'bg-secondary'}">${data || '-'}</span>`;
+                }
+              },
+              {
+                data: 'data_inicio',
+                render: function(data) {
+                  return data ? new Date(data).toLocaleDateString('pt-BR') : '-';
+                }
+              },
+              {
+                data: 'data_fim',
+                render: function(data) {
+                  return data ? new Date(data).toLocaleDateString('pt-BR') : '-';
+                }
+              },
+              {
+                data: null,
+                render: function(data) {
+                  if (!data.data_inicio || !data.data_fim) return '-';
+                  const inicio = new Date(data.data_inicio);
+                  const fim = new Date(data.data_fim);
+                  const diff = Math.ceil((fim - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                  return diff;
+                }
+              },
+              {
+                data: 'status',
+                render: function(data) {
+                  const badges = {
+                    'PENDENTE': 'bg-warning',
+                    'APROVADO': 'bg-success',
+                    'REJEITADO': 'bg-danger'
+                  };
+                  return `<span class="badge ${badges[data] || 'bg-warning'}">${data || 'PENDENTE'}</span>`;
+                }
+              },
+              {
+                data: null,
+                orderable: false,
+                render: function(data) {
+                  let buttons = `
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-primary" onclick="editarOcorrencia(${data.id})" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                  `;
+                  
+                  if (data.status !== 'APROVADO') {
+                    buttons += `
+                      <button class="btn btn-outline-success" onclick="aprovar(${data.id})" title="Aprovar">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    `;
+                  }
+                  if (data.status !== 'REJEITADO') {
+                    buttons += `
+                      <button class="btn btn-outline-danger" onclick="rejeitar(${data.id})" title="Rejeitar">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    `;
+                  }
+                  
+                  buttons += '</div>';
+                  return buttons;
+                }
+              }
+            ],
+            order: [[2, 'desc']]
+          });
+        } catch (error) {
+          console.error('Erro:', error);
+        }
+      }
+
+      function novaOcorrencia() {
+        $('#modalOcorrenciaTitle').text('Nova Ocorrência');
+        $('#formOcorrencia')[0].reset();
+        $('#ocorrenciaId').val('');
+        $('#funcionario_id').val('').trigger('change');
+        $('#tipo').val('').trigger('change');
+        if (dataInicioPicker) dataInicioPicker.clear();
+        if (dataFimPicker) dataFimPicker.clear();
+      }
+
+      async function editarOcorrencia(id) {
+        try {
+          const response = await fetch(`/api/ocorrencias/${id}`);
+          const oc = await response.json();
+
+          $('#modalOcorrenciaTitle').text('Editar Ocorrência');
+          $('#ocorrenciaId').val(oc.id);
+          $('#funcionario_id').val(oc.funcionario_id).trigger('change');
+          $('#tipo').val(oc.tipo).trigger('change');
+
+          // Atualiza Flatpickr
+          const dataInicioVal = oc.data_inicio ? oc.data_inicio.split('T')[0] : '';
+          const dataFimVal = oc.data_fim ? oc.data_fim.split('T')[0] : '';
+          if (dataInicioPicker) dataInicioPicker.setDate(dataInicioVal);
+          if (dataFimPicker) dataFimPicker.setDate(dataFimVal);
+
+          $('#numero_documento').val(oc.numero_documento);
+          $('#cid').val(oc.cid);
+          $('#observacoes').val(oc.observacoes);
+
+          new bootstrap.Modal(document.getElementById('modalOcorrencia')).show();
+        } catch (error) {
+          toastr.error('Erro ao carregar ocorrência');
+        }
+      }
+
+      async function aprovar(id) {
+        if (!await confirmar('Aprovar esta ocorrência?', { tipo: 'success', titulo: 'Aprovar' })) return;
+
+        try {
+          const response = await fetch(`/api/ocorrencias/${id}/aprovar`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+          });
+
+          if (response.ok) {
+            toastr.success('Ocorrência aprovada!');
+            carregarOcorrencias();
+          } else {
+            toastr.error('Erro ao aprovar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao processar');
+        }
+      }
+
+      async function rejeitar(id) {
+        if (!await confirmar('Rejeitar esta ocorrência?', { tipo: 'danger', titulo: 'Rejeitar' })) return;
+
+        try {
+          const response = await fetch(`/api/ocorrencias/${id}/rejeitar`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+          });
+
+          if (response.ok) {
+            toastr.success('Ocorrência rejeitada!');
+            carregarOcorrencias();
+          } else {
+            toastr.error('Erro ao rejeitar');
+          }
+        } catch (error) {
+          toastr.error('Erro ao processar');
+        }
+      }
+    </script>
+  @end
+@end

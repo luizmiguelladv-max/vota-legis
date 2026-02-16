@@ -1,0 +1,277 @@
+@component('layouts/admin')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Aparência</h4>
+        <p class="text-muted mb-0">Configurações de aparência do painel administrativo</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-palette me-2"></i>Cores e Tema</h5>
+          </div>
+          <div class="card-body">
+            <form id="formAparencia">
+              <div class="row g-4">
+                {{-- Tema --}}
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Tema</label>
+                  <div class="d-flex gap-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="tema" id="temaClaro" value="light">
+                      <label class="form-check-label" for="temaClaro">
+                        <i class="bi bi-sun me-1"></i> Claro
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="tema" id="temaEscuro" value="dark">
+                      <label class="form-check-label" for="temaEscuro">
+                        <i class="bi bi-moon me-1"></i> Escuro
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {{-- Sidebar Recolhida --}}
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Menu Lateral</label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="sidebarRecolhida">
+                    <label class="form-check-label" for="sidebarRecolhida">Iniciar recolhido</label>
+                  </div>
+                </div>
+
+                {{-- Cor Primária --}}
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Cor Primária</label>
+                  <div class="d-flex align-items-center gap-3">
+                    <input type="color" class="form-control form-control-color" id="corPrimaria" value="#1a73e8">
+                    <input type="text" class="form-control" id="corPrimariaTexto" value="#1a73e8" style="max-width: 120px;">
+                  </div>
+                </div>
+
+                {{-- Cor Secundária --}}
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Cor Secundária</label>
+                  <div class="d-flex align-items-center gap-3">
+                    <input type="color" class="form-control form-control-color" id="corSecundaria" value="#4285f4">
+                    <input type="text" class="form-control" id="corSecundariaTexto" value="#4285f4" style="max-width: 120px;">
+                  </div>
+                </div>
+
+                {{-- Preview --}}
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Pré-visualização</label>
+                  <div class="p-3 rounded" id="previewCores">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="text-white fw-semibold">Painel Administrativo</span>
+                      <button type="button" class="btn btn-light btn-sm">Exemplo</button>
+                    </div>
+                  </div>
+                  <script>
+                    (function() {
+                      var cp = localStorage.getItem('corPrimariaAdmin') || '#1a73e8';
+                      var cs = localStorage.getItem('corSecundariaAdmin') || '#4285f4';
+                      document.getElementById('previewCores').style.background = 'linear-gradient(135deg, ' + cp + ' 0%, ' + cs + ' 100%)';
+                    })();
+                  </script>
+                </div>
+
+                {{-- Cores Predefinidas --}}
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Cores Predefinidas</label>
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #1a73e8;" onclick="definirCores('#1a73e8', '#4285f4')" title="Azul (Padrão)"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #2e7d32;" onclick="definirCores('#2e7d32', '#4caf50')" title="Verde"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #6a1b9a;" onclick="definirCores('#6a1b9a', '#9c27b0')" title="Roxo"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #c62828;" onclick="definirCores('#c62828', '#e53935')" title="Vermelho"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #ef6c00;" onclick="definirCores('#ef6c00', '#ff9800')" title="Laranja"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #00838f;" onclick="definirCores('#00838f', '#00bcd4')" title="Ciano"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #37474f;" onclick="definirCores('#37474f', '#607d8b')" title="Cinza"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #1565c0;" onclick="definirCores('#1565c0', '#1976d2')" title="Azul Escuro"></button>
+                    <button type="button" class="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); border: 2px dashed #aaa !important;" onclick="abrirSeletorPersonalizado()" title="Escolher cor personalizada">
+                      <i class="bi bi-plus-lg" style="color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000;"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-lg me-2"></i>Salvar Configurações
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetarAparencia()">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Restaurar Padrão
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informações</h6>
+          </div>
+          <div class="card-body">
+            <p class="small text-muted mb-3">
+              As configurações de aparência do painel administrativo são salvas localmente no navegador.
+            </p>
+            <p class="small text-muted mb-3">
+              Cada município pode ter suas próprias cores personalizadas.
+            </p>
+            <hr>
+            <p class="small text-muted mb-0">
+              <strong>Dica:</strong> Use cores escuras para melhor contraste com o texto branco na sidebar.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let modoPersonalizado = false;
+
+      function clarearCor(hex, percent) {
+        hex = hex.replace('#', '');
+        let r = parseInt(hex.substring(0, 2), 16);
+        let g = parseInt(hex.substring(2, 4), 16);
+        let b = parseInt(hex.substring(4, 6), 16);
+        r = Math.min(255, Math.floor(r + (255 - r) * percent / 100));
+        g = Math.min(255, Math.floor(g + (255 - g) * percent / 100));
+        b = Math.min(255, Math.floor(b + (255 - b) * percent / 100));
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+      }
+
+      function abrirSeletorPersonalizado() {
+        modoPersonalizado = true;
+        document.getElementById('corPrimaria').click();
+      }
+
+      $(document).ready(function() {
+        carregarConfigAparencia();
+      });
+
+      function carregarConfigAparencia() {
+        const tema = localStorage.getItem('theme') || 'light';
+        document.getElementById('tema' + (tema === 'dark' ? 'Escuro' : 'Claro')).checked = true;
+
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        document.getElementById('sidebarRecolhida').checked = sidebarCollapsed;
+
+        const corPrimaria = localStorage.getItem('corPrimariaAdmin') || '#1a73e8';
+        const corSecundaria = localStorage.getItem('corSecundariaAdmin') || '#4285f4';
+        
+        document.getElementById('corPrimaria').value = corPrimaria;
+        document.getElementById('corPrimariaTexto').value = corPrimaria;
+        document.getElementById('corSecundaria').value = corSecundaria;
+        document.getElementById('corSecundariaTexto').value = corSecundaria;
+        
+        atualizarPreview();
+      }
+
+      document.querySelectorAll('input[name="tema"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          document.documentElement.setAttribute('data-bs-theme', this.value);
+          localStorage.setItem('theme', this.value);
+        });
+      });
+
+      document.getElementById('corPrimaria').addEventListener('input', function() {
+        document.getElementById('corPrimariaTexto').value = this.value;
+        if (modoPersonalizado) {
+          const corSecundaria = clarearCor(this.value, 30);
+          document.getElementById('corSecundaria').value = corSecundaria;
+          document.getElementById('corSecundariaTexto').value = corSecundaria;
+        }
+        atualizarPreview();
+      });
+
+      document.getElementById('corPrimaria').addEventListener('change', function() {
+        modoPersonalizado = false;
+      });
+
+      document.getElementById('corPrimariaTexto').addEventListener('input', function() {
+        if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+          document.getElementById('corPrimaria').value = this.value;
+          atualizarPreview();
+        }
+      });
+
+      document.getElementById('corSecundaria').addEventListener('input', function() {
+        document.getElementById('corSecundariaTexto').value = this.value;
+        atualizarPreview();
+      });
+
+      document.getElementById('corSecundariaTexto').addEventListener('input', function() {
+        if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+          document.getElementById('corSecundaria').value = this.value;
+          atualizarPreview();
+        }
+      });
+
+      function atualizarPreview() {
+        const corPrimaria = document.getElementById('corPrimaria').value;
+        const corSecundaria = document.getElementById('corSecundaria').value;
+        
+        document.getElementById('previewCores').style.background = 
+          `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 100%)`;
+        
+        document.documentElement.style.setProperty('--cor-primaria', corPrimaria);
+        document.documentElement.style.setProperty('--cor-secundaria', corSecundaria);
+        
+        localStorage.setItem('corPrimariaAdmin', corPrimaria);
+        localStorage.setItem('corSecundariaAdmin', corSecundaria);
+      }
+
+      function definirCores(primaria, secundaria) {
+        document.getElementById('corPrimaria').value = primaria;
+        document.getElementById('corPrimariaTexto').value = primaria;
+        document.getElementById('corSecundaria').value = secundaria;
+        document.getElementById('corSecundariaTexto').value = secundaria;
+        atualizarPreview();
+      }
+
+      document.getElementById('formAparencia').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const tema = document.querySelector('input[name="tema"]:checked').value;
+        localStorage.setItem('theme', tema);
+
+        const sidebarRecolhida = document.getElementById('sidebarRecolhida').checked;
+        localStorage.setItem('sidebarCollapsed', sidebarRecolhida);
+
+        const corPrimaria = document.getElementById('corPrimaria').value;
+        const corSecundaria = document.getElementById('corSecundaria').value;
+        localStorage.setItem('corPrimariaAdmin', corPrimaria);
+        localStorage.setItem('corSecundariaAdmin', corSecundaria);
+
+        toastr.success('Configurações salvas!');
+      });
+
+      async function resetarAparencia() {
+        if (!await confirmar('Deseja restaurar as configurações padrão?', { tipo: 'warning', titulo: 'Restaurar Padrão' })) return;
+
+        localStorage.removeItem('theme');
+        localStorage.removeItem('sidebarCollapsed');
+        localStorage.removeItem('corPrimariaAdmin');
+        localStorage.removeItem('corSecundariaAdmin');
+
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+        document.documentElement.style.setProperty('--cor-primaria', '#1a73e8');
+        document.documentElement.style.setProperty('--cor-secundaria', '#4285f4');
+
+        carregarConfigAparencia();
+        toastr.info('Configurações restauradas');
+      }
+    </script>
+  @end
+@end

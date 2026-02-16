@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.inf.getponto",
+      "sha256_cert_fingerprints": [
+        "85:D8:D4:9F:83:DB:E6:96:7B:E8:FE:92:05:EB:84:77:9C:26:05:00:B9:F1:57:84:B3:C9:27:A1:F4:C2:DE:1E"
+      ]
+    }
+  }
+]

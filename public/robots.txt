@@ -1,0 +1,54 @@
+# robots.txt para GetPonto
+# https://getponto.inf.br/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /logout
+Disallow: /reset-password
+Disallow: /download/
+
+# Permitir crawling de páginas públicas
+Allow: /app-mobile
+Allow: /app-facial
+Allow: /funcionalidades
+Allow: /integracoes
+Allow: /precos
+Allow: /sobre
+Allow: /blog
+Allow: /contato
+
+# Sitemap
+Sitemap: https://getponto.inf.br/sitemap.xml
+
+# Crawl-delay para evitar sobrecarga
+Crawl-delay: 1
+
+# User-agents específicos
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+# Bloquear bots maliciosos
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

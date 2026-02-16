@@ -2,23 +2,19 @@
 set -e
 
 echo "==================================="
-echo "Sistema de Votacao Legislativa"
+echo "Sistema de Votacao Eletronica Legislativa"
 echo "==================================="
 
-# Wait for database to be ready
 echo "Aguardando conexao com o banco de dados..."
 sleep 5
 
-# Run migrations
 echo "Executando migrations..."
-node ace migration:run --force
+node build/ace.js migration:run --force
 
-# Run seeders (only if needed)
-if [ "$RUN_SEEDERS" = "true" ]; then
-    echo "Executando seeders..."
-    node ace db:seed
+if [ "${RUN_SEEDERS:-false}" = "true" ]; then
+  echo "Executando seeders..."
+  node build/ace.js db:seed
 fi
 
-# Start the server
 echo "Iniciando servidor na porta ${PORT:-3333}..."
-exec node bin/server.js
+exec node build/bin/server.js

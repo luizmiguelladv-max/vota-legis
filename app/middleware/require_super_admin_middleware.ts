@@ -2,24 +2,19 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 
 /**
- * Middleware que exige que o usuário seja Super Admin
+ * Middleware que requer super admin
  */
 export default class RequireSuperAdminMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    const { tenant, response, request } = ctx
+    const { response } = ctx
 
-    if (!tenant.isSuperAdmin) {
-      if (request.url().startsWith('/api/')) {
-        return response.forbidden({
-          success: false,
-          error: 'Acesso negado',
-          message: 'Voce nao tem permissao para acessar este recurso',
-        })
+    if (!ctx.tenant?.isSuperAdmin) {
+      if (ctx.request.url().startsWith('/api')) {
+        return response.forbidden({ error: 'Acesso negado. Requer privilégios de administrador.' })
       }
-
-      return response.redirect().toRoute('dashboard')
+      return response.redirect('/dashboard')
     }
 
-    return next()
+    await next()
   }
 }

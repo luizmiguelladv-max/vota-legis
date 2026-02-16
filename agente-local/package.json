@@ -1,0 +1,14 @@
+{
+  "name": "getponto-agente-local",
+  "version": "1.0.0",
+  "description": "Agente local para sincronizar REPs com GetPonto na nuvem",
+  "main": "agente.js",
+  "scripts": {
+    "start": "node agente.js",
+    "install-service": "node install-service.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "zklib": "^0.1.6"
+  }
+}

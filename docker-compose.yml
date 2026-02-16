@@ -1,40 +1,150 @@
+# ===========================================================================
+# DOCKER COMPOSE - Ambiente de Desenvolvimento GetPonto
+# ===========================================================================
+#
+# Este arquivo configura todos os serviços necessários para desenvolvimento:
+# - app: Aplicação AdonisJS principal
+# - deepface-api: Microserviço de reconhecimento facial
+# - postgres: Banco de dados PostgreSQL
+# - redis: Cache e sessões
+# - adminer: Interface web para PostgreSQL
+#
+# Uso:
+# docker-compose up -d
+# docker-compose logs -f app
+# docker-compose down
+#
+# ===========================================================================
+
 version: '3.8'
 
 services:
-  votacao:
+  # ---------------------------------------------------------------------------
+  # Aplicação Principal (AdonisJS)
+  # ---------------------------------------------------------------------------
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: votacao-legislativa
-    restart: unless-stopped
+      target: dependencies
+    container_name: getponto-app
     ports:
-      - "3333:3333"
+      - "3333:3000"
     environment:
-      - TZ=America/Fortaleza
-      - PORT=3333
+      - NODE_ENV=development
+      - PORT=3000
       - HOST=0.0.0.0
-      - LOG_LEVEL=info
-      - NODE_ENV=production
-      - SESSION_DRIVER=cookie
-      - APP_KEY=${APP_KEY}
-      - DB_CONNECTION=pg
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER}
+      - DB_HOST=92.112.178.164
+      - DB_PORT=5432
+      - DB_USER=supabase_admin
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_SSL=${DB_SSL:-true}
-      - COMTELE_API_KEY=${COMTELE_API_KEY}
-      - RUN_SEEDERS=${RUN_SEEDERS:-false}
+      - DB_DATABASE=postgres
+      - DEEPFACE_URL=http://deepface-api:5000
+      - APP_KEY=${APP_KEY:-supersecretappkey_thatsatleast32chars}
+      - JWT_SECRET=${JWT_SECRET:-supersecretjwtsecret123456789012}
+      - SESSION_DRIVER=cookie
+      - LOG_LEVEL=info
+    volumes:
+      - .:/app:cached
+      - app-node-modules:/app/node_modules
+      - ./public:/app/public
+    depends_on:
+      - redis
+      - deepface-api
+    command: sh -c "npm install && npm run dev"
     networks:
-      - votacao-network
+      - getponto-network
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # DeepFace API (Reconhecimento Facial)
+  # ---------------------------------------------------------------------------
+  deepface-api:
+    build:
+      context: ./deepface-api
+      dockerfile: Dockerfile
+    container_name: getponto-deepface
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./deepface-api/faces:/app/faces
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - getponto-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3333/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
 
+  # ---------------------------------------------------------------------------
+  # PostgreSQL (comentado - usando banco externo 92.112.178.164)
+  # ---------------------------------------------------------------------------
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: getponto-postgres
+  #   ports:
+  #     - "${DB_PORT:-5432}:5432"
+  #   environment:
+  #     - POSTGRES_USER=${DB_USER:-postgres}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+  #     - POSTGRES_DB=${DB_DATABASE:-getponto}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - getponto-network
+  #   restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Redis (Cache e Sessões)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: getponto-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - getponto-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Adminer (Interface Web para PostgreSQL)
+  # ---------------------------------------------------------------------------
+  adminer:
+    image: adminer:latest
+    container_name: getponto-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=92.112.178.164
+    networks:
+      - getponto-network
+    restart: unless-stopped
+
+# ===========================================================================
+# VOLUMES
+# ===========================================================================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-node-modules:
+    driver: local
+
+# ===========================================================================
+# NETWORKS
+# ===========================================================================
 networks:
-  votacao-network:
+  getponto-network:
     driver: bridge

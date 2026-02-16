@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ponto">
+  
+  <title>App | Ponto Eletrônico</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .app-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+    
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .user-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      margin-bottom: 24px;
+    }
+    
+    .user-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 40px;
+      color: white;
+      font-weight: 700;
+    }
+    
+    .user-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    
+    .user-role {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+    
+    .clock-display {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    
+    .date-display {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+    
+    .btn-ponto {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: none;
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .btn-ponto i {
+      font-size: 40px;
+    }
+    
+    .btn-entrada {
+      background: linear-gradient(135deg, var(--success), #059669);
+    }
+    
+    .btn-saida {
+      background: linear-gradient(135deg, var(--danger), #dc2626);
+    }
+    
+    .btn-ponto:active {
+      transform: scale(0.95);
+    }
+    
+    .btn-ponto.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    
+    .status-bar {
+      background: rgba(255,255,255,0.1);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .status-item {
+      text-align: center;
+      color: white;
+    }
+    
+    .status-label {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    
+    .status-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .registros-list {
+      background: white;
+      border-radius: 16px;
+      margin: 16px;
+      overflow: hidden;
+    }
+    
+    .registro-item {
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .registro-tipo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+    }
+    
+    .tipo-entrada { background: var(--success); }
+    .tipo-saida { background: var(--danger); }
+    
+    .offline-badge {
+      background: #fbbf24;
+      color: #92400e;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .pending-badge {
+      background: #f59e0b;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .sync-toast {
+      position: fixed;
+      top: 80px;
+      left: 16px;
+      right: 16px;
+      background: #10b981;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .sync-toast.show { display: flex; align-items: center; gap: 12px; }
+    .sync-toast.error { background: #ef4444; }
+
+    /* Modal Full Screen */
+    .modal-fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-fullscreen.show { display: flex; }
+
+    .modal-header-app {
+      background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header-app h2 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .modal-header-app .btn-close-modal {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-content-app {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .historico-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .historico-data {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .historico-marcacoes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .historico-hora {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: white;
+    }
+
+    .historico-hora.entrada { background: var(--success); }
+    .historico-hora.saida { background: var(--danger); }
+
+    .banco-saldo {
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .banco-saldo.negativo {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+
+    .banco-saldo-valor {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .banco-saldo.negativo .banco-saldo-valor { color: var(--danger); }
+
+    .banco-saldo-label {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .banco-mov-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .banco-mov-tipo {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .banco-mov-tipo.CREDITO { background: #dcfce7; color: #166534; }
+    .banco-mov-tipo.DEBITO { background: #fee2e2; color: #991b1b; }
+    .banco-mov-tipo.COMPENSACAO { background: #fef3c7; color: #92400e; }
+
+    .install-prompt {
+      position: fixed;
+      bottom: 80px;
+      left: 16px;
+      right: 16px;
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .bottom-nav {
+      background: white;
+      padding: 12px 0;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: #6b7280;
+      text-decoration: none;
+      padding: 8px 16px;
+    }
+    
+    .nav-item.active {
+      color: var(--primary);
+    }
+    
+    .nav-item i {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .login-form {
+      display: none;
+    }
+
+    /* Quando não logado: mostra login, esconde resto */
+    body.not-logged .login-form { display: block; }
+    body.not-logged .login-form .user-card { display: block; }
+    body.not-logged .main-content > .user-card { display: none; }
+    body.not-logged .status-bar { display: none; }
+    body.not-logged .registros-list { display: none; }
+    body.not-logged .bottom-nav { display: none; }
+  </style>
+</head>
+<body class="not-logged">
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="bi bi-clock-history me-2"></i>Ponto Eletrônico</h1>
+      <div>
+        <span id="offlineBadge" class="offline-badge" style="display: none;">
+          <i class="bi bi-cloud-slash me-1"></i>Offline
+        </span>
+        <span id="pendingBadge" class="pending-badge" style="display: none;">
+          <i class="bi bi-arrow-repeat me-1"></i><span id="pendingCount">0</span> pendente(s)
+        </span>
+      </div>
+    </div>
+
+    <!-- Sync Toast -->
+    <div class="sync-toast" id="syncToast">
+      <i class="bi bi-check-circle fs-5"></i>
+      <span id="syncMessage">Registros sincronizados!</span>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-label">Horas Hoje</div>
+        <div class="status-value" id="horasHoje">--:--</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Banco de Horas</div>
+        <div class="status-value" id="bancoHoras">--:--</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Registros</div>
+        <div class="status-value" id="qtdRegistros">0</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Login Form -->
+      <div class="login-form">
+        <div class="user-card">
+          <h4 class="mb-4">Entrar</h4>
+          <form id="formLogin">
+            <div class="mb-3">
+              <input type="text" class="form-control" id="loginCpf" placeholder="CPF (000.000.000-00) ou Matrícula" required maxlength="14">
+            </div>
+            <div class="mb-3">
+              <input type="password" class="form-control" id="loginSenha" placeholder="Senha (use sua matrícula)" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" id="btnLogin">Entrar</button>
+            <div class="text-center mt-3 small text-muted" id="loginMsg"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- User Card -->
+      <div class="user-card">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-name" id="userName">Carregando...</div>
+        <div class="user-role" id="userRole">-</div>
+        
+        <div class="clock-display" id="clockDisplay">00:00:00</div>
+        <div class="date-display" id="dateDisplay">--</div>
+        
+        <button class="btn-ponto btn-entrada" id="btnPonto" onclick="registrarPonto()">
+          <i class="bi bi-box-arrow-in-right"></i>
+          <span>ENTRADA</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Últimos Registros -->
+    <div class="registros-list" id="listaRegistros">
+      <!-- Carregado via JavaScript -->
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <a href="#" class="nav-item active">
+        <i class="bi bi-house-door"></i>
+        Inicio
+      </a>
+      <a href="/app-facial" class="nav-item">
+        <i class="bi bi-person-bounding-box"></i>
+        Facial
+      </a>
+      <a href="#" class="nav-item" onclick="verHistorico()">
+        <i class="bi bi-clock-history"></i>
+        Historico
+      </a>
+      <a href="#" class="nav-item" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Sair
+      </a>
+    </div>
+  </div>
+
+  <!-- Install Prompt -->
+  <div class="install-prompt" id="installPrompt">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-download fs-3 text-primary me-3"></i>
+      <div class="flex-grow-1">
+        <strong>Instalar App</strong>
+        <div class="small text-muted">Adicione à tela inicial</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="installApp()">Instalar</button>
+      <button class="btn btn-link btn-sm" onclick="dismissInstall()">×</button>
+    </div>
+  </div>
+
+  <!-- Modal Histórico -->
+  <div class="modal-fullscreen" id="modalHistorico">
+    <div class="modal-header-app">
+      <h2><i class="bi bi-clock-history me-2"></i>Histórico de Registros</h2>
+      <button class="btn-close-modal" onclick="fecharHistorico()">×</button>
+    </div>
+    <div class="modal-content-app">
+      <div id="historicoLista">
+        <div class="text-center text-muted py-4">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Banco de Horas -->
+  <div class="modal-fullscreen" id="modalBancoHoras">
+    <div class="modal-header-app">
+      <h2><i class="bi bi-piggy-bank me-2"></i>Banco de Horas</h2>
+      <button class="btn-close-modal" onclick="fecharBancoHoras()">×</button>
+    </div>
+    <div class="modal-content-app">
+      <div id="bancoSaldo">
+        <div class="banco-saldo">
+          <div class="banco-saldo-valor" id="saldoValor">--:--</div>
+          <div class="banco-saldo-label">Saldo Atual</div>
+        </div>
+      </div>
+      <h6 class="mb-3"><i class="bi bi-list-ul me-2"></i>Últimas Movimentações</h6>
+      <div id="bancoMovimentacoes">
+        <div class="text-center text-muted py-4">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let usuario = null;
+    let ultimoRegistro = null;
+    let deferredPrompt = null;
+
+    // Registra Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('[App] SW registrado:', reg.scope);
+          // Verifica pendentes ao iniciar
+          verificarPendentes();
+        })
+        .catch(err => console.error('[App] Erro SW:', err));
+
+      // Listener para mensagens do SW
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data.type === 'SYNC_COMPLETE') {
+          mostrarSyncToast(event.data.sincronizados, event.data.erros);
+          verificarPendentes();
+          carregarStatus();
+          carregarRegistros();
+        }
+        if (event.data.type === 'PENDING_COUNT') {
+          atualizarBadgePendentes(event.data.count);
+        }
+      });
+    }
+
+    // Verifica registros pendentes no IndexedDB
+    function verificarPendentes() {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_PENDING_COUNT' });
+      }
+    }
+
+    // Atualiza badge de pendentes
+    function atualizarBadgePendentes(count) {
+      const badge = document.getElementById('pendingBadge');
+      const countEl = document.getElementById('pendingCount');
+      if (count > 0) {
+        countEl.textContent = count;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Mostra toast de sincronizacao
+    function mostrarSyncToast(sincronizados, erros) {
+      const toast = document.getElementById('syncToast');
+      const msg = document.getElementById('syncMessage');
+
+      if (erros > 0) {
+        toast.classList.add('error');
+        msg.textContent = `${sincronizados} sincronizado(s), ${erros} com erro`;
+      } else {
+        toast.classList.remove('error');
+        msg.textContent = `${sincronizados} registro(s) sincronizado(s)!`;
+      }
+
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // Detecta offline
+    function updateOnlineStatus() {
+      const badge = document.getElementById('offlineBadge');
+      badge.style.display = navigator.onLine ? 'none' : 'inline-block';
+
+      // Quando volta online, tenta sincronizar
+      if (navigator.onLine) {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NOW' });
+        }
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // Prompt de instalação
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPrompt').style.display = 'block';
+    });
+
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choice => {
+          document.getElementById('installPrompt').style.display = 'none';
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function dismissInstall() {
+      document.getElementById('installPrompt').style.display = 'none';
+    }
+
+    // Relógio
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('pt-BR');
+      document.getElementById('dateDisplay').textContent = now.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long'
+      });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Carrega usuário
+    async function carregarUsuario() {
+      try {
+        const res = await fetch('/api/app/me');
+        if (!res.ok) {
+          document.body.classList.add('not-logged');
+          return;
+        }
+        
+        usuario = await res.json();
+        
+        document.getElementById('userName').textContent = usuario.nome;
+        document.getElementById('userRole').textContent = usuario.cargo || 'Funcionário';
+        document.getElementById('userAvatar').textContent = usuario.nome.charAt(0).toUpperCase();
+        
+        document.body.classList.remove('not-logged');
+        
+        carregarStatus();
+        carregarRegistros();
+      } catch (e) {
+        console.error('Erro ao carregar usuário:', e);
+        document.body.classList.add('not-logged');
+      }
+    }
+
+    // Carrega status
+    async function carregarStatus() {
+      try {
+        const res = await fetch('/api/app/status');
+        const data = await res.json();
+        
+        document.getElementById('horasHoje').textContent = data.horas_hoje || '00:00';
+        document.getElementById('bancoHoras').textContent = data.banco_horas || '00:00';
+        document.getElementById('qtdRegistros').textContent = data.registros_hoje || 0;
+
+        ultimoRegistro = data.ultimo_registro;
+        atualizarBotao();
+      } catch (e) {
+        console.error('Erro ao carregar status:', e);
+      }
+    }
+
+    // Atualiza botão baseado no último registro
+    function atualizarBotao() {
+      const btn = document.getElementById('btnPonto');
+      
+      if (!ultimoRegistro || ultimoRegistro.tipo === 'SAIDA') {
+        btn.className = 'btn-ponto btn-entrada';
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i><span>ENTRADA</span>';
+      } else {
+        btn.className = 'btn-ponto btn-saida';
+        btn.innerHTML = '<i class="bi bi-box-arrow-right"></i><span>SAÍDA</span>';
+      }
+    }
+
+    // Registra ponto
+    async function registrarPonto() {
+      const btn = document.getElementById('btnPonto');
+      btn.classList.add('loading');
+      btn.innerHTML = '<i class="bi bi-hourglass-split"></i><span>...</span>';
+
+      try {
+        // Envia com dados do funcionario para o SW poder salvar offline
+        const payload = usuario ? { funcionario_id: usuario.id } : {};
+
+        const res = await fetch('/api/app/registrar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        // Vibra se possível
+        if (navigator.vibrate) navigator.vibrate(100);
+
+        // Verifica se foi salvo offline
+        if (data.offline) {
+          // Registro salvo offline pelo Service Worker
+          verificarPendentes();
+          const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          alert(`Registro salvo OFFLINE às ${hora}.\nSerá sincronizado quando a conexão voltar.`);
+        } else if (data.success || res.ok) {
+          // Registro normal online
+          ultimoRegistro = data.registro;
+          carregarStatus();
+          carregarRegistros();
+          alert(`${data.registro?.tipo || 'Registro'} às ${data.registro?.hora || ''}`);
+        } else {
+          throw new Error(data.error || 'Erro ao registrar');
+        }
+      } catch (e) {
+        // Se for erro de rede e estiver offline, o SW deve ter interceptado
+        if (!navigator.onLine) {
+          verificarPendentes();
+          alert('Você está offline. O registro será salvo localmente.');
+        } else {
+          alert('Erro ao registrar ponto: ' + (e.message || 'Tente novamente.'));
+        }
+      } finally {
+        btn.classList.remove('loading');
+        atualizarBotao();
+      }
+    }
+
+    // Carrega registros do dia
+    async function carregarRegistros() {
+      try {
+        const res = await fetch('/api/app/registros-hoje');
+        const data = await res.json();
+        
+        const lista = document.getElementById('listaRegistros');
+        
+        if (!data.registros || data.registros.length === 0) {
+          lista.innerHTML = '<div class="registro-item text-center text-muted">Nenhum registro hoje</div>';
+          return;
+        }
+
+        lista.innerHTML = data.registros.map(r => `
+          <div class="registro-item">
+            <div class="d-flex align-items-center gap-3">
+              <div class="registro-tipo tipo-${r.tipo.toLowerCase()}"">
+                <i class="bi bi-${r.tipo === 'ENTRADA' ? 'box-arrow-in-right' : 'box-arrow-right'}"></i>
+              </div>
+              <div>
+                <strong>${r.tipo}</strong>
+                <div class="small text-muted">${r.hora}</div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Erro ao carregar registros:', e);
+      }
+    }
+
+    // Máscara de CPF
+    document.getElementById('loginCpf').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 11) value = value.slice(0, 11);
+      
+      // Só aplica máscara se parece CPF (mais de 3 dígitos)
+      if (value.length > 3) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      }
+      e.target.value = value;
+    });
+
+    // Login
+    document.getElementById('formLogin').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btn = document.getElementById('btnLogin');
+      const msg = document.getElementById('loginMsg');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      msg.textContent = '';
+      msg.className = 'text-center mt-3 small text-muted';
+      
+      try {
+        const res = await fetch('/api/app/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cpf: document.getElementById('loginCpf').value,
+            senha: document.getElementById('loginSenha').value
+          })
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          msg.textContent = data.error || 'CPF ou senha incorretos';
+          msg.className = 'text-center mt-3 small text-danger';
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+          return;
+        }
+
+        carregarUsuario();
+      } catch (e) {
+        msg.textContent = 'Erro de conexão. Tente novamente.';
+        msg.className = 'text-center mt-3 small text-danger';
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    });
+
+    function logout() {
+      fetch('/api/app/logout', { method: 'POST' }).then(() => {
+        usuario = null;
+        document.body.classList.add('not-logged');
+      });
+    }
+
+    // Histórico de Registros
+    async function verHistorico() {
+      document.getElementById('modalHistorico').classList.add('show');
+      document.getElementById('historicoLista').innerHTML = '<div class="text-center text-muted py-4">Carregando...</div>';
+
+      try {
+        const res = await fetch('/api/app/historico');
+        const data = await res.json();
+
+        if (!data.registros || data.registros.length === 0) {
+          document.getElementById('historicoLista').innerHTML = '<div class="text-center text-muted py-4">Nenhum registro encontrado</div>';
+          return;
+        }
+
+        // Agrupa por data
+        const porData = {};
+        data.registros.forEach(r => {
+          const dataKey = r.data;
+          if (!porData[dataKey]) porData[dataKey] = [];
+          porData[dataKey].push(r);
+        });
+
+        let html = '';
+        Object.keys(porData).sort().reverse().forEach(data => {
+          const regs = porData[data];
+          const dataFormatada = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', {
+            weekday: 'short', day: '2-digit', month: '2-digit'
+          });
+
+          html += `<div class="historico-item">
+            <div class="historico-data">${dataFormatada}</div>
+            <div class="historico-marcacoes">
+              ${regs.map(r => `<span class="historico-hora ${r.tipo.toLowerCase()}">${r.hora}</span>`).join('')}
+            </div>
+          </div>`;
+        });
+
+        document.getElementById('historicoLista').innerHTML = html;
+      } catch (e) {
+        document.getElementById('historicoLista').innerHTML = '<div class="text-center text-danger py-4">Erro ao carregar histórico</div>';
+      }
+    }
+
+    function fecharHistorico() {
+      document.getElementById('modalHistorico').classList.remove('show');
+    }
+
+    // Banco de Horas
+    async function verBancoHoras() {
+      document.getElementById('modalBancoHoras').classList.add('show');
+      document.getElementById('bancoMovimentacoes').innerHTML = '<div class="text-center text-muted py-4">Carregando...</div>';
+
+      try {
+        const res = await fetch('/api/app/banco-horas');
+        const data = await res.json();
+
+        // Atualiza saldo
+        const saldo = data.saldo || 0;
+        const saldoAbs = Math.abs(saldo);
+        const h = Math.floor(saldoAbs / 60);
+        const m = saldoAbs % 60;
+        const sinal = saldo < 0 ? '-' : '+';
+
+        document.getElementById('saldoValor').textContent = `${sinal}${h}h${m.toString().padStart(2, '0')}m`;
+
+        const saldoDiv = document.querySelector('.banco-saldo');
+        if (saldo < 0) {
+          saldoDiv.classList.add('negativo');
+        } else {
+          saldoDiv.classList.remove('negativo');
+        }
+
+        // Lista movimentações
+        if (!data.movimentacoes || data.movimentacoes.length === 0) {
+          document.getElementById('bancoMovimentacoes').innerHTML = '<div class="text-center text-muted py-4">Nenhuma movimentação</div>';
+          return;
+        }
+
+        let html = '';
+        data.movimentacoes.forEach(m => {
+          const mins = Math.abs(m.minutos);
+          const horas = Math.floor(mins / 60);
+          const minutos = mins % 60;
+          const horasStr = `${m.minutos < 0 ? '-' : '+'}${horas}h${minutos.toString().padStart(2, '0')}m`;
+          const dataStr = new Date(m.data).toLocaleDateString('pt-BR');
+
+          html += `<div class="banco-mov-item">
+            <div>
+              <span class="banco-mov-tipo ${m.tipo_operacao}">${m.tipo_operacao}</span>
+              <div class="small text-muted mt-1">${dataStr}</div>
+            </div>
+            <div class="fw-bold ${m.minutos >= 0 ? 'text-success' : 'text-danger'}">${horasStr}</div>
+          </div>`;
+        });
+
+        document.getElementById('bancoMovimentacoes').innerHTML = html;
+      } catch (e) {
+        document.getElementById('bancoMovimentacoes').innerHTML = '<div class="text-center text-danger py-4">Erro ao carregar banco de horas</div>';
+      }
+    }
+
+    function fecharBancoHoras() {
+      document.getElementById('modalBancoHoras').classList.remove('show');
+    }
+
+    // Inicializa
+    carregarUsuario();
+
+    // Verifica pendentes periodicamente (a cada 30s)
+    setInterval(() => {
+      if (navigator.onLine) {
+        verificarPendentes();
+      }
+    }, 30000);
+  </script>
+</body>
+</html>

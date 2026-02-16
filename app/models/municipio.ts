@@ -1,95 +1,119 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
-import User from './user.js'
+import LogOperacao from './log_operacao.js'
 
 export default class Municipio extends BaseModel {
-  static table = 'municipios'
+  static table = 'public.municipios'
 
   @column({ isPrimary: true })
   declare id: number
 
   @column()
+  declare codigoIbge: string
+
+  @column()
   declare nome: string
+
+  @column()
+  declare uf: string
 
   @column()
   declare slug: string
 
   @column()
-  declare uf: string
+  declare logoUrl: string | null
 
-  @column({ columnName: 'codigo_ibge' })
-  declare codigoIbge: string | null
+  @column()
+  declare corPrimaria: string
+
+  @column()
+  declare corSecundaria: string
+
+  @column()
+  declare supabaseUrl: string | null
+
+  @column()
+  declare supabaseAnonKey: string | null
+
+  @column({ serializeAs: null })
+  declare supabaseServiceKey: string | null
+
+  @column()
+  declare dbConnectionString: string | null
+
+  @column()
+  declare dbHost: string | null
+
+  @column()
+  declare dbPort: number
+
+  @column()
+  declare dbName: string | null
+
+  @column()
+  declare dbUser: string | null
+
+  @column({ serializeAs: null })
+  declare dbPassword: string | null
+
+  @column()
+  declare dbSchema: string | null
+
+  @column()
+  declare status: 'PENDENTE' | 'CRIANDO' | 'ATIVO' | 'ERRO' | 'SUSPENSO'
+
+  @column()
+  declare statusMensagem: string | null
 
   @column()
   declare ativo: boolean
 
+  // Configurações de módulos (vendidos separadamente)
   @column()
-  declare status: boolean
-
-  @column({ columnName: 'banco_criado' })
-  declare bancoCriado: boolean
-
-  // Dados da camara
-  @column()
-  declare cnpj: string | null
+  declare moduloFacial: boolean
 
   @column()
-  declare endereco: string | null
+  declare moduloDigital: boolean
 
   @column()
-  declare telefone: string | null
+  declare syncIntervalSegundos: number
+
+  // Configurações de implantação
+  @column.date()
+  declare dataInicioSistema: DateTime | null
 
   @column()
-  declare email: string | null
+  declare modoManutencao: boolean
 
   @column()
-  declare site: string | null
+  declare mensagemManutencao: string | null
 
-  @column()
-  declare cep: string | null
-
-  @column()
-  declare populacao: number | null
-
-  @column()
-  declare observacoes: string | null
-
-  @column()
-  declare latitude: string | null
-
-  @column()
-  declare longitude: string | null
-
-  // Visual
-  @column({ columnName: 'logo_url' })
-  declare logoUrl: string | null
-
-  @column({ columnName: 'cor_primaria' })
-  declare corPrimaria: string
-
-  @column({ columnName: 'cor_secundaria' })
-  declare corSecundaria: string
-
-  @column({ columnName: 'total_vereadores' })
-  declare totalVereadores: number
-
-  @column.dateTime({ autoCreate: true, columnName: 'created_at' })
+  @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, columnName: 'updated_at' })
-  declare updatedAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 
   // Relacionamentos
-  @hasMany(() => User)
-  declare usuarios: HasMany<typeof User>
+  @hasMany(() => LogOperacao)
+  declare logsOperacoes: HasMany<typeof LogOperacao>
 
-  // Helpers
+  // Métodos auxiliares
   get isAtivo(): boolean {
-    return this.ativo && this.status
+    return this.ativo && this.status === 'ATIVO'
   }
 
-  get schemaName(): string {
-    return `camara_${this.id}`
+  get connectionConfig() {
+    if (this.dbConnectionString) {
+      return { connectionString: this.dbConnectionString }
+    }
+    return {
+      host: this.dbHost,
+      port: this.dbPort,
+      database: this.dbName,
+      user: this.dbUser,
+      password: this.dbPassword,
+    }
   }
 }

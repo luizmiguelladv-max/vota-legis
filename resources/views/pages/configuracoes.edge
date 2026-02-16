@@ -1,0 +1,2725 @@
+@component('layouts/main')
+  @slot('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">Configurações</h4>
+        <p class="text-muted mb-0">Configurações do sistema de ponto</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+              <a href="#secaoAparencia" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                <i class="bi bi-palette me-2"></i>Aparência
+              </a>
+              <a href="#secaoGeral" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-gear me-2"></i>Geral
+              </a>
+              <a href="#secaoFeriados" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-calendar-event me-2"></i>Feriados
+              </a>
+              <a href="#secaoOcorrencias" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-exclamation-circle me-2"></i>Tipos de Ocorrência
+              </a>
+              <a href="#secaoUsuarios" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-people me-2"></i>Usuários
+              </a>
+              <a href="#secaoTerminal" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-mic me-2"></i>Terminal / Voz
+              </a>
+              <a href="#secaoManutencao" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-tools me-2"></i>Manutenção
+              </a>
+              <a href="#secaoEmail" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-envelope me-2"></i>Email
+              </a>
+              <a href="#secaoSMS" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-chat-dots me-2"></i>SMS
+              </a>
+              <a href="#secaoIntegracoes" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-plug me-2"></i>Integrações
+              </a>
+              <a href="#secaoAtendimentos" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-geo-alt me-2"></i>Atendimentos / Mapa
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-9">
+        <div class="tab-content">
+          {{-- Aparência --}}
+          <div class="tab-pane fade show active" id="secaoAparencia">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-palette me-2"></i>Aparência</h5>
+              </div>
+              <div class="card-body">
+                <form id="formAparencia">
+                  <div class="row g-4">
+                    {{-- Tema --}}
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Tema</label>
+                      <div class="d-flex gap-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="tema" id="temaClaro" value="light">
+                          <label class="form-check-label" for="temaClaro">
+                            <i class="bi bi-sun me-1"></i> Claro
+                          </label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="tema" id="temaEscuro" value="dark">
+                          <label class="form-check-label" for="temaEscuro">
+                            <i class="bi bi-moon me-1"></i> Escuro
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {{-- Sidebar Recolhida --}}
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Menu Lateral</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="sidebarRecolhida">
+                        <label class="form-check-label" for="sidebarRecolhida">Iniciar recolhido</label>
+                      </div>
+                    </div>
+
+                    {{-- Cor Primária --}}
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Cor Primária</label>
+                      <div class="d-flex align-items-center gap-3">
+                        <input type="color" class="form-control form-control-color" id="corPrimaria" value="#1a73e8" title="Escolha a cor primária">
+                        <input type="text" class="form-control" id="corPrimariaTexto" value="#1a73e8" style="max-width: 120px;">
+                      </div>
+                      <small class="text-muted">Cor principal do sistema (botões, links, sidebar)</small>
+                    </div>
+
+                    {{-- Cor Secundária --}}
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Cor Secundária</label>
+                      <div class="d-flex align-items-center gap-3">
+                        <input type="color" class="form-control form-control-color" id="corSecundaria" value="#4285f4" title="Escolha a cor secundária">
+                        <input type="text" class="form-control" id="corSecundariaTexto" value="#4285f4" style="max-width: 120px;">
+                      </div>
+                      <small class="text-muted">Cor de destaque e gradientes</small>
+                    </div>
+
+                    {{-- Preview --}}
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">Pré-visualização</label>
+                      <div class="p-3 rounded" id="previewCores">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <span class="text-white fw-semibold">Sistema de Ponto Eletrônico</span>
+                          <button type="button" class="btn btn-light btn-sm">Exemplo de Botão</button>
+                        </div>
+                      </div>
+                      <script>
+                        (function() {
+                          var cp = localStorage.getItem('corPrimaria') || '#1a73e8';
+                          var cs = localStorage.getItem('corSecundaria') || '#4285f4';
+                          document.getElementById('previewCores').style.background = 'linear-gradient(135deg, ' + cp + ' 0%, ' + cs + ' 100%)';
+                        })();
+                      </script>
+                    </div>
+
+                    {{-- Cores Predefinidas --}}
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">Cores Predefinidas</label>
+                      <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #1a73e8;" onclick="definirCores('#1a73e8', '#4285f4')" title="Azul (Padrão)"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #2e7d32;" onclick="definirCores('#2e7d32', '#4caf50')" title="Verde"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #6a1b9a;" onclick="definirCores('#6a1b9a', '#9c27b0')" title="Roxo"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #c62828;" onclick="definirCores('#c62828', '#e53935')" title="Vermelho"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #ef6c00;" onclick="definirCores('#ef6c00', '#ff9800')" title="Laranja"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #00838f;" onclick="definirCores('#00838f', '#00bcd4')" title="Ciano"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #37474f;" onclick="definirCores('#37474f', '#607d8b')" title="Cinza"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 border-0" style="width: 36px; height: 36px; background: #1565c0;" onclick="definirCores('#1565c0', '#1976d2')" title="Azul Escuro"></button>
+                        <button type="button" class="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); border: 2px dashed #aaa !important;" onclick="abrirSeletorPersonalizado()" title="Escolher cor personalizada">
+                          <i class="bi bi-plus-lg" style="color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000;"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4">
+
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-lg me-2"></i>Salvar Aparência
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetarAparencia()">
+                      <i class="bi bi-arrow-counterclockwise me-2"></i>Restaurar Padrão
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {{-- Geral --}}
+          <div class="tab-pane fade" id="secaoGeral">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Configurações Gerais</h5>
+              </div>
+              <div class="card-body">
+                <form id="formConfigGeral">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Tolerância Entrada (minutos)</label>
+                      <input type="number" class="form-control" name="tolerancia_entrada" id="tolerancia_entrada" value="10">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Tolerância Saída (minutos)</label>
+                      <input type="number" class="form-control" name="tolerancia_saida" id="tolerancia_saida" value="10">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Intervalo Mínimo Almoço (minutos)</label>
+                      <input type="number" class="form-control" name="intervalo_minimo" id="intervalo_minimo" value="60">
+                    </div>
+                    <div class="col-12">
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="calcular_hora_extra" id="calcular_hora_extra" checked>
+                        <label class="form-check-label">Calcular horas extras automaticamente</label>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="banco_horas_ativo" id="banco_horas_ativo" checked>
+                        <label class="form-check-label">Banco de horas ativo</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-lg me-2"></i>Salvar Configurações
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {{-- Feriados --}}
+          <div class="tab-pane fade" id="secaoFeriados">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Feriados</h5>
+                <div class="d-flex gap-2">
+                  <select class="form-select form-select-sm" id="filtroAnoFeriado" style="width: 100px;" onchange="carregarFeriados()">
+                  </select>
+                  <button class="btn btn-sm btn-success" onclick="gerarFeriadosAno()">
+                    <i class="bi bi-magic me-1"></i>Gerar Ano
+                  </button>
+                  <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalFeriado" onclick="limparFormFeriado()">
+                    <i class="bi bi-plus-lg me-1"></i>Novo
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info mb-3" id="alertFeriadosVazio" style="display: none;">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Nenhum feriado cadastrado para este ano. 
+                  <a href="#" onclick="gerarFeriadosAno(); return false;" class="alert-link">Clique aqui para gerar automaticamente</a> os feriados nacionais, estaduais e móveis.
+                </div>
+                <table id="tabelaFeriados" class="table table-hover" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Descrição</th>
+                      <th>Tipo</th>
+                      <th>Recorrente</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {{-- Tipos de Ocorrência --}}
+          <div class="tab-pane fade" id="secaoOcorrencias">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-exclamation-circle me-2"></i>Tipos de Ocorrência</h5>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoOcorrencia" onclick="limparFormTipoOcorrencia()">
+                  <i class="bi bi-plus-lg me-2"></i>Novo Tipo
+                </button>
+              </div>
+              <div class="card-body">
+                <table id="tabelaTiposOcorrencia" class="table table-hover" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nome</th>
+                      <th>Abona</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {{-- Usuários --}}
+          <div class="tab-pane fade" id="secaoUsuarios">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Usuários do Sistema</h5>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalUsuario" onclick="limparFormUsuario()">
+                  <i class="bi bi-plus-lg me-2"></i>Novo Usuário
+                </button>
+              </div>
+              <div class="card-body">
+                <table id="tabelaUsuarios" class="table table-hover" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Login</th>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Perfil</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {{-- Terminal / Voz --}}
+          <div class="tab-pane fade" id="secaoTerminal">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-mic me-2"></i>Configurações do Terminal de Ponto</h5>
+              </div>
+              <div class="card-body">
+                <form id="formTerminal">
+                  {{-- Configurações de Voz --}}
+                  <h6 class="fw-semibold mb-3"><i class="bi bi-volume-up me-2"></i>Configurações de Voz (ElevenLabs)</h6>
+
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="vozAtiva" checked>
+                        <label class="form-check-label" for="vozAtiva">
+                          <strong>Voz Ativa</strong>
+                          <small class="d-block text-muted">Ativar/desativar comandos de voz</small>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Tipo de Voz</label>
+                      <select class="form-select" id="vozTipo">
+                        <optgroup label="Vozes Femininas - Portugues BR">
+                          <option value="EXAVITQu4vr4xnSDxMaL">Bella (Suave e amigavel)</option>
+                          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Clara e profissional)</option>
+                          <option value="AZnzlk1XvdvUeBnXmlld">Domi (Expressiva e forte)</option>
+                          <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Jovem e animada)</option>
+                          <option value="jBpfuIE2acCO8z3wKNLl">Gigi (Animada e expressiva)</option>
+                          <option value="XrExE9yKIg1WjnnlVkGX">Matilda (Quente e calma)</option>
+                          <option value="LcfcDJNUP1GQjkzn1xUU">Emily (Calma e suave)</option>
+                          <option value="jsCqWAovK2LkecY7zXl4">Freya (Expressiva)</option>
+                          <option value="t0jbNlBVZ17f02VDIeMI">Jessie (Veloz e expressiva)</option>
+                        </optgroup>
+                        <optgroup label="Vozes Masculinas - Portugues BR">
+                          <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Profunda e quente)</option>
+                          <option value="VR6AewLTigWG4xSOukaG">Arnold (Grave e autoritaria)</option>
+                          <option value="pNInz6obpgDQGcFmaJgB">Adam (Clara e profissional)</option>
+                          <option value="yoZ06aMxZJJ28mfd3POQ">Sam (Narrativa e confiante)</option>
+                          <option value="ErXwobaYiN019PkySvjV">Antoni (Bem modulada)</option>
+                          <option value="GBv7mTt0atIp3Br8iCZE">Thomas (Calmo e confiante)</option>
+                          <option value="flq6f7yk4E4fJM5XTYuZ">Michael (Mais velho e casual)</option>
+                          <option value="iP95p4xoKVk53GoZ742B">Chris (Casual e conversacional)</option>
+                        </optgroup>
+                      </select>
+                      <small class="text-muted">Usando modelo eleven_multilingual_v2 para portugues brasileiro</small>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Velocidade da Fala</label>
+                      <input type="range" class="form-range" id="vozVelocidade" min="0.5" max="2" step="0.1" value="1">
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Lento (0.5x)</small>
+                        <span class="badge bg-primary" id="vozVelocidadeValor">1.0x</span>
+                        <small class="text-muted">Rápido (2x)</small>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Estabilidade</label>
+                      <input type="range" class="form-range" id="vozEstabilidade" min="0" max="1" step="0.05" value="0.3">
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Expressiva</small>
+                        <span class="badge bg-primary" id="vozEstabilidadeValor">0.30</span>
+                        <small class="text-muted">Estável</small>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Similaridade</label>
+                      <input type="range" class="form-range" id="vozSimilaridade" min="0" max="1" step="0.05" value="0.85">
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Variada</small>
+                        <span class="badge bg-primary" id="vozSimilaridadeValor">0.85</span>
+                        <small class="text-muted">Original</small>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Estilo/Emoção</label>
+                      <input type="range" class="form-range" id="vozEstilo" min="0" max="1" step="0.05" value="0.7">
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Neutro</small>
+                        <span class="badge bg-primary" id="vozEstiloValor">0.70</span>
+                        <small class="text-muted">Emotivo</small>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="vozSpeakerBoost" checked>
+                        <label class="form-check-label" for="vozSpeakerBoost">
+                          <strong>Speaker Boost</strong>
+                          <small class="d-block text-muted">Melhora a clareza da voz (recomendado)</small>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <button type="button" class="btn btn-outline-primary" onclick="testarVoz()">
+                        <i class="bi bi-play-fill me-2"></i>Testar Voz
+                      </button>
+                    </div>
+                  </div>
+
+                  <hr class="my-4">
+
+                  {{-- Configurações do Terminal --}}
+                  <h6 class="fw-semibold mb-3"><i class="bi bi-camera-video me-2"></i>Configurações do Terminal</h6>
+
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Tempo de Countdown (segundos)</label>
+                      <input type="number" class="form-control" id="terminalCountdown" value="3" min="1" max="10">
+                      <small class="text-muted">Tempo de confirmação antes de registrar o ponto</small>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Cooldown entre registros (segundos)</label>
+                      <input type="number" class="form-control" id="terminalCooldown" value="60" min="10" max="300">
+                      <small class="text-muted">Tempo mínimo entre registros do mesmo funcionário</small>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Sensibilidade de Reconhecimento</label>
+                      <input type="range" class="form-range" id="terminalThreshold" min="0.3" max="0.7" step="0.05" value="0.5">
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Mais rigoroso</small>
+                        <span class="badge bg-primary" id="terminalThresholdValor">0.50</span>
+                        <small class="text-muted">Mais tolerante</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4">
+
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-lg me-2"></i>Salvar Configurações
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetarConfigTerminal()">
+                      <i class="bi bi-arrow-counterclockwise me-2"></i>Restaurar Padrão
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {{-- Manutenção --}}
+          <div class="tab-pane fade" id="secaoManutencao">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Manutenção do Sistema</h5>
+              </div>
+              <div class="card-body">
+                {{-- Limpar Registros de Ponto --}}
+                <div class="border rounded p-3 mb-4">
+                  <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-trash me-2 text-danger"></i>Limpar Registros de Ponto
+                  </h6>
+                  <p class="text-muted mb-3">
+                    Remove todos os registros de ponto do sistema. Use com cautela - esta ação não pode ser desfeita.
+                  </p>
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                      <label class="form-label">Data Inicial (opcional)</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                        <input type="text" class="form-control datepicker-manutencao mask-date" id="limparDataInicial" placeholder="dd/mm/aaaa">
+                      </div>
+                      <small class="text-muted">Apaga apenas registros a partir desta data</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Data Final (opcional)</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                        <input type="text" class="form-control datepicker-manutencao mask-date" id="limparDataFinal" placeholder="dd/mm/aaaa">
+                      </div>
+                      <small class="text-muted">Apaga apenas registros até esta data</small>
+                    </div>
+                    <div class="col-md-4">
+                      <button type="button" class="btn btn-danger" onclick="limparRegistrosPonto()">
+                        <i class="bi bi-trash me-2"></i>Limpar Registros
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {{-- Resetar Sequência NSR --}}
+                <div class="border rounded p-3 mb-4">
+                  <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-arrow-counterclockwise me-2 text-warning"></i>Resetar Sequência de IDs
+                  </h6>
+                  <p class="text-muted mb-3">
+                    Reseta a sequência de IDs da tabela de registros para 1. Útil após limpar todos os registros.
+                  </p>
+                  <button type="button" class="btn btn-warning" onclick="resetarSequencia()">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Resetar Sequência
+                  </button>
+                </div>
+
+                {{-- Limpar Espelhos de Ponto --}}
+                <div class="border rounded p-3 mb-4">
+                  <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-file-earmark-x me-2 text-danger"></i>Limpar Espelhos de Ponto
+                  </h6>
+                  <p class="text-muted mb-3">
+                    Remove todos os espelhos de ponto gerados. Útil para limpar dados de testes ou recomeçar do zero.
+                  </p>
+                  <button type="button" class="btn btn-danger" onclick="limparEspelhosPonto()">
+                    <i class="bi bi-file-earmark-x me-2"></i>Limpar Espelhos
+                  </button>
+                </div>
+
+                {{-- Sincronização REP --}}
+                <div class="border rounded p-3">
+                  <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-arrow-repeat me-2 text-primary"></i>Sincronização com REP
+                  </h6>
+                  <p class="text-muted mb-3">
+                    Configurações de sincronização com os equipamentos REP Control iD.
+                  </p>
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Data Inicial dos Registros</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                        <input type="text" class="form-control datepicker-manutencao mask-date" id="dataInicialSincronizacao" placeholder="dd/mm/aaaa" data-valor-inicial="{{ dataInicialRegistros || '' }}">
+                      </div>
+                      <small class="text-muted">Ignora registros anteriores a esta data</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Intervalo Mínimo entre Batidas</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-hourglass-split"></i></span>
+                        <input type="number" class="form-control" id="cooldownTerminal" min="10" max="600" value="{{ cooldownTerminal || 60 }}">
+                        <span class="input-group-text">segundos</span>
+                      </div>
+                      <small class="text-muted">Tempo mínimo entre batidas do mesmo funcionário</small>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                      <button type="button" class="btn btn-outline-primary me-2" onclick="salvarConfigSincronizacao()">
+                        <i class="bi bi-save me-2"></i>Salvar
+                      </button>
+                      <button type="button" class="btn btn-primary" onclick="forcarSincronizacao()">
+                        <i class="bi bi-arrow-repeat me-2"></i>Sincronizar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {{-- Email --}}
+          <div class="tab-pane fade" id="secaoEmail">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Configuração de Email</h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info mb-4">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Configure o SMTP no arquivo <code>.env</code> do servidor:
+                  <pre class="mt-2 mb-0 bg-light p-2 rounded"><code>SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu@email.com
+SMTP_PASS=sua_senha_app
+SMTP_FROM=seu@email.com
+SMTP_FROM_NAME=Sistema Ponto</code></pre>
+                </div>
+
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <h6 class="mb-3">Status do Serviço</h6>
+                    <div id="emailStatus" class="mb-3">
+                      <span class="spinner-border spinner-border-sm me-2"></span>Verificando...
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" onclick="verificarStatusEmail()">
+                      <i class="bi bi-arrow-repeat me-2"></i>Verificar Conexão
+                    </button>
+                  </div>
+
+                  <div class="col-md-6">
+                    <h6 class="mb-3">Enviar Email de Teste</h6>
+                    <div class="input-group mb-3">
+                      <input type="email" class="form-control" id="emailTeste" placeholder="email@exemplo.com">
+                      <button class="btn btn-primary" type="button" onclick="enviarEmailTeste()">
+                        <i class="bi bi-send me-2"></i>Enviar
+                      </button>
+                    </div>
+                    <div id="emailTesteResult"></div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="mb-3">Notificações por Email</h6>
+                <p class="text-muted mb-3">Quando habilitado, o sistema envia emails automáticos para:</p>
+                <ul class="mb-0">
+                  <li>Alertas de banco de horas negativo</li>
+                  <li>Solicitações de aprovação pendentes</li>
+                  <li>Alertas de sistema críticos</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {{-- SMS --}}
+          <div class="tab-pane fade" id="secaoSMS">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Configuração de SMS (Comtele)</h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info mb-4">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Configure a API Comtele no arquivo <code>.env</code> do servidor:
+                  <pre class="mt-2 mb-0 bg-light p-2 rounded"><code>COMTELE_API_KEY=sua_chave_api</code></pre>
+                </div>
+
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <h6 class="mb-3">Status do Serviço</h6>
+                    <div id="smsStatus" class="mb-3">
+                      <span class="spinner-border spinner-border-sm me-2"></span>Verificando...
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" onclick="verificarStatusSMS()">
+                      <i class="bi bi-arrow-repeat me-2"></i>Verificar Status
+                    </button>
+                  </div>
+
+                  <div class="col-md-6">
+                    <h6 class="mb-3">Enviar SMS de Teste</h6>
+                    <div class="input-group mb-3">
+                      <span class="input-group-text">+55</span>
+                      <input type="tel" class="form-control" id="smsTeste" placeholder="11999999999">
+                      <button class="btn btn-primary" type="button" onclick="enviarSmsTeste()">
+                        <i class="bi bi-send me-2"></i>Enviar
+                      </button>
+                    </div>
+                    <small class="text-muted">Digite DDD + número (ex: 11999999999)</small>
+                    <div id="smsTesteResult" class="mt-2"></div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="mb-3">Notificações por SMS</h6>
+                <p class="text-muted mb-3">O sistema envia SMS automáticos para números cadastrados quando:</p>
+                <ul class="mb-0">
+                  <li>Código de verificação 2FA (autenticação)</li>
+                  <li>Alertas urgentes de banco de horas</li>
+                  <li>Aprovações pendentes críticas</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {{-- Integrações --}}
+          <div class="tab-pane fade" id="secaoIntegracoes">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-plug me-2"></i>Integrações e Módulos</h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-4">Configure os módulos de integração do sistema de ponto eletrônico.</p>
+
+                <div class="row g-4">
+                  {{-- Reconhecimento Facial --}}
+                  <div class="col-md-6">
+                    <div class="card h-100 border-primary">
+                      <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-bounding-box me-2"></i>Reconhecimento Facial</h6>
+                      </div>
+                      <div class="card-body">
+                        <div id="facialStatus" class="mb-3">
+                          <span class="spinner-border spinner-border-sm me-2"></span>Verificando...
+                        </div>
+                        <p class="small text-muted mb-3">
+                          Permite registro de ponto via reconhecimento facial usando câmera do computador ou celular.
+                        </p>
+                        <div class="d-grid gap-2">
+                          <button class="btn btn-outline-primary btn-sm" onclick="verificarFacial()">
+                            <i class="bi bi-arrow-repeat me-1"></i>Verificar Status
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {{-- Leitor Biométrico --}}
+                  <div class="col-md-6">
+                    <div class="card h-100 border-success">
+                      <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-fingerprint me-2"></i>Leitor Biométrico USB</h6>
+                      </div>
+                      <div class="card-body">
+                        <div id="leitorStatus" class="mb-3">
+                          <span class="spinner-border spinner-border-sm me-2"></span>Verificando...
+                        </div>
+                        <p class="small text-muted mb-3">
+                          Suporte ao leitor Futronic FS80H para captura e verificação de digitais.
+                        </p>
+                        <div class="d-grid gap-2">
+                          <a href="/futronic-api.zip" class="btn btn-success btn-sm" download>
+                            <i class="bi bi-download me-1"></i>Baixar Software do Leitor
+                          </a>
+                          <a href="/futronic-extension.zip" class="btn btn-outline-success btn-sm" download>
+                            <i class="bi bi-puzzle me-1"></i>Baixar Extensão do Navegador
+                          </a>
+                          <button class="btn btn-outline-primary btn-sm" onclick="verificarLeitor()">
+                            <i class="bi bi-arrow-repeat me-1"></i>Verificar Status
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {{-- REP - Registrador Eletrônico de Ponto --}}
+                  <div class="col-md-6">
+                    <div class="card h-100 border-warning">
+                      <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-hdd-rack me-2"></i>REP - Equipamentos</h6>
+                      </div>
+                      <div class="card-body">
+                        <div id="repStatus" class="mb-3">
+                          <span id="repCount" class="badge bg-secondary">-</span> equipamento(s) cadastrado(s)
+                        </div>
+                        <p class="small text-muted mb-3">
+                          Integração com relógios de ponto (REP) via API. Suporte ControlID, Henry, Dimep.
+                        </p>
+                        <div class="d-grid gap-2">
+                          <a href="/equipamentos" class="btn btn-warning btn-sm text-dark">
+                            <i class="bi bi-gear me-1"></i>Gerenciar Equipamentos
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {{-- App Mobile --}}
+                  <div class="col-md-6">
+                    <div class="card h-100 border-info">
+                      <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-phone me-2"></i>App Mobile (PWA)</h6>
+                      </div>
+                      <div class="card-body">
+                        <div id="appStatus" class="mb-3">
+                          <span class="badge bg-success">Ativo</span> Acesso via navegador mobile
+                        </div>
+                        <p class="small text-muted mb-3">
+                          Aplicativo PWA para funcionários registrarem ponto pelo celular.
+                        </p>
+                        <div class="d-grid gap-2">
+                          <a href="/app" class="btn btn-info btn-sm text-white" target="_blank">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Abrir App Mobile
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {{-- Agente Local --}}
+                  <div class="col-md-6">
+                    <div class="card h-100 border-dark">
+                      <div class="card-header bg-dark text-white">
+                        <h6 class="mb-0"><i class="bi bi-pc-display me-2"></i>Agente Local (REPs em Rede)</h6>
+                      </div>
+                      <div class="card-body">
+                        <p class="small text-muted mb-3">
+                          Para REPs que estão na rede local do cliente (não acessíveis pela nuvem), instale o agente em um computador local.
+                        </p>
+                        <div class="mb-3">
+                          <label class="form-label fw-semibold small">API Key desta Unidade Gestora:</label>
+                          <div class="input-group input-group-sm">
+                            <input type="text" class="form-control font-monospace" id="apiKeyEntidade" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copiarApiKey()">
+                              <i class="bi bi-clipboard"></i>
+                            </button>
+                          </div>
+                          <small class="text-muted">Use esta chave no agente local</small>
+                        </div>
+                        <div class="d-grid gap-2">
+                          <a href="/downloads/agente/INSTALAR.bat" class="btn btn-dark btn-sm" download>
+                            <i class="bi bi-download me-1"></i>Baixar Instalador (Windows)
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Instruções de Instalação</h6>
+
+                <div class="accordion" id="accordionInstrucoes">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#instrLeitor">
+                        <i class="bi bi-fingerprint me-2"></i>Leitor Biométrico USB
+                      </button>
+                    </h2>
+                    <div id="instrLeitor" class="accordion-collapse collapse" data-bs-parent="#accordionInstrucoes">
+                      <div class="accordion-body small">
+                        <ol class="mb-0">
+                          <li>Baixe o arquivo <strong>futronic-api.zip</strong></li>
+                          <li>Extraia o conteúdo para uma pasta</li>
+                          <li>Conecte o leitor Futronic FS80H na porta USB</li>
+                          <li>Clique com <strong>botão direito</strong> em <code>instalar.bat</code> → <strong>Executar como administrador</strong></li>
+                          <li>Pronto! O serviço roda em background e inicia com o Windows</li>
+                        </ol>
+                        <div class="mt-2">
+                          <small class="text-muted">Opcional: Instale a extensão do navegador para ver o status na barra de ferramentas.</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#instrExtensao">
+                        <i class="bi bi-puzzle me-2"></i>Extensão do Navegador
+                      </button>
+                    </h2>
+                    <div id="instrExtensao" class="accordion-collapse collapse" data-bs-parent="#accordionInstrucoes">
+                      <div class="accordion-body small">
+                        <p><strong>Chrome/Edge/Brave:</strong></p>
+                        <ol class="mb-3">
+                          <li>Baixe e extraia <strong>futronic-extension.zip</strong></li>
+                          <li>Acesse <code>chrome://extensions</code></li>
+                          <li>Ative o <strong>Modo do desenvolvedor</strong></li>
+                          <li>Clique em <strong>Carregar sem compactação</strong></li>
+                          <li>Selecione a pasta extraída</li>
+                        </ol>
+                        <p><strong>Firefox:</strong></p>
+                        <ol class="mb-0">
+                          <li>Acesse <code>about:debugging</code></li>
+                          <li>Clique em <strong>Este Firefox</strong></li>
+                          <li>Clique em <strong>Carregar extensão temporária</strong></li>
+                          <li>Selecione o arquivo <code>manifest.json</code></li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          
+          {{-- Mapa e Geolocalização --}}
+          <div class="tab-pane fade" id="secaoAtendimentos">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-map me-2"></i>Mapa de Atendimentos</h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">Define a posição inicial do mapa na página de atendimentos. Clique no mapa ou use sua localização.</p>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" step="0.00000001" class="form-control" id="cfgMapaLatitude" value="-6.45">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" step="0.00000001" class="form-control" id="cfgMapaLongitude" value="-36.20">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Zoom (1-18)</label>
+                    <input type="number" min="1" max="18" class="form-control" id="cfgMapaZoom" value="14">
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="usarMinhaLocalizacaoMapa()">
+                    <i class="bi bi-crosshair me-1"></i>Usar minha localização
+                  </button>
+                  <button type="button" class="btn btn-outline-info btn-sm ms-2" onclick="buscarCidadeMapa()">
+                    <i class="bi bi-geo me-1"></i>Buscar cidade do município
+                  </button>
+                  <button type="button" class="btn btn-primary btn-sm ms-2" onclick="salvarConfigMapa()">
+                    <i class="bi bi-check me-1"></i>Salvar
+                  </button>
+                </div>
+                <div class="mt-3">
+                  <label class="form-label fw-semibold">Preview - Clique para definir o centro</label>
+                  <div id="mapaAtendimentosPreview" style="height:300px;width:100%;border-radius:8px;"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-record-circle me-2"></i>Cerca Eletrônica para Registro de Ponto</h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">Define uma área permitida para os funcionários registrarem o ponto. <strong>Desenhe a área no mapa</strong> usando as ferramentas.</p>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Tipo de Cerca</label>
+                    <select class="form-select" id="cfgCercaTipo" onchange="mudarTipoCerca()">
+                      <option value="circulo">Círculo (raio)</option>
+                      <option value="retangulo">Retângulo</option>
+                      <option value="poligono">Polígono livre</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4" id="divCercaRaio">
+                    <label class="form-label">Raio (metros)</label>
+                    <input type="number" min="0" class="form-control" id="cfgCercaRaio" value="100" onchange="atualizarCercaCirculo()">
+                    <small class="text-muted">0 = desativado</small>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Centro / Coordenadas</label>
+                    <input type="text" class="form-control" id="cfgCercaCoordenadas" readonly placeholder="Clique no mapa ou desenhe">
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="cfgCercaBloquear">
+                    <label class="form-check-label" for="cfgCercaBloquear">Bloquear registro fora da cerca</label>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary" onclick="usarMinhaLocalizacaoCerca()">
+                      <i class="bi bi-crosshair me-1"></i>Minha localização
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="limparCerca()">
+                      <i class="bi bi-trash me-1"></i>Limpar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="salvarConfigCercaPonto()">
+                      <i class="bi bi-check me-1"></i>Salvar
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="alert alert-info small py-2">
+                  <i class="bi bi-info-circle me-1"></i>
+                  <strong>Círculo:</strong> Clique no mapa para definir o centro e ajuste o raio.<br>
+                  <strong>Retângulo/Polígono:</strong> Use as ferramentas de desenho no canto superior direito do mapa.
+                </div>
+                
+                <div id="mapaCercaPreview" style="height:400px;width:100%;border-radius:8px;"></div>
+                
+                <!-- Campo hidden para guardar os dados da cerca -->
+                <input type="hidden" id="cfgCercaGeoJSON" value="">
+              </div>
+            </div>
+
+          </div>
+</div>
+      </div>
+    </div>
+
+    {{-- Modal Feriado --}}
+    <div class="modal fade" id="modalFeriado" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Feriado</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formFeriado" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="feriadoId">
+              <div class="mb-3">
+                <label class="form-label">Data <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="feriadoData" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Descrição <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="feriadoDescricao" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Tipo</label>
+                <select class="form-select" id="feriadoTipo">
+                  <option value="NACIONAL">Nacional</option>
+                  <option value="ESTADUAL">Estadual</option>
+                  <option value="MUNICIPAL">Municipal</option>
+                  <option value="PONTO_FACULTATIVO">Ponto Facultativo</option>
+                </select>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="feriadoRecorrente">
+                <label class="form-check-label">Feriado recorrente (repete todo ano)</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Tipo Ocorrência --}}
+    <div class="modal fade" id="modalTipoOcorrencia" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Tipo de Ocorrência</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formTipoOcorrencia" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="tipoOcorrenciaId">
+              <div class="mb-3">
+                <label class="form-label">Código</label>
+                <input type="text" class="form-control" id="tipoOcorrenciaCodigo">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="tipoOcorrenciaNome" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Descrição</label>
+                <textarea class="form-control" id="tipoOcorrenciaDescricao" rows="2"></textarea>
+              </div>
+              <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" id="tipoOcorrenciaAbona">
+                <label class="form-check-label">Abona falta</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="tipoOcorrenciaAtivo" checked>
+                <label class="form-check-label">Ativo</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {{-- Modal Usuário --}}
+    <div class="modal fade" id="modalUsuario" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="formUsuario" data-parsley-validate>
+            <div class="modal-body">
+              <input type="hidden" id="usuarioId">
+              <div class="mb-3">
+                <label class="form-label">Login <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="usuarioLogin" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="usuarioNome" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="usuarioEmail">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Senha <span class="text-danger" id="senhaObrigatoria">*</span></label>
+                <input type="password" class="form-control" id="usuarioSenha">
+                <small class="text-muted" id="senhaHint">Mínimo 6 caracteres</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Perfil <span class="text-danger">*</span></label>
+                <select class="form-select" id="usuarioPerfil" required>
+                  <option value="VISUALIZADOR">Visualizador</option>
+                  <option value="OPERADOR">Operador</option>
+                  <option value="RH">RH</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="usuarioAtivo" checked>
+                <label class="form-check-label">Ativo</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @end
+
+  @slot('scripts')
+    <script>
+      let tableFeriados, tableTiposOcorrencia, tableUsuarios;
+
+      $(document).ready(function() {
+        carregarConfigAparencia();
+
+        // Inicializa datepickers da aba Manutenção
+        setTimeout(function() {
+          if (typeof inicializarDatepickersManutencao === 'function') {
+            inicializarDatepickersManutencao();
+          }
+        }, 200);
+
+        // Carrega dados quando muda de aba
+        $('a[data-bs-toggle="list"]').on('shown.bs.tab', function(e) {
+          const target = $(e.target).attr('href');
+          if (target === '#secaoFeriados') carregarFeriados();
+          if (target === '#secaoOcorrencias') carregarTiposOcorrencia();
+          if (target === '#secaoUsuarios') carregarUsuarios();
+          if (target === '#secaoManutencao') inicializarDatepickersManutencao();
+        });
+
+        // Forms
+        $('#formFeriado').on('submit', salvarFeriado);
+        $('#formTipoOcorrencia').on('submit', salvarTipoOcorrencia);
+        $('#formUsuario').on('submit', salvarUsuario);
+      });
+
+      // ========== APARÊNCIA ==========
+      function carregarConfigAparencia() {
+        const tema = localStorage.getItem('theme') || 'light';
+        document.getElementById('tema' + (tema === 'dark' ? 'Escuro' : 'Claro')).checked = true;
+
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        document.getElementById('sidebarRecolhida').checked = sidebarCollapsed;
+
+        const corPrimaria = localStorage.getItem('corPrimaria') || '#1a73e8';
+        const corSecundaria = localStorage.getItem('corSecundaria') || '#4285f4';
+        
+        document.getElementById('corPrimaria').value = corPrimaria;
+        document.getElementById('corPrimariaTexto').value = corPrimaria;
+        document.getElementById('corSecundaria').value = corSecundaria;
+        document.getElementById('corSecundariaTexto').value = corSecundaria;
+        
+        atualizarPreview();
+      }
+
+      document.querySelectorAll('input[name="tema"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const tema = this.value;
+          document.documentElement.setAttribute('data-bs-theme', tema);
+          localStorage.setItem('theme', tema);
+          const icon = document.getElementById('darkModeIcon');
+          if (icon) icon.className = tema === 'dark' ? 'bi bi-sun fs-5' : 'bi bi-moon-stars fs-5';
+        });
+      });
+
+      let modoPersonalizado = false;
+      
+      function clarearCor(hex, percent) {
+        hex = hex.replace('#', '');
+        let r = parseInt(hex.substring(0, 2), 16);
+        let g = parseInt(hex.substring(2, 4), 16);
+        let b = parseInt(hex.substring(4, 6), 16);
+        r = Math.min(255, Math.floor(r + (255 - r) * percent / 100));
+        g = Math.min(255, Math.floor(g + (255 - g) * percent / 100));
+        b = Math.min(255, Math.floor(b + (255 - b) * percent / 100));
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+      }
+      
+      function abrirSeletorPersonalizado() {
+        modoPersonalizado = true;
+        document.getElementById('corPrimaria').click();
+      }
+
+      document.getElementById('corPrimaria').addEventListener('input', function() {
+        document.getElementById('corPrimariaTexto').value = this.value;
+        if (modoPersonalizado) {
+          const corSecundaria = clarearCor(this.value, 30);
+          document.getElementById('corSecundaria').value = corSecundaria;
+          document.getElementById('corSecundariaTexto').value = corSecundaria;
+        }
+        atualizarPreview();
+      });
+
+      document.getElementById('corPrimaria').addEventListener('change', function() {
+        modoPersonalizado = false;
+      });
+
+      document.getElementById('corPrimariaTexto').addEventListener('input', function() {
+        if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+          document.getElementById('corPrimaria').value = this.value;
+          atualizarPreview();
+        }
+      });
+
+      document.getElementById('corSecundaria').addEventListener('input', function() {
+        document.getElementById('corSecundariaTexto').value = this.value;
+        atualizarPreview();
+      });
+
+      document.getElementById('corSecundariaTexto').addEventListener('input', function() {
+        if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+          document.getElementById('corSecundaria').value = this.value;
+          atualizarPreview();
+        }
+      });
+
+      function atualizarPreview() {
+        const corPrimaria = document.getElementById('corPrimaria').value;
+        const corSecundaria = document.getElementById('corSecundaria').value;
+        document.getElementById('previewCores').style.background = 
+          `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 100%)`;
+        document.documentElement.style.setProperty('--cor-primaria', corPrimaria);
+        document.documentElement.style.setProperty('--cor-secundaria', corSecundaria);
+        localStorage.setItem('corPrimaria', corPrimaria);
+        localStorage.setItem('corSecundaria', corSecundaria);
+      }
+
+      function definirCores(primaria, secundaria) {
+        document.getElementById('corPrimaria').value = primaria;
+        document.getElementById('corPrimariaTexto').value = primaria;
+        document.getElementById('corSecundaria').value = secundaria;
+        document.getElementById('corSecundariaTexto').value = secundaria;
+        atualizarPreview();
+      }
+
+      document.getElementById('formAparencia').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const tema = document.querySelector('input[name="tema"]:checked').value;
+        localStorage.setItem('theme', tema);
+        document.documentElement.setAttribute('data-bs-theme', tema);
+
+        const sidebarRecolhida = document.getElementById('sidebarRecolhida').checked;
+        localStorage.setItem('sidebarCollapsed', sidebarRecolhida);
+        if (sidebarRecolhida) {
+          document.getElementById('sidebar')?.classList.add('collapsed');
+          document.body.classList.add('sidebar-collapsed');
+        } else {
+          document.getElementById('sidebar')?.classList.remove('collapsed');
+          document.body.classList.remove('sidebar-collapsed');
+        }
+
+        const icon = document.getElementById('darkModeIcon');
+        if (icon) icon.className = tema === 'dark' ? 'bi bi-sun fs-5' : 'bi bi-moon-stars fs-5';
+
+        toastr.success('Aparência salva com sucesso!');
+      });
+
+      async function resetarAparencia() {
+        if (!await confirmar('Deseja restaurar as configurações padrão de aparência?', { tipo: 'warning', titulo: 'Resetar Aparência' })) return;
+        localStorage.removeItem('theme');
+        localStorage.removeItem('sidebarCollapsed');
+        localStorage.removeItem('corPrimaria');
+        localStorage.removeItem('corSecundaria');
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+        document.documentElement.style.setProperty('--cor-primaria', '#1a73e8');
+        document.documentElement.style.setProperty('--cor-secundaria', '#4285f4');
+        carregarConfigAparencia();
+        toastr.info('Aparência restaurada para o padrão');
+      }
+
+      // ========== CONFIG GERAL ==========
+      // Carrega configurações ao abrir a aba
+      $('[href="#secaoGeral"]').on('shown.bs.tab', carregarConfigGeral);
+
+      async function carregarConfigGeral() {
+        try {
+          const res = await fetch('/api/configuracoes/geral');
+          const config = await res.json();
+
+          $('#tolerancia_entrada').val(config.tolerancia_entrada);
+          $('#tolerancia_saida').val(config.tolerancia_saida);
+          $('#intervalo_minimo').val(config.intervalo_minimo);
+          $('#calcular_hora_extra').prop('checked', config.calcular_hora_extra);
+          $('#banco_horas_ativo').prop('checked', config.banco_horas_ativo);
+        } catch (e) {
+          console.error('Erro ao carregar configurações:', e);
+        }
+      }
+
+      $('#formConfigGeral').on('submit', async function(e) {
+        e.preventDefault();
+
+        const config = {
+          tolerancia_entrada: parseInt($('#tolerancia_entrada').val()) || 10,
+          tolerancia_saida: parseInt($('#tolerancia_saida').val()) || 10,
+          intervalo_minimo: parseInt($('#intervalo_minimo').val()) || 60,
+          calcular_hora_extra: $('#calcular_hora_extra').is(':checked'),
+          banco_horas_ativo: $('#banco_horas_ativo').is(':checked')
+        };
+
+        try {
+          const res = await fetch('/api/configuracoes/geral', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify(config)
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            toastr.success('Configurações salvas com sucesso!');
+          } else {
+            toastr.error(data.error || 'Erro ao salvar configurações');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar configurações');
+        }
+      });
+
+      // ========== FERIADOS ==========
+      function initFiltroAnoFeriado() {
+        const select = document.getElementById('filtroAnoFeriado');
+        const anoAtual = new Date().getFullYear();
+        select.innerHTML = '';
+        for (let ano = anoAtual + 1; ano >= anoAtual - 2; ano--) {
+          const opt = document.createElement('option');
+          opt.value = ano;
+          opt.textContent = ano;
+          if (ano === anoAtual) opt.selected = true;
+          select.appendChild(opt);
+        }
+      }
+
+      // Pega o CSRF token
+      function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      }
+
+      async function gerarFeriadosAno() {
+        const ano = document.getElementById('filtroAnoFeriado').value;
+        if (!await confirmar(`Deseja gerar automaticamente os feriados nacionais, estaduais e móveis para ${ano}?`, { tipo: 'info', titulo: 'Gerar Feriados' })) return;
+        
+        try {
+          const res = await fetch('/api/feriados/gerar-ano', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ ano: parseInt(ano) })
+          });
+          const json = await res.json();
+          
+          if (res.ok) {
+            toastr.success(json.message);
+            carregarFeriados();
+          } else {
+            toastr.error(json.error || 'Erro ao gerar feriados');
+          }
+        } catch (e) {
+          toastr.error('Erro ao gerar feriados');
+        }
+      }
+
+      // ==========================================
+      // FUNÇÕES DE EMAIL
+      // ==========================================
+
+      async function verificarStatusEmail() {
+        $('#emailStatus').html('<span class="spinner-border spinner-border-sm me-2"></span>Verificando...');
+
+        try {
+          const res = await fetch('/api/email/status');
+          const data = await res.json();
+
+          if (data.enabled) {
+            $('#emailStatus').html('<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Conectado</span>');
+          } else if (data.configured) {
+            $('#emailStatus').html('<span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>Configurado mas não conectado</span>');
+          } else {
+            $('#emailStatus').html('<span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Não configurado</span>');
+          }
+
+          // Testa conexão SMTP
+          const testRes = await fetch('/api/email/testar');
+          const testData = await testRes.json();
+
+          if (testData.success) {
+            $('#emailStatus').append('<br><small class="text-success">SMTP OK</small>');
+          } else if (data.configured) {
+            $('#emailStatus').append(`<br><small class="text-danger">${testData.message}</small>`);
+          }
+        } catch (e) {
+          $('#emailStatus').html('<span class="badge bg-danger">Erro ao verificar</span>');
+        }
+      }
+
+      async function enviarEmailTeste() {
+        const email = $('#emailTeste').val();
+        if (!email) {
+          toastr.warning('Informe um email');
+          return;
+        }
+
+        $('#emailTesteResult').html('<span class="spinner-border spinner-border-sm me-2"></span>Enviando...');
+
+        try {
+          const res = await fetch('/api/email/enviar-teste', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            $('#emailTesteResult').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Email enviado! Verifique a caixa de entrada.</span>');
+            toastr.success('Email de teste enviado!');
+          } else {
+            $('#emailTesteResult').html(`<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.message}</span>`);
+            toastr.error('Falha ao enviar email');
+          }
+        } catch (e) {
+          $('#emailTesteResult').html('<span class="text-danger">Erro ao enviar</span>');
+          toastr.error('Erro ao enviar email');
+        }
+      }
+
+      // Verifica status ao carregar a aba de email
+      $('a[href="#secaoEmail"]').on('shown.bs.tab', verificarStatusEmail);
+
+      // ==========================================
+      // FUNÇÕES DE SMS
+      // ==========================================
+
+      async function verificarStatusSMS() {
+        $('#smsStatus').html('<span class="spinner-border spinner-border-sm me-2"></span>Verificando...');
+
+        try {
+          const res = await fetch('/api/sms/status');
+          const data = await res.json();
+
+          if (data.enabled) {
+            $('#smsStatus').html('<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Configurado e Ativo</span>');
+          } else if (data.configured) {
+            $('#smsStatus').html('<span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>Configurado</span>');
+          } else {
+            $('#smsStatus').html('<span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Não configurado</span>');
+          }
+        } catch (e) {
+          $('#smsStatus').html('<span class="badge bg-danger">Erro ao verificar</span>');
+        }
+      }
+
+      async function enviarSmsTeste() {
+        const telefone = $('#smsTeste').val();
+        if (!telefone) {
+          toastr.warning('Informe um telefone');
+          return;
+        }
+
+        $('#smsTesteResult').html('<span class="spinner-border spinner-border-sm me-2"></span>Enviando...');
+
+        try {
+          const res = await fetch('/api/sms/enviar-teste', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telefone })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            $('#smsTesteResult').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>SMS enviado!</span>');
+            toastr.success('SMS de teste enviado!');
+          } else {
+            $('#smsTesteResult').html(`<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.message}</span>`);
+            toastr.error('Falha ao enviar SMS');
+          }
+        } catch (e) {
+          $('#smsTesteResult').html('<span class="text-danger">Erro ao enviar</span>');
+          toastr.error('Erro ao enviar SMS');
+        }
+      }
+
+      // Verifica status ao carregar a aba de SMS
+      $('a[href="#secaoSMS"]').on('shown.bs.tab', verificarStatusSMS);
+
+      // ============ INTEGRAÇÕES ============
+
+      // Verifica status do reconhecimento facial
+      async function verificarFacial() {
+        $('#facialStatus').html('<span class="spinner-border spinner-border-sm me-2"></span>Verificando...');
+        try {
+          const res = await fetch('/api/facial/status');
+          const data = await res.json();
+          if (data.online) {
+            $('#facialStatus').html('<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Online</span> ' + (data.faces_count || 0) + ' faces cadastradas');
+          } else {
+            $('#facialStatus').html('<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Offline</span>');
+          }
+        } catch (e) {
+          $('#facialStatus').html('<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Offline</span>');
+        }
+      }
+
+      // Verifica status do leitor biométrico
+      async function verificarLeitor() {
+        $('#leitorStatus').html('<span class="spinner-border spinner-border-sm me-2"></span>Verificando...');
+        try {
+          const res = await fetch('http://localhost:5001/status', { signal: AbortSignal.timeout(3000) });
+          const data = await res.json();
+          if (data.device_connected) {
+            $('#leitorStatus').html('<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Conectado</span> ' + (data.device_name || 'Futronic FS80H'));
+          } else {
+            $('#leitorStatus').html('<span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>Serviço online, leitor desconectado</span>');
+          }
+        } catch (e) {
+          $('#leitorStatus').html('<span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Serviço não instalado</span>');
+        }
+      }
+
+      // Carrega contagem de equipamentos REP
+      async function carregarContadorREP() {
+        try {
+          const res = await fetch('/api/equipamentos');
+          const data = await res.json();
+          const count = (data.data || data || []).length;
+          $('#repCount').text(count);
+        } catch (e) {
+          $('#repCount').text('0');
+        }
+      }
+
+      // Carrega API Key da entidade
+      async function carregarApiKey() {
+        try {
+          const res = await fetch('/api/configuracoes/api-key');
+          const data = await res.json();
+          document.getElementById('apiKeyEntidade').value = data.apiKey || 'Não disponível';
+        } catch (e) {
+          document.getElementById('apiKeyEntidade').value = 'Erro ao carregar';
+        }
+      }
+
+      // Copia API Key para clipboard
+      function copiarApiKey() {
+        const input = document.getElementById('apiKeyEntidade');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        const btn = input.nextElementSibling;
+        btn.innerHTML = '<i class="bi bi-check"></i>';
+        setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 2000);
+      }
+
+      // Verifica status ao carregar a aba de Integrações
+      $('a[href="#secaoIntegracoes"]').on('shown.bs.tab', function() {
+        verificarFacial();
+        verificarLeitor();
+        carregarContadorREP();
+        carregarApiKey();
+      });
+
+      async function carregarFeriados() {
+        // Inicializa filtro de ano se necessário
+        if (!document.getElementById('filtroAnoFeriado').options.length) {
+          initFiltroAnoFeriado();
+        }
+        
+        try {
+          const res = await fetch('/api/feriados');
+          const json = await res.json();
+          
+          // Filtra pelo ano selecionado
+          const anoSelecionado = parseInt(document.getElementById('filtroAnoFeriado').value);
+          const feriadosFiltrados = (json.data || []).filter(f => {
+            const anoFeriado = new Date(f.data).getFullYear();
+            return anoFeriado === anoSelecionado;
+          });
+          
+          // Mostra/esconde alerta de vazio
+          document.getElementById('alertFeriadosVazio').style.display = 
+            feriadosFiltrados.length === 0 ? 'block' : 'none';
+          
+          if (tableFeriados) tableFeriados.destroy();
+          
+          tableFeriados = $('#tabelaFeriados').DataTable({
+            data: feriadosFiltrados,
+            columns: [
+              { 
+                data: 'data',
+                render: (data) => data ? new Date(data).toLocaleDateString('pt-BR') : '-'
+              },
+              { data: 'descricao' },
+              { 
+                data: 'tipo',
+                render: (data) => {
+                  const tipos = {
+                    'NACIONAL': '<span class="badge bg-primary">Nacional</span>',
+                    'ESTADUAL': '<span class="badge bg-info">Estadual</span>',
+                    'MUNICIPAL': '<span class="badge bg-secondary">Municipal</span>',
+                    'PONTO_FACULTATIVO': '<span class="badge bg-warning text-dark">Ponto Facultativo</span>'
+                  };
+                  return tipos[data] || data;
+                }
+              },
+              { 
+                data: 'recorrente',
+                render: (data) => data ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-muted"></i>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editarFeriado(${data.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-outline-danger" onclick="excluirFeriado(${data.id})"><i class="bi bi-trash"></i></button>
+                  </div>
+                `
+              }
+            ],
+            order: [[0, 'asc']],
+            language: {
+              emptyTable: 'Nenhum feriado cadastrado para este ano'
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function limparFormFeriado() {
+        $('#formFeriado')[0].reset();
+        $('#feriadoId').val('');
+        $('#modalFeriado .modal-title').text('Novo Feriado');
+      }
+
+      async function editarFeriado(id) {
+        try {
+          const res = await fetch(`/api/feriados/${id}`);
+          const item = await res.json();
+          $('#feriadoId').val(item.id);
+          $('#feriadoData').val(item.data?.split('T')[0]);
+          $('#feriadoDescricao').val(item.descricao);
+          $('#feriadoTipo').val(item.tipo);
+          $('#feriadoRecorrente').prop('checked', item.recorrente);
+          $('#modalFeriado .modal-title').text('Editar Feriado');
+          new bootstrap.Modal(document.getElementById('modalFeriado')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar feriado');
+        }
+      }
+
+      async function salvarFeriado(e) {
+        e.preventDefault();
+        const id = $('#feriadoId').val();
+        const data = {
+          data: $('#feriadoData').val(),
+          descricao: $('#feriadoDescricao').val(),
+          tipo: $('#feriadoTipo').val(),
+          recorrente: $('#feriadoRecorrente').is(':checked')
+        };
+        
+        try {
+          const res = await fetch(id ? `/api/feriados/${id}` : '/api/feriados', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Feriado atualizado!' : 'Feriado cadastrado!');
+            bootstrap.Modal.getInstance(document.getElementById('modalFeriado')).hide();
+            carregarFeriados();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluirFeriado(id) {
+        if (!await confirmar('Deseja excluir este feriado?', { tipo: 'danger', titulo: 'Excluir Feriado' })) return;
+        try {
+          const res = await fetch(`/api/feriados/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': getCsrfToken() } });
+          if (res.ok) {
+            toastr.success('Feriado excluído!');
+            carregarFeriados();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      // ========== TIPOS DE OCORRÊNCIA ==========
+      async function carregarTiposOcorrencia() {
+        try {
+          const res = await fetch('/api/tipos-ocorrencia');
+          const json = await res.json();
+          
+          if (tableTiposOcorrencia) tableTiposOcorrencia.destroy();
+          
+          tableTiposOcorrencia = $('#tabelaTiposOcorrencia').DataTable({
+            data: json.data || [],
+            columns: [
+              { data: 'codigo', defaultContent: '-' },
+              { data: 'nome' },
+              { 
+                data: 'abona',
+                render: (data) => data ? '<span class="badge bg-success">Sim</span>' : '<span class="badge bg-secondary">Não</span>'
+              },
+              { 
+                data: 'ativo',
+                render: (data) => data !== false
+                  ? '<span class="badge bg-success">Ativo</span>'
+                  : '<span class="badge bg-danger">Inativo</span>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editarTipoOcorrencia(${data.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-outline-danger" onclick="excluirTipoOcorrencia(${data.id})"><i class="bi bi-trash"></i></button>
+                  </div>
+                `
+              }
+            ],
+            order: [[1, 'asc']]
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function limparFormTipoOcorrencia() {
+        $('#formTipoOcorrencia')[0].reset();
+        $('#tipoOcorrenciaId').val('');
+        $('#tipoOcorrenciaAtivo').prop('checked', true);
+        $('#modalTipoOcorrencia .modal-title').text('Novo Tipo de Ocorrência');
+      }
+
+      async function editarTipoOcorrencia(id) {
+        try {
+          const res = await fetch(`/api/tipos-ocorrencia/${id}`);
+          const item = await res.json();
+          $('#tipoOcorrenciaId').val(item.id);
+          $('#tipoOcorrenciaCodigo').val(item.codigo);
+          $('#tipoOcorrenciaNome').val(item.nome);
+          $('#tipoOcorrenciaDescricao').val(item.descricao);
+          $('#tipoOcorrenciaAbona').prop('checked', item.abona);
+          $('#tipoOcorrenciaAtivo').prop('checked', item.ativo !== false);
+          $('#modalTipoOcorrencia .modal-title').text('Editar Tipo de Ocorrência');
+          new bootstrap.Modal(document.getElementById('modalTipoOcorrencia')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar');
+        }
+      }
+
+      async function salvarTipoOcorrencia(e) {
+        e.preventDefault();
+        const id = $('#tipoOcorrenciaId').val();
+        const data = {
+          codigo: $('#tipoOcorrenciaCodigo').val() || null,
+          nome: $('#tipoOcorrenciaNome').val(),
+          descricao: $('#tipoOcorrenciaDescricao').val() || null,
+          abona: $('#tipoOcorrenciaAbona').is(':checked'),
+          ativo: $('#tipoOcorrenciaAtivo').is(':checked')
+        };
+        
+        try {
+          const res = await fetch(id ? `/api/tipos-ocorrencia/${id}` : '/api/tipos-ocorrencia', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Tipo atualizado!' : 'Tipo cadastrado!');
+            bootstrap.Modal.getInstance(document.getElementById('modalTipoOcorrencia')).hide();
+            carregarTiposOcorrencia();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluirTipoOcorrencia(id) {
+        if (!await confirmar('Deseja excluir este tipo de ocorrência?', { tipo: 'danger', titulo: 'Excluir Tipo' })) return;
+        try {
+          const res = await fetch(`/api/tipos-ocorrencia/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': getCsrfToken() } });
+          if (res.ok) {
+            toastr.success('Tipo excluído!');
+            carregarTiposOcorrencia();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      // ========== USUÁRIOS ==========
+      async function carregarUsuarios() {
+        try {
+          const res = await fetch('/api/usuarios');
+          const json = await res.json();
+          
+          if (tableUsuarios) tableUsuarios.destroy();
+          
+          tableUsuarios = $('#tabelaUsuarios').DataTable({
+            data: json.data || [],
+            columns: [
+              { data: 'login' },
+              { data: 'nome' },
+              { data: 'email', defaultContent: '-' },
+              { 
+                data: 'perfil',
+                render: (data) => {
+                  const perfis = {
+                    'ADMIN': '<span class="badge bg-danger">Admin</span>',
+                    'RH': '<span class="badge bg-primary">RH</span>',
+                    'OPERADOR': '<span class="badge bg-info">Operador</span>',
+                    'VISUALIZADOR': '<span class="badge bg-secondary">Visualizador</span>'
+                  };
+                  return perfis[data] || data;
+                }
+              },
+              { 
+                data: 'ativo',
+                render: (data) => data !== false
+                  ? '<span class="badge bg-success">Ativo</span>'
+                  : '<span class="badge bg-danger">Inativo</span>'
+              },
+              {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editarUsuario(${data.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-outline-danger" onclick="excluirUsuario(${data.id}, '${data.login}')"><i class="bi bi-trash"></i></button>
+                  </div>
+                `
+              }
+            ],
+            order: [[1, 'asc']]
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function limparFormUsuario() {
+        $('#formUsuario')[0].reset();
+        $('#usuarioId').val('');
+        $('#usuarioAtivo').prop('checked', true);
+        $('#usuarioSenha').attr('required', true);
+        $('#senhaObrigatoria').show();
+        $('#senhaHint').text('Mínimo 6 caracteres');
+        $('#modalUsuario .modal-title').text('Novo Usuário');
+      }
+
+      async function editarUsuario(id) {
+        try {
+          const res = await fetch(`/api/usuarios/${id}`);
+          const item = await res.json();
+          $('#usuarioId').val(item.id);
+          $('#usuarioLogin').val(item.login);
+          $('#usuarioNome').val(item.nome);
+          $('#usuarioEmail').val(item.email);
+          $('#usuarioSenha').val('');
+          $('#usuarioSenha').removeAttr('required');
+          $('#senhaObrigatoria').hide();
+          $('#senhaHint').text('Deixe em branco para manter a senha atual');
+          $('#usuarioPerfil').val(item.perfil);
+          $('#usuarioAtivo').prop('checked', item.ativo !== false);
+          $('#modalUsuario .modal-title').text('Editar Usuário');
+          new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+        } catch (e) {
+          toastr.error('Erro ao carregar usuário');
+        }
+      }
+
+      async function salvarUsuario(e) {
+        e.preventDefault();
+        const id = $('#usuarioId').val();
+        const data = {
+          login: $('#usuarioLogin').val(),
+          nome: $('#usuarioNome').val(),
+          email: $('#usuarioEmail').val() || null,
+          perfil: $('#usuarioPerfil').val(),
+          ativo: $('#usuarioAtivo').is(':checked')
+        };
+        
+        const senha = $('#usuarioSenha').val();
+        if (senha) data.senha = senha;
+        
+        try {
+          const res = await fetch(id ? `/api/usuarios/${id}` : '/api/usuarios', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+            body: JSON.stringify(data)
+          });
+          
+          if (res.ok) {
+            toastr.success(id ? 'Usuário atualizado!' : 'Usuário cadastrado!');
+            bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+            carregarUsuarios();
+          } else {
+            const err = await res.json();
+            toastr.error(err.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function excluirUsuario(id, login) {
+        if (!await confirmar(`Deseja excluir o usuário "${login}"?`, { tipo: 'danger', titulo: 'Excluir Usuário' })) return;
+        try {
+          const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': getCsrfToken() } });
+          if (res.ok) {
+            toastr.success('Usuário excluído!');
+            carregarUsuarios();
+          } else {
+            toastr.error('Erro ao excluir');
+          }
+        } catch (e) {
+          toastr.error('Erro ao excluir');
+        }
+      }
+
+      // ========== CONFIGURAÇÕES TERMINAL / VOZ ==========
+      const ELEVENLABS_API_KEY = 'f05d5241d42a6f50b1da9957043da13955c6ef000dde40fa2a7d235a071bbc82';
+
+      function carregarConfigTerminal() {
+        // Carrega configurações do localStorage
+        const config = JSON.parse(localStorage.getItem('terminalConfig') || '{}');
+
+        // Voz
+        document.getElementById('vozAtiva').checked = config.vozAtiva !== false;
+        document.getElementById('vozTipo').value = config.vozTipo || 'EXAVITQu4vr4xnSDxMaL';
+        document.getElementById('vozVelocidade').value = config.vozVelocidade || 1;
+        document.getElementById('vozEstabilidade').value = config.vozEstabilidade || 0.3;
+        document.getElementById('vozSimilaridade').value = config.vozSimilaridade || 0.85;
+        document.getElementById('vozEstilo').value = config.vozEstilo || 0.7;
+        document.getElementById('vozSpeakerBoost').checked = config.vozSpeakerBoost !== false;
+
+        // Terminal
+        document.getElementById('terminalCountdown').value = config.terminalCountdown || 3;
+        document.getElementById('terminalCooldown').value = config.terminalCooldown || 60;
+        document.getElementById('terminalThreshold').value = config.terminalThreshold || 0.5;
+
+        // Atualiza labels
+        atualizarLabelsTerminal();
+      }
+
+      function atualizarLabelsTerminal() {
+        document.getElementById('vozVelocidadeValor').textContent = parseFloat(document.getElementById('vozVelocidade').value).toFixed(1) + 'x';
+        document.getElementById('vozEstabilidadeValor').textContent = parseFloat(document.getElementById('vozEstabilidade').value).toFixed(2);
+        document.getElementById('vozSimilaridadeValor').textContent = parseFloat(document.getElementById('vozSimilaridade').value).toFixed(2);
+        document.getElementById('vozEstiloValor').textContent = parseFloat(document.getElementById('vozEstilo').value).toFixed(2);
+        document.getElementById('terminalThresholdValor').textContent = parseFloat(document.getElementById('terminalThreshold').value).toFixed(2);
+      }
+
+      // Event listeners para os sliders
+      ['vozVelocidade', 'vozEstabilidade', 'vozSimilaridade', 'vozEstilo', 'terminalThreshold'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', atualizarLabelsTerminal);
+      });
+
+      async function testarVoz() {
+        const vozTipo = document.getElementById('vozTipo').value;
+        const vozVelocidade = parseFloat(document.getElementById('vozVelocidade').value);
+        const vozEstabilidade = parseFloat(document.getElementById('vozEstabilidade').value);
+        const vozSimilaridade = parseFloat(document.getElementById('vozSimilaridade').value);
+        const vozEstilo = parseFloat(document.getElementById('vozEstilo').value);
+        const vozSpeakerBoost = document.getElementById('vozSpeakerBoost').checked;
+
+        const texto = 'Olá! Esta é uma demonstração da voz configurada para o terminal de ponto.';
+
+        try {
+          toastr.info('Gerando áudio de teste...');
+
+          const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vozTipo}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'xi-api-key': ELEVENLABS_API_KEY
+            },
+            body: JSON.stringify({
+              text: texto,
+              model_id: 'eleven_multilingual_v2',
+              voice_settings: {
+                stability: vozEstabilidade,
+                similarity_boost: vozSimilaridade,
+                style: vozEstilo,
+                use_speaker_boost: vozSpeakerBoost
+              }
+            })
+          });
+
+          if (response.ok) {
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+
+            // Ajusta velocidade de reprodução
+            audio.playbackRate = vozVelocidade;
+
+            audio.play();
+            toastr.success('Reproduzindo áudio de teste');
+          } else {
+            const err = await response.json();
+            toastr.error('Erro ao gerar voz: ' + (err.detail?.message || 'Erro desconhecido'));
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao testar voz');
+        }
+      }
+
+      function salvarConfigTerminal(e) {
+        e.preventDefault();
+
+        const config = {
+          // Voz
+          vozAtiva: document.getElementById('vozAtiva').checked,
+          vozTipo: document.getElementById('vozTipo').value,
+          vozVelocidade: parseFloat(document.getElementById('vozVelocidade').value),
+          vozEstabilidade: parseFloat(document.getElementById('vozEstabilidade').value),
+          vozSimilaridade: parseFloat(document.getElementById('vozSimilaridade').value),
+          vozEstilo: parseFloat(document.getElementById('vozEstilo').value),
+          vozSpeakerBoost: document.getElementById('vozSpeakerBoost').checked,
+
+          // Terminal
+          terminalCountdown: parseInt(document.getElementById('terminalCountdown').value),
+          terminalCooldown: parseInt(document.getElementById('terminalCooldown').value),
+          terminalThreshold: parseFloat(document.getElementById('terminalThreshold').value)
+        };
+
+        localStorage.setItem('terminalConfig', JSON.stringify(config));
+        toastr.success('Configurações do terminal salvas com sucesso!');
+      }
+
+      async function resetarConfigTerminal() {
+        if (!await confirmar('Deseja restaurar as configurações padrão do terminal?', { tipo: 'warning', titulo: 'Restaurar Configurações' })) return;
+
+        localStorage.removeItem('terminalConfig');
+        carregarConfigTerminal();
+        toastr.info('Configurações do terminal restauradas para o padrão');
+      }
+
+      // Inicialização
+      document.getElementById('formTerminal')?.addEventListener('submit', salvarConfigTerminal);
+
+      // Carrega config quando aba é mostrada
+      $('a[data-bs-toggle="list"]').on('shown.bs.tab', function(e) {
+        if ($(e.target).attr('href') === '#secaoTerminal') {
+          carregarConfigTerminal();
+        }
+        if ($(e.target).attr('href') === '#secaoManutencao') {
+          carregarConfigManutencao();
+        }
+      });
+
+      // Carrega config da aba ativa ao iniciar a página
+      setTimeout(() => {
+        const abaAtiva = document.querySelector('a[data-bs-toggle="list"].active');
+        if (abaAtiva?.getAttribute('href') === '#secaoManutencao') {
+          carregarConfigManutencao();
+        }
+        if (abaAtiva?.getAttribute('href') === '#secaoTerminal') {
+          carregarConfigTerminal();
+        }
+      }, 100);
+
+      // ========== MANUTENÇÃO ==========
+      let datepickersManutencao = {};
+
+      function inicializarDatepickersManutencao() {
+        // Destroi instâncias existentes
+        Object.values(datepickersManutencao).forEach(fp => {
+          if (fp && fp.destroy) fp.destroy();
+        });
+        datepickersManutencao = {};
+
+        // Usa função global para inicializar datepickers
+        if (window.initDatepickers) {
+          datepickersManutencao = window.initDatepickers('.datepicker-manutencao');
+        }
+
+        // Carrega valor inicial do servidor (se disponível no data attribute)
+        const inputData = document.getElementById('dataInicialSincronizacao');
+        if (inputData && datepickersManutencao['dataInicialSincronizacao']) {
+          const valorInicial = inputData.getAttribute('data-valor-inicial');
+          if (valorInicial) {
+            const partes = valorInicial.split('-');
+            if (partes.length === 3) {
+              const ano = parseInt(partes[0]);
+              const mes = parseInt(partes[1]) - 1;
+              const dia = parseInt(partes[2]);
+              const dataObj = new Date(ano, mes, dia);
+              datepickersManutencao['dataInicialSincronizacao'].setDate(dataObj, true);
+            }
+          }
+        }
+      }
+
+      async function carregarConfigManutencao() {
+        // Inicializa datepickers
+        inicializarDatepickersManutencao();
+
+        try {
+          // Carrega data inicial do banco
+          const res = await fetch('/api/configuracoes/data-inicial');
+          const json = await res.json();
+          if (json.data && datepickersManutencao['dataInicialSincronizacao']) {
+            // Converte de YYYY-MM-DD para Date object corretamente
+            const partes = json.data.split('-');
+            if (partes.length === 3) {
+              const ano = parseInt(partes[0]);
+              const mes = parseInt(partes[1]) - 1; // Mês é 0-indexed
+              const dia = parseInt(partes[2]);
+              const dataObj = new Date(ano, mes, dia);
+              datepickersManutencao['dataInicialSincronizacao'].setDate(dataObj, true);
+            }
+          }
+
+          // Carrega cooldown (intervalo mínimo entre batidas)
+          const resCooldown = await fetch('/api/configuracoes/cooldown-terminal');
+          const jsonCooldown = await resCooldown.json();
+          if (jsonCooldown.cooldown) {
+            document.getElementById('cooldownTerminal').value = jsonCooldown.cooldown;
+          }
+        } catch (e) {
+          console.error('Erro ao carregar config:', e);
+        }
+      }
+
+      // Helper: converte dd/mm/yyyy para yyyy-mm-dd
+      function converterDataParaISO(dataStr) {
+        if (!dataStr) return null;
+        // Se já está no formato ISO, retorna
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) return dataStr;
+        // Se está no formato brasileiro dd/mm/yyyy
+        const partes = dataStr.split('/');
+        if (partes.length === 3) {
+          return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+        }
+        return dataStr;
+      }
+
+      async function limparRegistrosPonto() {
+        // Obter valor do flatpickr (formato interno)
+        const fpInicial = datepickersManutencao['limparDataInicial'];
+        const fpFinal = datepickersManutencao['limparDataFinal'];
+
+        const dataInicial = fpInicial && fpInicial.selectedDates[0]
+          ? fpInicial.formatDate(fpInicial.selectedDates[0], 'Y-m-d')
+          : null;
+        const dataFinal = fpFinal && fpFinal.selectedDates[0]
+          ? fpFinal.formatDate(fpFinal.selectedDates[0], 'Y-m-d')
+          : null;
+
+        let msg = 'Esta ação é IRREVERSÍVEL!\n\n';
+        if (dataInicial && dataFinal) {
+          msg += `Serão apagados todos os registros de ${dataInicial} até ${dataFinal}.`;
+        } else if (dataInicial) {
+          msg += `Serão apagados todos os registros a partir de ${dataInicial}.`;
+        } else if (dataFinal) {
+          msg += `Serão apagados todos os registros até ${dataFinal}.`;
+        } else {
+          msg += 'Serão apagados TODOS os registros de ponto do sistema.';
+        }
+        msg += '\n\nDigite "CONFIRMAR" para continuar:';
+
+        const confirmacao = await solicitarTexto(msg, { 
+          titulo: 'ATENÇÃO - Limpar Registros', 
+          tipo: 'danger',
+          placeholder: 'Digite CONFIRMAR',
+          textoConfirmar: 'Limpar'
+        });
+        if (confirmacao !== 'CONFIRMAR') {
+          toastr.info('Operação cancelada');
+          return;
+        }
+
+        try {
+          toastr.info('Limpando registros...');
+          const res = await fetch('/api/manutencao/limpar-registros', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ dataInicial, dataFinal })
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toastr.success(`${json.registrosApagados} registros foram apagados!`);
+          } else {
+            toastr.error(json.error || 'Erro ao limpar registros');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao limpar registros');
+        }
+      }
+
+      async function resetarSequencia() {
+        if (!await confirmar('Deseja resetar a sequência de IDs para 1?\n\nIsso é recomendado apenas após limpar todos os registros.', { tipo: 'warning', titulo: 'Resetar Sequência' })) {
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/manutencao/resetar-sequencia', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            }
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toastr.success('Sequência resetada para 1!');
+          } else {
+            toastr.error(json.error || 'Erro ao resetar sequência');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao resetar sequência');
+        }
+      }
+
+      async function limparEspelhosPonto() {
+        if (!await confirmar('Deseja remover TODOS os espelhos de ponto do sistema?\n\nEsta ação não pode ser desfeita!', { tipo: 'danger', titulo: 'Limpar Espelhos de Ponto' })) {
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/manutencao/limpar-espelhos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            }
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toastr.success(`${json.removidos || 0} espelhos removidos com sucesso!`);
+          } else {
+            toastr.error(json.error || 'Erro ao limpar espelhos');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao limpar espelhos');
+        }
+      }
+
+      async function salvarConfigSincronizacao() {
+        // Obter valor do flatpickr no formato ISO
+        const fp = datepickersManutencao['dataInicialSincronizacao'];
+        const data = fp && fp.selectedDates[0]
+          ? fp.formatDate(fp.selectedDates[0], 'Y-m-d')
+          : null;
+
+        const cooldown = parseInt(document.getElementById('cooldownTerminal').value) || 60;
+
+        if (cooldown < 10) {
+          toastr.warning('Intervalo mínimo é 10 segundos');
+          return;
+        }
+
+        try {
+          // Salva data inicial
+          if (data) {
+            await fetch('/api/configuracoes/data-inicial', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+              },
+              body: JSON.stringify({ data })
+            });
+          }
+
+          // Salva cooldown (intervalo mínimo entre batidas)
+          const res = await fetch('/api/configuracoes/cooldown-terminal', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ cooldown })
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toastr.success('Configurações salvas!');
+          } else {
+            toastr.error(json.error || 'Erro ao salvar');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao salvar');
+        }
+      }
+
+      async function forcarSincronizacao() {
+        toastr.info('Forçando sincronização...');
+
+        try {
+          const res = await fetch('/api/manutencao/sincronizar-rep', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken()
+            }
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toastr.success(json.message || 'Sincronização iniciada!');
+          } else {
+            toastr.error(json.error || 'Erro ao sincronizar');
+          }
+        } catch (e) {
+          console.error(e);
+          toastr.error('Erro ao sincronizar');
+        }
+      }
+    </script>
+    
+    <!-- Leaflet CSS e JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script>
+      // === MAPAS INTERATIVOS PARA CONFIGURAÇÕES ===
+      let mapaAtendimentos = null;
+      let markerAtendimentos = null;
+      let mapaCerca = null;
+      let cercaLayer = null; // Pode ser circle, rectangle ou polygon
+      let drawControl = null;
+      let drawnItems = null;
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        var tabAtendimentos = document.querySelector('a[href="#secaoAtendimentos"]');
+        if (tabAtendimentos) {
+          tabAtendimentos.addEventListener('shown.bs.tab', function() {
+            carregarConfigGeo();
+            setTimeout(initMapas, 300);
+          });
+        }
+      });
+      
+      function initMapas() {
+        initMapaAtendimentos();
+        initMapaCerca();
+      }
+      
+      function initMapaAtendimentos() {
+        var container = document.getElementById('mapaAtendimentosPreview');
+        if (!container || mapaAtendimentos) return;
+        
+        var lat = parseFloat(document.getElementById('cfgMapaLatitude').value) || -6.45;
+        var lng = parseFloat(document.getElementById('cfgMapaLongitude').value) || -36.20;
+        var zoom = parseInt(document.getElementById('cfgMapaZoom').value) || 14;
+        
+        mapaAtendimentos = L.map('mapaAtendimentosPreview').setView([lat, lng], zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(mapaAtendimentos);
+        
+        markerAtendimentos = L.marker([lat, lng], { draggable: true }).addTo(mapaAtendimentos);
+        markerAtendimentos.bindPopup('Centro do mapa').openPopup();
+        
+        mapaAtendimentos.on('click', function(e) {
+          markerAtendimentos.setLatLng(e.latlng);
+          document.getElementById('cfgMapaLatitude').value = e.latlng.lat.toFixed(8);
+          document.getElementById('cfgMapaLongitude').value = e.latlng.lng.toFixed(8);
+        });
+        
+        markerAtendimentos.on('dragend', function(e) {
+          var pos = e.target.getLatLng();
+          document.getElementById('cfgMapaLatitude').value = pos.lat.toFixed(8);
+          document.getElementById('cfgMapaLongitude').value = pos.lng.toFixed(8);
+        });
+        
+        mapaAtendimentos.on('zoomend', function() {
+          document.getElementById('cfgMapaZoom').value = mapaAtendimentos.getZoom();
+        });
+        
+        setTimeout(function() { mapaAtendimentos.invalidateSize(); }, 200);
+      }
+      
+      function initMapaCerca() {
+        var container = document.getElementById('mapaCercaPreview');
+        if (!container || mapaCerca) return;
+        
+        var lat = -6.45;
+        var lng = -36.20;
+        
+        mapaCerca = L.map('mapaCercaPreview').setView([lat, lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(mapaCerca);
+        
+        // Layer para desenhos
+        drawnItems = new L.FeatureGroup();
+        mapaCerca.addLayer(drawnItems);
+        
+        // Controles de desenho
+        atualizarControlesDesenho();
+        
+        // Eventos de desenho
+        mapaCerca.on(L.Draw.Event.CREATED, function(e) {
+          limparCercaAtual();
+          cercaLayer = e.layer;
+          drawnItems.addLayer(cercaLayer);
+          atualizarCoordenadas();
+        });
+        
+        mapaCerca.on(L.Draw.Event.EDITED, function(e) {
+          atualizarCoordenadas();
+        });
+        
+        mapaCerca.on(L.Draw.Event.DELETED, function(e) {
+          cercaLayer = null;
+          document.getElementById('cfgCercaCoordenadas').value = '';
+          document.getElementById('cfgCercaGeoJSON').value = '';
+        });
+        
+        // Clique no mapa para círculo
+        mapaCerca.on('click', function(e) {
+          var tipo = document.getElementById('cfgCercaTipo').value;
+          if (tipo === 'circulo') {
+            limparCercaAtual();
+            var raio = parseInt(document.getElementById('cfgCercaRaio').value) || 100;
+            cercaLayer = L.circle(e.latlng, {
+              radius: raio,
+              color: '#3b82f6',
+              fillColor: '#3b82f6',
+              fillOpacity: 0.2,
+              weight: 2
+            });
+            drawnItems.addLayer(cercaLayer);
+            atualizarCoordenadas();
+          }
+        });
+        
+        setTimeout(function() { mapaCerca.invalidateSize(); }, 200);
+      }
+      
+      function atualizarControlesDesenho() {
+        if (!mapaCerca) return;
+        
+        // Remover controles anteriores
+        if (drawControl) {
+          mapaCerca.removeControl(drawControl);
+        }
+        
+        var tipo = document.getElementById('cfgCercaTipo').value;
+        
+        var drawOptions = {
+          position: 'topright',
+          draw: {
+            polyline: false,
+            marker: false,
+            circlemarker: false,
+            circle: tipo === 'circulo',
+            rectangle: tipo === 'retangulo',
+            polygon: tipo === 'poligono' ? {
+              allowIntersection: false,
+              showArea: true
+            } : false
+          },
+          edit: {
+            featureGroup: drawnItems,
+            remove: true
+          }
+        };
+        
+        drawControl = new L.Control.Draw(drawOptions);
+        mapaCerca.addControl(drawControl);
+      }
+      
+      function mudarTipoCerca() {
+        var tipo = document.getElementById('cfgCercaTipo').value;
+        document.getElementById('divCercaRaio').style.display = tipo === 'circulo' ? 'block' : 'none';
+        limparCerca();
+        atualizarControlesDesenho();
+      }
+      
+      function limparCercaAtual() {
+        if (cercaLayer) {
+          drawnItems.removeLayer(cercaLayer);
+          cercaLayer = null;
+        }
+      }
+      
+      function limparCerca() {
+        limparCercaAtual();
+        drawnItems.clearLayers();
+        document.getElementById('cfgCercaCoordenadas').value = '';
+        document.getElementById('cfgCercaGeoJSON').value = '';
+      }
+      
+      function atualizarCercaCirculo() {
+        if (cercaLayer && cercaLayer instanceof L.Circle) {
+          var raio = parseInt(document.getElementById('cfgCercaRaio').value) || 100;
+          cercaLayer.setRadius(raio);
+          atualizarCoordenadas();
+        }
+      }
+      
+      function atualizarCoordenadas() {
+        if (!cercaLayer) return;
+        
+        var coordsText = '';
+        var geoJSON = {};
+        
+        if (cercaLayer instanceof L.Circle) {
+          var center = cercaLayer.getLatLng();
+          var raio = cercaLayer.getRadius();
+          coordsText = 'Centro: ' + center.lat.toFixed(6) + ', ' + center.lng.toFixed(6) + ' | Raio: ' + raio.toFixed(0) + 'm';
+          geoJSON = {
+            type: 'circle',
+            center: [center.lat, center.lng],
+            radius: raio
+          };
+          document.getElementById('cfgCercaRaio').value = raio.toFixed(0);
+        } else if (cercaLayer instanceof L.Rectangle) {
+          var bounds = cercaLayer.getBounds();
+          coordsText = 'Retângulo: ' + bounds.getSouthWest().lat.toFixed(6) + ',' + bounds.getSouthWest().lng.toFixed(6) + ' a ' + bounds.getNorthEast().lat.toFixed(6) + ',' + bounds.getNorthEast().lng.toFixed(6);
+          geoJSON = {
+            type: 'rectangle',
+            bounds: [[bounds.getSouthWest().lat, bounds.getSouthWest().lng], [bounds.getNorthEast().lat, bounds.getNorthEast().lng]]
+          };
+        } else if (cercaLayer instanceof L.Polygon) {
+          var latlngs = cercaLayer.getLatLngs()[0];
+          coordsText = 'Polígono com ' + latlngs.length + ' pontos';
+          geoJSON = {
+            type: 'polygon',
+            coordinates: latlngs.map(function(ll) { return [ll.lat, ll.lng]; })
+          };
+        }
+        
+        document.getElementById('cfgCercaCoordenadas').value = coordsText;
+        document.getElementById('cfgCercaGeoJSON').value = JSON.stringify(geoJSON);
+      }
+      
+      async function carregarConfigGeo() {
+        try {
+          var res = await fetch('/api/configuracoes/geolocalizacao');
+          var data = await res.json();
+          if (data.config) {
+            document.getElementById('cfgMapaLatitude').value = data.config.mapa_latitude || '-6.45';
+            document.getElementById('cfgMapaLongitude').value = data.config.mapa_longitude || '-36.20';
+            document.getElementById('cfgMapaZoom').value = data.config.mapa_zoom || '14';
+            document.getElementById('cfgCercaRaio').value = data.config.cerca_raio || '100';
+            document.getElementById('cfgCercaBloquear').checked = data.config.cerca_bloquear === 'true';
+            
+            // Carregar GeoJSON se existir
+            if (data.config.cerca_geojson) {
+              try {
+                var geo = JSON.parse(data.config.cerca_geojson);
+                document.getElementById('cfgCercaGeoJSON').value = data.config.cerca_geojson;
+                document.getElementById('cfgCercaTipo').value = geo.type || 'circulo';
+                mudarTipoCerca();
+                
+                // Desenhar a cerca no mapa após inicialização
+                setTimeout(function() { desenharCercaSalva(geo); }, 500);
+              } catch(e) {}
+            }
+          }
+        } catch (e) { console.error('Erro:', e); }
+      }
+      
+      function desenharCercaSalva(geo) {
+        if (!mapaCerca || !drawnItems) return;
+        
+        limparCerca();
+        
+        if (geo.type === 'circle' && geo.center) {
+          cercaLayer = L.circle(geo.center, {
+            radius: geo.radius || 100,
+            color: '#3b82f6',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.2
+          });
+          drawnItems.addLayer(cercaLayer);
+          mapaCerca.setView(geo.center, 16);
+        } else if (geo.type === 'rectangle' && geo.bounds) {
+          cercaLayer = L.rectangle(geo.bounds, {
+            color: '#3b82f6',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.2
+          });
+          drawnItems.addLayer(cercaLayer);
+          mapaCerca.fitBounds(geo.bounds);
+        } else if (geo.type === 'polygon' && geo.coordinates) {
+          cercaLayer = L.polygon(geo.coordinates, {
+            color: '#3b82f6',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.2
+          });
+          drawnItems.addLayer(cercaLayer);
+          mapaCerca.fitBounds(cercaLayer.getBounds());
+        }
+        
+        atualizarCoordenadas();
+      }
+      
+      async function buscarCidadeMapa() {
+        var municipio = document.querySelector('.navbar-brand')?.textContent?.trim() || 'Nova Floresta, Paraíba';
+        try {
+          toastr.info('Buscando ' + municipio + '...');
+          var res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(municipio + ', Brasil'));
+          var data = await res.json();
+          if (data && data.length > 0) {
+            var lat = parseFloat(data[0].lat);
+            var lng = parseFloat(data[0].lon);
+            document.getElementById('cfgMapaLatitude').value = lat.toFixed(8);
+            document.getElementById('cfgMapaLongitude').value = lng.toFixed(8);
+            if (mapaAtendimentos) {
+              mapaAtendimentos.setView([lat, lng], 14);
+              markerAtendimentos.setLatLng([lat, lng]);
+            }
+            toastr.success('Encontrado!');
+          } else {
+            toastr.warning('Cidade não encontrada');
+          }
+        } catch (e) { toastr.error('Erro'); }
+      }
+      
+      function usarMinhaLocalizacaoMapa() {
+        if (!navigator.geolocation) return toastr.error('Geolocalização não suportada');
+        toastr.info('Obtendo localização...');
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          document.getElementById('cfgMapaLatitude').value = pos.coords.latitude.toFixed(8);
+          document.getElementById('cfgMapaLongitude').value = pos.coords.longitude.toFixed(8);
+          if (mapaAtendimentos) {
+            mapaAtendimentos.setView([pos.coords.latitude, pos.coords.longitude], 15);
+            markerAtendimentos.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+          }
+          toastr.success('OK!');
+        }, function(err) { toastr.error(err.message); }, { enableHighAccuracy: true, timeout: 10000 });
+      }
+      
+      function usarMinhaLocalizacaoCerca() {
+        if (!navigator.geolocation) return toastr.error('Geolocalização não suportada');
+        toastr.info('Obtendo localização...');
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          if (mapaCerca) {
+            mapaCerca.setView([lat, lng], 17);
+            // Se for círculo, criar automaticamente
+            var tipo = document.getElementById('cfgCercaTipo').value;
+            if (tipo === 'circulo') {
+              limparCercaAtual();
+              var raio = parseInt(document.getElementById('cfgCercaRaio').value) || 100;
+              cercaLayer = L.circle([lat, lng], {
+                radius: raio,
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.2
+              });
+              drawnItems.addLayer(cercaLayer);
+              atualizarCoordenadas();
+            }
+          }
+          toastr.success('OK!');
+        }, function(err) { toastr.error(err.message); }, { enableHighAccuracy: true, timeout: 10000 });
+      }
+      
+      async function salvarConfigMapa() {
+        try {
+          var res = await fetch('/api/configuracoes/mapa', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mapa_latitude: document.getElementById('cfgMapaLatitude').value,
+              mapa_longitude: document.getElementById('cfgMapaLongitude').value,
+              mapa_zoom: document.getElementById('cfgMapaZoom').value
+            })
+          });
+          var result = await res.json();
+          if (result.success) toastr.success('Mapa salvo!');
+          else toastr.error(result.error || 'Erro');
+        } catch (e) { toastr.error('Erro'); }
+      }
+      
+      async function salvarConfigCercaPonto() {
+        var geoJSON = document.getElementById('cfgCercaGeoJSON').value;
+        if (!geoJSON) {
+          toastr.warning('Desenhe uma cerca no mapa primeiro');
+          return;
+        }
+        
+        try {
+          var res = await fetch('/api/configuracoes/cerca', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cerca_tipo: document.getElementById('cfgCercaTipo').value,
+              cerca_raio: document.getElementById('cfgCercaRaio').value,
+              cerca_geojson: geoJSON,
+              cerca_bloquear: document.getElementById('cfgCercaBloquear').checked
+            })
+          });
+          var result = await res.json();
+          if (result.success) toastr.success('Cerca salva!');
+          else toastr.error(result.error || 'Erro');
+        } catch (e) { toastr.error('Erro'); }
+      }
+    </script>
+
+    @end
+@end
