@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node ace db:check:*)",
+      "Bash(node ace:*)",
+      "Bash(powershell -Command \"Test-NetConnection -ComputerName 92.112.178.164 -Port 5434 -InformationLevel Quiet\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * Serviço de envio de SMS via Comtele
+ * Servico de envio de SMS via Comtele
  */
 
 import logger from '@adonisjs/core/services/logger'
@@ -14,25 +14,33 @@ interface SmsResponse {
   error?: string
 }
 
+interface ComteleResponse {
+  Success: boolean
+  Message?: string
+  Object?: {
+    requestUniqueId?: string
+  }
+}
+
 export default class SmsService {
   /**
    * Envia SMS via Comtele
    */
   static async enviarSms(telefone: string, mensagem: string, sender?: string): Promise<SmsResponse> {
     try {
-      // Limpa o telefone (remove caracteres não numéricos)
+      // Limpa o telefone (remove caracteres nao numericos)
       const telefoneLimpo = telefone.replace(/\D/g, '')
 
-      // Valida telefone (deve ter 10 ou 11 dígitos)
+      // Valida telefone (deve ter 10 ou 11 digitos)
       if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
         return {
           success: false,
-          error: 'Telefone inválido. Use formato DDD + número (10 ou 11 dígitos)',
+          error: 'Telefone invalido. Use formato DDD + numero (10 ou 11 digitos)',
         }
       }
 
       const payload = {
-        Sender: sender || 'PontoEletronico',
+        Sender: sender || 'VotaLegis',
         Receivers: telefoneLimpo,
         Content: mensagem,
       }
@@ -48,7 +56,7 @@ export default class SmsService {
         body: JSON.stringify(payload),
       })
 
-      const data = await response.json()
+      const data = (await response.json()) as ComteleResponse
 
       if (data.Success) {
         logger.info(`[SMS] Enviado com sucesso. RequestId: ${data.Object?.requestUniqueId}`)
@@ -58,14 +66,14 @@ export default class SmsService {
           requestId: data.Object?.requestUniqueId,
         }
       } else {
-        logger.error(`[SMS] Erro ao enviar: ${data.Message || JSON.stringify(data)}`)
+        logger.error(`[SMS] Erro ao enviar: ${data.Message || 'Erro desconhecido'}`)
         return {
           success: false,
           error: data.Message || 'Erro desconhecido ao enviar SMS',
         }
       }
     } catch (error: any) {
-      logger.error(`[SMS] Exceção: ${error.message}`)
+      logger.error(`[SMS] Excecao: ${error.message}`)
       return {
         success: false,
         error: `Erro ao enviar SMS: ${error.message}`,
@@ -74,59 +82,10 @@ export default class SmsService {
   }
 
   /**
-   * Envia código de verificação 2FA
+   * Envia codigo de verificacao 2FA
    */
   static async enviarCodigo2FA(telefone: string, codigo: string): Promise<SmsResponse> {
     const mensagem = `Seu codigo de verificacao e: ${codigo}. Valido por 5 minutos. Nao compartilhe este codigo.`
     return this.enviarSms(telefone, mensagem, '2FA')
-  }
-
-  /**
-   * Notificação de banco de horas
-   */
-  static async notificarBancoHoras(telefone: string, dados: {
-    funcionario: string
-    saldo: string
-    tipo: 'positivo' | 'negativo'
-  }): Promise<SmsResponse> {
-    const alerta = dados.tipo === 'positivo'
-      ? 'proximo do limite maximo'
-      : 'negativo em nivel critico'
-    const mensagem = `PONTO: Banco de horas de ${dados.funcionario} esta ${alerta}. Saldo: ${dados.saldo}`
-    return this.enviarSms(telefone, mensagem)
-  }
-
-  /**
-   * Notificação de aprovação pendente
-   */
-  static async notificarAprovacaoPendente(telefone: string, dados: {
-    tipo: string
-    funcionario: string
-  }): Promise<SmsResponse> {
-    const mensagem = `PONTO: Aprovacao pendente - ${dados.tipo} de ${dados.funcionario}. Acesse o sistema.`
-    return this.enviarSms(telefone, mensagem)
-  }
-
-  /**
-   * Alerta genérico
-   */
-  static async notificarAlerta(telefone: string, titulo: string, mensagem: string): Promise<SmsResponse> {
-    const msg = `PONTO: ${titulo} - ${mensagem}`.substring(0, 160)
-    return this.enviarSms(telefone, msg)
-  }
-
-  /**
-   * Testa se o serviço está configurado
-   */
-  static isEnabled(): boolean {
-    return !!COMTELE_API_KEY && COMTELE_API_KEY.length > 10
-  }
-
-  /**
-   * Envia SMS de teste
-   */
-  static async enviarTeste(telefone: string): Promise<SmsResponse> {
-    const mensagem = 'Teste do Sistema de Ponto Eletronico. Se voce recebeu esta mensagem, o SMS esta configurado corretamente!'
-    return this.enviarSms(telefone, mensagem, 'TESTE')
   }
 }

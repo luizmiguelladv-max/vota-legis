@@ -5,14 +5,10 @@ import type { InferAuthenticators, InferAuthEvents, Authenticators } from '@adon
 const authConfig = defineConfig({
   default: 'web',
   guards: {
-    /**
-     * Guard para usuários master (super admins)
-     * Usa sessão com cookies
-     */
     web: sessionGuard({
       useRememberMeTokens: false,
       provider: sessionUserProvider({
-        model: () => import('#models/usuario_master'),
+        model: () => import('#models/user')
       }),
     }),
   },

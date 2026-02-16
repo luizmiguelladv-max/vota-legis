@@ -3,802 +3,238 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h4 class="mb-1">
-          Dashboard
-          <span id="wsStatus" class="badge bg-secondary ms-2" style="font-size: 0.6em;">Conectando...</span>
+          <i class="bi bi-speedometer2 me-2"></i>Dashboard
         </h4>
-        <p class="text-muted mb-0">Visão geral do sistema de ponto <small class="text-success">(atualização em tempo real)</small></p>
+        <p class="text-muted mb-0">Bem-vindo ao VotaLegis</p>
       </div>
-      <div>
-        <span class="badge fs-6" id="badgeData" style="background-color: var(--cor-primaria);">
-          <i class="bi bi-calendar me-1"></i>
-          <span id="dataAtual"></span>
-        </span>
+      <div class="badge bg-primary fs-6 py-2 px-3">
+        <i class="bi bi-calendar3 me-1"></i>
+        {{ new Date().toLocaleDateString('pt-BR') }}
       </div>
     </div>
 
+    {{-- Estatísticas --}}
     <div class="row g-4 mb-4">
-      <div class="col-md-6 col-xl-3">
-        <div class="card stat-card h-100">
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm">
           <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="text-muted mb-2">Funcionários Ativos</h6>
-              <h3 class="mb-0" id="statFuncionarios">0</h3>
+              <h6 class="text-muted mb-1">Vereadores</h6>
+              <h3 class="mb-0">{{ stats.vereadoresAtivos || 0 }}</h3>
+              <small class="text-muted">ativos</small>
             </div>
-            <i class="bi bi-people stat-icon" style="color: var(--cor-primaria);"></i>
+            <i class="bi bi-people stat-icon text-primary"></i>
           </div>
         </div>
       </div>
-      <div class="col-md-6 col-xl-3">
-        <div class="card stat-card h-100" style="border-color: #28a745;">
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #28a745 !important;">
           <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="text-muted mb-2">Presentes Hoje</h6>
-              <h3 class="mb-0" id="statPresentes">0</h3>
+              <h6 class="text-muted mb-1">Sessões {{ new Date().getFullYear() }}</h6>
+              <h3 class="mb-0">{{ stats.sessoesAno || 0 }}</h3>
+              <small class="text-muted">realizadas</small>
             </div>
-            <i class="bi bi-person-check stat-icon text-success"></i>
+            <i class="bi bi-calendar-check stat-icon text-success"></i>
           </div>
         </div>
       </div>
-      <div class="col-md-6 col-xl-3">
-        <div class="card stat-card h-100" style="border-color: #ffc107;">
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #ffc107 !important;">
           <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="text-muted mb-2">Pendências</h6>
-              <h3 class="mb-0" id="statPendencias">0</h3>
+              <h6 class="text-muted mb-1">Votações</h6>
+              <h3 class="mb-0">{{ stats.votacoesAno || 0 }}</h3>
+              <small class="text-muted">este ano</small>
             </div>
-            <i class="bi bi-exclamation-triangle stat-icon text-warning"></i>
+            <i class="bi bi-hand-thumbs-up stat-icon text-warning"></i>
           </div>
         </div>
       </div>
-      <div class="col-md-6 col-xl-3">
-        <div class="card stat-card h-100" style="border-color: #17a2b8;">
+      <div class="col-md-3 col-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" style="border-left-color: #17a2b8 !important;">
           <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="text-muted mb-2">Equipamentos Online</h6>
-              <h3 class="mb-0">
-                <span id="statEquipOnline">0</span>
-                <small class="text-muted fs-6">/ <span id="statEquipTotal">0</span></small>
-              </h3>
+              <h6 class="text-muted mb-1">Matérias</h6>
+              <h3 class="mb-0">{{ stats.materiasAno || 0 }}</h3>
+              <small class="text-muted">tramitando</small>
             </div>
-            <i class="bi bi-router stat-icon text-info"></i>
+            <i class="bi bi-file-text stat-icon text-info"></i>
           </div>
         </div>
       </div>
     </div>
-
-    {{-- Alerta de Anomalias --}}
-    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert" id="alertaAnomalias" style="display: none !important;">
-      <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-      <div class="flex-grow-1">
-        <strong>Atencao!</strong> Existem <span id="qtdAnomalias">0</span> anomalias de ponto pendentes de verificacao.
-        <br><small class="text-muted">Verifique registros duplicados, falta de marcacoes ou inconsistencias.</small>
-      </div>
-      <a href="/anomalias" class="btn btn-danger ms-3">
-        <i class="bi bi-arrow-right-circle me-1"></i>Verificar
-      </a>
-    </div>
-
-    {{-- Status dos Dispositivos --}}
-    <div class="card mb-4">
-      <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2">
-        <h6 class="mb-0">
-          <i class="bi bi-hdd-network me-2"></i>Status dos Dispositivos
-        </h6>
-        <button class="btn btn-sm btn-outline-secondary" onclick="carregarStatusDispositivos()" title="Atualizar">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-      </div>
-      <div class="card-body py-2">
-        <div class="row g-3">
-          {{-- DeepFace (Reconhecimento Facial) --}}
-          <div class="col-md-4">
-            <div class="d-flex align-items-center p-2 rounded border" id="deviceDeepface">
-              <div class="me-3">
-                <i class="bi bi-camera-video fs-4 text-muted" id="iconDeepface"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="fw-medium small">Reconhecimento Facial</div>
-                <div class="text-muted" style="font-size: 0.75em;">
-                  <span id="statusDeepface">Verificando...</span>
-                </div>
-              </div>
-              <div>
-                <span class="badge bg-secondary" id="badgeDeepface">-</span>
-              </div>
-            </div>
-          </div>
-
-          {{-- Futronic (Leitor Digital) --}}
-          <div class="col-md-4">
-            <div class="d-flex align-items-center p-2 rounded border" id="deviceFutronic">
-              <div class="me-3">
-                <i class="bi bi-fingerprint fs-4 text-muted" id="iconFutronic"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="fw-medium small">Leitor de Digital</div>
-                <div class="text-muted" style="font-size: 0.75em;">
-                  <span id="statusFutronic">Verificando...</span>
-                </div>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-outline-primary" id="btnSyncDigitais" onclick="sincronizarDigitaisLocais()" title="Sincronizar digitais locais para o servidor" style="display: none;">
-                  <i class="bi bi-cloud-upload"></i>
-                </button>
-                <span class="badge bg-secondary" id="badgeFutronic">-</span>
-              </div>
-            </div>
-          </div>
-
-          {{-- REP Proxy (Equipamentos) --}}
-          <div class="col-md-4">
-            <div class="d-flex align-items-center p-2 rounded border" id="deviceRepProxy">
-              <div class="me-3">
-                <i class="bi bi-router fs-4 text-muted" id="iconRepProxy"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="fw-medium small">Proxy REP Control iD</div>
-                <div class="text-muted" style="font-size: 0.75em;">
-                  <span id="statusRepProxy">Verificando...</span>
-                </div>
-              </div>
-              <div>
-                <span class="badge bg-secondary" id="badgeRepProxy">-</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Alertas do Sistema --}}
-    <div id="alertasContainer" class="mb-4" style="display: none;"></div>
 
     <div class="row g-4">
+      {{-- Coluna Principal --}}
       <div class="col-lg-8">
-        <div class="card h-100">
-          <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Presença nos Últimos 7 Dias</h6>
-            <button class="btn btn-sm btn-outline-secondary" onclick="carregarGrafico()">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
+        {{-- Ações Rápidas --}}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações Rápidas</h5>
           </div>
           <div class="card-body">
-            <canvas id="chartPresenca" height="250"></canvas>
+            <div class="row g-3">
+              <div class="col-md-4 col-6">
+                <a href="/votacao/sessoes/criar" class="btn btn-outline-primary w-100 py-3">
+                  <i class="bi bi-plus-circle d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Nova Sessão
+                </a>
+              </div>
+              <div class="col-md-4 col-6">
+                <a href="/votacao/materias/criar-ia" class="btn btn-outline-success w-100 py-3">
+                  <i class="bi bi-stars d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Criar com IA
+                </a>
+              </div>
+              <div class="col-md-4 col-6">
+                <a href="/votacao/vereadores" class="btn btn-outline-info w-100 py-3">
+                  <i class="bi bi-people d-block mb-2" style="font-size: 1.5rem;"></i>
+                  Vereadores
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{-- Próxima Sessão --}}
+        @if(stats.proximaSessao)
+        <div class="card border-0 shadow-sm mb-4 border-start border-4 border-primary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Próxima Sessão</h6>
+                <h4 class="mb-1">
+                  Sessão {{ stats.proximaSessao.tipo }} {{ stats.proximaSessao.numero }}/{{ stats.proximaSessao.ano }}
+                </h4>
+                <p class="mb-0">
+                  <i class="bi bi-calendar me-1"></i>
+                  {{ new Date(stats.proximaSessao.data).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) }}
+                  @if(stats.proximaSessao.hora_inicio)
+                    às {{ stats.proximaSessao.hora_inicio }}
+                  @endif
+                </p>
+              </div>
+              <div>
+                <a href="/votacao/controle/{{ stats.proximaSessao.id }}" class="btn btn-primary btn-lg">
+                  <i class="bi bi-play-fill me-2"></i>Iniciar
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        @else
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 text-muted">Nenhuma sessão agendada</h5>
+            <p class="text-muted mb-3">Agende uma nova sessão para iniciar os trabalhos legislativos.</p>
+            <a href="/votacao/sessoes/criar" class="btn btn-primary">
+              <i class="bi bi-plus me-2"></i>Agendar Sessão
+            </a>
+          </div>
+        </div>
+        @endif
+
+        {{-- Como Funciona --}}
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-info-circle text-info me-2"></i>Como usar o VotaLegis</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-primary">1</span>
+                  </div>
+                  <h6>Agende a Sessão</h6>
+                  <small class="text-muted">Crie uma nova sessão com data, horário e pauta</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-success">2</span>
+                  </div>
+                  <h6>Controle em Tempo Real</h6>
+                  <small class="text-muted">Registre presenças, votações e falas pelo painel</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-center p-3">
+                  <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold text-warning">3</span>
+                  </div>
+                  <h6>Vereadores Votam</h6>
+                  <small class="text-muted">Cada vereador vota pelo celular em tempo real</small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
+      {{-- Coluna Lateral --}}
       <div class="col-lg-4">
-        <div class="card h-100">
-          <div class="card-header bg-transparent">
-            <h6 class="mb-0">Últimos Registros</h6>
+        {{-- Módulos --}}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-grid text-primary me-2"></i>Módulos</h5>
           </div>
           <div class="card-body p-0">
-            <div class="list-group list-group-flush" id="listaUltimosRegistros">
-              <div class="text-center py-4 text-muted">Nenhum registro hoje</div>
-            </div>
-          <div class="card-footer bg-transparent text-center">
-            <a href="/ponto" class="text-decoration-none" style="color: var(--cor-primaria);">Ver todos os registros</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Seção de Banco de Horas e Afastamentos --}}
-    <div class="row g-4 mt-2">
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h6 class="mb-0"><i class="bi bi-wallet2 me-2 text-success"></i>Banco de Horas - Resumo</h6>
-            <a href="/banco-horas" class="btn btn-sm btn-outline-success">Ver Detalhes</a>
-          </div>
-          <div class="card-body">
-            <div class="row text-center">
-              <div class="col-4">
-                <div class="p-3 bg-success bg-opacity-10 rounded">
-                  <i class="bi bi-plus-circle text-success fs-4 d-block mb-1"></i>
-                  <h5 class="mb-0 text-success" id="statBancoCreditos">0h</h5>
-                  <small class="text-muted">Créditos</small>
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="p-3 bg-danger bg-opacity-10 rounded">
-                  <i class="bi bi-dash-circle text-danger fs-4 d-block mb-1"></i>
-                  <h5 class="mb-0 text-danger" id="statBancoDebitos">0h</h5>
-                  <small class="text-muted">Débitos</small>
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="p-3 bg-info bg-opacity-10 rounded">
-                  <i class="bi bi-wallet2 text-info fs-4 d-block mb-1"></i>
-                  <h5 class="mb-0 text-info" id="statBancoSaldo">0h</h5>
-                  <small class="text-muted">Saldo Total</small>
-                </div>
-              </div>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between small">
-              <span class="text-muted">Funcionários com saldo negativo:</span>
-              <span class="badge bg-danger" id="statFuncsNegativos">0</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h6 class="mb-0"><i class="bi bi-calendar-x me-2 text-warning"></i>Afastamentos - Hoje</h6>
-            <a href="/afastamentos" class="btn btn-sm btn-outline-warning">Ver Todos</a>
-          </div>
-          <div class="card-body">
-            <div class="row text-center mb-3">
-              <div class="col-3">
-                <div class="p-2 border rounded">
-                  <i class="bi bi-sun text-primary"></i>
-                  <div class="fw-bold" id="statAfastFerias">0</div>
-                  <small class="text-muted" style="font-size: 0.7em;">Férias</small>
-                </div>
-              </div>
-              <div class="col-3">
-                <div class="p-2 border rounded">
-                  <i class="bi bi-file-medical text-warning"></i>
-                  <div class="fw-bold" id="statAfastAtestados">0</div>
-                  <small class="text-muted" style="font-size: 0.7em;">Atestados</small>
-                </div>
-              </div>
-              <div class="col-3">
-                <div class="p-2 border rounded">
-                  <i class="bi bi-file-text text-info"></i>
-                  <div class="fw-bold" id="statAfastLicencas">0</div>
-                  <small class="text-muted" style="font-size: 0.7em;">Licenças</small>
-                </div>
-              </div>
-              <div class="col-3">
-                <div class="p-2 border rounded">
-                  <i class="bi bi-clock text-secondary"></i>
-                  <div class="fw-bold" id="statAfastPendentes">0</div>
-                  <small class="text-muted" style="font-size: 0.7em;">Pendentes</small>
-                </div>
-              </div>
-            </div>
-            <div id="listaAfastamentosHoje" class="small">
-              <div class="text-center text-muted py-2">Carregando...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Gráfico de Horas Extras --}}
-    <div class="row g-4 mt-2">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Horas Extras por Semana (Últimos 30 dias)</h6>
-            <a href="/relatorio-banco-horas" class="btn btn-sm btn-outline-secondary">Relatórios</a>
-          </div>
-          <div class="card-body">
-            <canvas id="chartHorasExtras" height="150"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-  @end
-
-  @slot('scripts')
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script>
-      let chartPresenca = null;
-      let socket;
-
-      // Inicializa WebSocket
-      function initWebSocket() {
-        const municipioId = {{ municipio?.id || 1 }};
-
-        socket = io({
-          path: '/ws',
-          transports: ['websocket', 'polling']
-        });
-
-        socket.on('connect', () => {
-          console.log('[WS] Conectado:', socket.id);
-          document.getElementById('wsStatus').className = 'badge bg-success ms-2';
-          document.getElementById('wsStatus').textContent = 'Online';
-          socket.emit('subscribe', municipioId);
-        });
-
-        socket.on('disconnect', () => {
-          console.log('[WS] Desconectado');
-          document.getElementById('wsStatus').className = 'badge bg-danger ms-2';
-          document.getElementById('wsStatus').textContent = 'Offline';
-        });
-
-        socket.on('connect_error', (err) => {
-          console.log('[WS] Erro de conexão:', err.message);
-          document.getElementById('wsStatus').className = 'badge bg-warning ms-2';
-          document.getElementById('wsStatus').textContent = 'Reconectando...';
-        });
-
-        // Escuta novas batidas - atualiza dashboard
-        socket.on('nova-batida', (batida) => {
-          console.log('[WS] Nova batida:', batida);
-          toastr.info(`${batida.funcionario_nome} - ${batida.sentido}`, 'Nova Batida');
-          carregarStats();
-        });
-
-        // Escuta atualizações de stats
-        socket.on('stats-update', (stats) => {
-          console.log('[WS] Stats update:', stats);
-          document.getElementById('statFuncionarios').textContent = stats.total_funcionarios || 0;
-          document.getElementById('statPresentes').textContent = stats.presentes_hoje || 0;
-          document.getElementById('statEquipOnline').textContent = stats.equipamentos_online || 0;
-        });
-
-        // Escuta mudança de status de equipamento
-        socket.on('equipamento-status', (equip) => {
-          console.log('[WS] Equipamento status:', equip);
-          carregarStats();
-        });
-      }
-
-      // Data atual
-      document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      });
-
-      // Pega cor do CSS
-      function getCorPrimaria() {
-        return getComputedStyle(document.documentElement).getPropertyValue('--cor-primaria').trim() || '#1a73e8';
-      }
-
-      async function carregarStats() {
-        try {
-          const response = await fetch('/api/dashboard');
-          const data = await response.json();
-
-          document.getElementById('statFuncionarios').textContent = data.totalFuncionarios || 0;
-          document.getElementById('statPresentes').textContent = data.presentesHoje || 0;
-          document.getElementById('statPendencias').textContent = data.pendencias || 0;
-          document.getElementById('statEquipOnline').textContent = data.equipamentosOnline || 0;
-          document.getElementById('statEquipTotal').textContent = data.totalEquipamentos || 0;
-
-          const lista = document.getElementById('listaUltimosRegistros');
-          if (data.ultimosRegistros && data.ultimosRegistros.length > 0) {
-            lista.innerHTML = data.ultimosRegistros.map(r => `
-              <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+            <div class="list-group list-group-flush">
+              <a href="/votacao/vereador" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-phone text-success me-3 fs-4"></i>
                 <div>
-                  <div class="fw-medium small">${r.funcionario_nome}</div>
-                  <small class="text-muted">${r.matricula}</small>
+                  <strong>App do Vereador</strong>
+                  <small class="d-block text-muted">Votar e marcar presença</small>
                 </div>
-                <div class="text-end">
-                  <span class="badge ${r.tipo === 'ENTRADA' ? 'bg-success' : r.tipo === 'SAIDA' ? 'bg-danger' : 'bg-secondary'}">
-                    ${r.tipo || 'REG'}
-                  </span>
-                  <div class="small text-muted">${new Date(r.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+              </a>
+              <a href="/votacao/painel/{{ tenant?.municipio?.slug || tenant?.municipio?.id }}" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-display text-info me-3 fs-4"></i>
+                <div>
+                  <strong>Painel do Plenário</strong>
+                  <small class="d-block text-muted">TV com votação ao vivo</small>
                 </div>
-              </div>
-            `).join('');
-          } else {
-            lista.innerHTML = '<div class="text-center py-4 text-muted">Nenhum registro hoje</div>';
-          }
-          
-          // Exibe alertas do sistema
-          const alertasContainer = document.getElementById('alertasContainer');
-          if (data.alertas && data.alertas.length > 0) {
-            alertasContainer.innerHTML = data.alertas.map(a => `
-              <div class="alert alert-${a.tipo} d-flex align-items-center" role="alert">
-                <i class="bi bi-${a.icone} me-3 fs-4"></i>
-                <div class="flex-grow-1">
-                  <strong>${a.titulo}:</strong> ${a.mensagem}
+              </a>
+              <a href="/votacao/materias/criar-ia" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                <i class="bi bi-stars text-warning me-3 fs-4"></i>
+                <div>
+                  <strong>Criar Matéria com IA</strong>
+                  <small class="d-block text-muted">Gerar documentos automaticamente</small>
                 </div>
-                ${a.link ? `<a href="${a.link}" class="btn btn-${a.tipo} btn-sm ms-3">Configurar</a>` : ''}
-              </div>
-            `).join('');
-            alertasContainer.style.display = 'block';
-          } else {
-            alertasContainer.style.display = 'none';
-          }
-        } catch (error) {
-          console.error('Erro ao carregar estatísticas:', error);
-        }
-      }
+              </a>
+            </div>
+          </div>
+        </div>
 
-      async function carregarGrafico() {
-        try {
-          const response = await fetch('/api/dashboard/chart-presenca');
-          const dados = await response.json();
-
-          const ctx = document.getElementById('chartPresenca').getContext('2d');
-          const corPrimaria = getCorPrimaria();
-
-          if (chartPresenca) {
-            chartPresenca.destroy();
-          }
-
-          // Detecta modo escuro
-          const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-          const textColor = isDark ? '#a8b3c5' : '#666';
-          const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-
-          chartPresenca = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: dados.map(d => d.diaSemana),
-              datasets: [{
-                label: 'Funcionários Presentes',
-                data: dados.map(d => d.presentes),
-                backgroundColor: corPrimaria + 'cc',
-                borderColor: corPrimaria,
-                borderWidth: 1,
-                borderRadius: 4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: false
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    precision: 0,
-                    color: textColor
-                  },
-                  grid: {
-                    color: gridColor
-                  }
-                },
-                x: {
-                  ticks: {
-                    color: textColor
-                  },
-                  grid: {
-                    color: gridColor
-                  }
-                }
-              }
-            }
-          });
-        } catch (error) {
-          console.error('Erro ao carregar gráfico:', error);
-        }
-      }
-
-      // Carrega status dos dispositivos
-      async function carregarStatusDispositivos() {
-        try {
-          const response = await fetch('/api/dispositivos/status');
-          const data = await response.json();
-
-          // DeepFace
-          const deepface = data.deepface;
-          const deviceDeepface = document.getElementById('deviceDeepface');
-          const iconDeepface = document.getElementById('iconDeepface');
-          const statusDeepface = document.getElementById('statusDeepface');
-          const badgeDeepface = document.getElementById('badgeDeepface');
-
-          if (deepface.online) {
-            deviceDeepface.classList.remove('border-danger', 'border-secondary');
-            deviceDeepface.classList.add('border-success');
-            iconDeepface.classList.remove('text-muted', 'text-danger');
-            iconDeepface.classList.add('text-success');
-            badgeDeepface.className = 'badge bg-success';
-            badgeDeepface.textContent = 'Online';
-            statusDeepface.innerHTML = `${deepface.model || 'ArcFace'} | ${deepface.faces_cadastradas} faces`;
-          } else {
-            deviceDeepface.classList.remove('border-success', 'border-secondary');
-            deviceDeepface.classList.add('border-danger');
-            iconDeepface.classList.remove('text-muted', 'text-success');
-            iconDeepface.classList.add('text-danger');
-            badgeDeepface.className = 'badge bg-danger';
-            badgeDeepface.textContent = 'Offline';
-            statusDeepface.textContent = 'Servico indisponivel';
-          }
-
-          // Futronic - verifica diretamente no computador local do usuário
-          const deviceFutronic = document.getElementById('deviceFutronic');
-          const iconFutronic = document.getElementById('iconFutronic');
-          const statusFutronic = document.getElementById('statusFutronic');
-          const badgeFutronic = document.getElementById('badgeFutronic');
-
-          // Busca contagem de digitais do banco de dados (servidor)
-          let digitaisCadastradas = 0;
-          try {
-            const digitaisResponse = await fetch('/api/digitais/count');
-            const digitaisData = await digitaisResponse.json();
-            digitaisCadastradas = digitaisData.count || 0;
-          } catch (e) {
-            console.log('Erro ao buscar contagem de digitais:', e);
-          }
-
-          const btnSyncDigitais = document.getElementById('btnSyncDigitais');
-
-          try {
-            const futronicResponse = await fetch('http://localhost:5001/', {
-              method: 'GET',
-              signal: AbortSignal.timeout(3000)
-            });
-            const futronic = await futronicResponse.json();
-
-            deviceFutronic.classList.remove('border-danger', 'border-secondary');
-            iconFutronic.classList.remove('text-muted', 'text-danger');
-
-            // Verifica se há digitais locais para sincronizar
-            const templatesLocais = futronic.templates_cadastrados || 0;
-            if (templatesLocais > 0) {
-              btnSyncDigitais.style.display = 'inline-block';
-              btnSyncDigitais.title = `Sincronizar ${templatesLocais} digitais locais para o servidor`;
-            } else {
-              btnSyncDigitais.style.display = 'none';
-            }
-
-            if (futronic.device_connected) {
-              deviceFutronic.classList.add('border-success');
-              iconFutronic.classList.add('text-success');
-              badgeFutronic.className = 'badge bg-success';
-              badgeFutronic.textContent = 'Conectado';
-              statusFutronic.innerHTML = `${digitaisCadastradas} no servidor` + (templatesLocais > 0 ? ` | ${templatesLocais} local` : '');
-            } else {
-              deviceFutronic.classList.add('border-warning');
-              iconFutronic.classList.add('text-warning');
-              badgeFutronic.className = 'badge bg-warning text-dark';
-              badgeFutronic.textContent = 'Sem leitor';
-              statusFutronic.innerHTML = `${digitaisCadastradas} no servidor` + (templatesLocais > 0 ? ` | ${templatesLocais} local` : '');
-            }
-          } catch (e) {
-            // Futronic não está rodando no computador local
-            deviceFutronic.classList.remove('border-success', 'border-secondary', 'border-warning');
-            deviceFutronic.classList.add('border-danger');
-            iconFutronic.classList.remove('text-muted', 'text-success', 'text-warning');
-            iconFutronic.classList.add('text-danger');
-            badgeFutronic.className = 'badge bg-danger';
-            badgeFutronic.textContent = 'Offline';
-            statusFutronic.innerHTML = `${digitaisCadastradas} digitais | Inicie o Futronic API`;
-            btnSyncDigitais.style.display = 'none';
-          }
-
-          // REP Proxy
-          const repProxy = data.rep_proxy;
-          const deviceRepProxy = document.getElementById('deviceRepProxy');
-          const iconRepProxy = document.getElementById('iconRepProxy');
-          const statusRepProxy = document.getElementById('statusRepProxy');
-          const badgeRepProxy = document.getElementById('badgeRepProxy');
-
-          if (repProxy.online) {
-            deviceRepProxy.classList.remove('border-danger', 'border-secondary');
-            deviceRepProxy.classList.add('border-success');
-            iconRepProxy.classList.remove('text-muted', 'text-danger');
-            iconRepProxy.classList.add('text-success');
-            badgeRepProxy.className = 'badge bg-success';
-            badgeRepProxy.textContent = 'Online';
-            statusRepProxy.textContent = 'Porta 3334';
-          } else {
-            deviceRepProxy.classList.remove('border-success', 'border-secondary');
-            deviceRepProxy.classList.add('border-danger');
-            iconRepProxy.classList.remove('text-muted', 'text-success');
-            iconRepProxy.classList.add('text-danger');
-            badgeRepProxy.className = 'badge bg-danger';
-            badgeRepProxy.textContent = 'Offline';
-            statusRepProxy.textContent = 'Servico indisponivel';
-          }
-
-        } catch (error) {
-          console.error('Erro ao carregar status dos dispositivos:', error);
-          // Define como offline em caso de erro
-          ['Deepface', 'Futronic', 'RepProxy'].forEach(name => {
-            const device = document.getElementById(`device${name}`);
-            const icon = document.getElementById(`icon${name}`);
-            const status = document.getElementById(`status${name}`);
-            const badge = document.getElementById(`badge${name}`);
-
-            if (device && icon && status && badge) {
-              device.classList.remove('border-success', 'border-warning');
-              device.classList.add('border-secondary');
-              icon.classList.remove('text-success', 'text-warning', 'text-danger');
-              icon.classList.add('text-muted');
-              badge.className = 'badge bg-secondary';
-              badge.textContent = 'Erro';
-              status.textContent = 'Falha ao verificar';
-            }
-          });
-        }
-      }
-
-      // Carrega alerta de anomalias
-      async function carregarAnomalias() {
-        try {
-          const response = await fetch('/api/anomalias/resumo');
-          const data = await response.json();
-          const alerta = document.getElementById('alertaAnomalias');
-          const qtd = document.getElementById('qtdAnomalias');
-
-          if (data.pendentes > 0) {
-            qtd.textContent = data.pendentes;
-            alerta.style.display = 'flex';
-            alerta.classList.add('animate__animated', 'animate__fadeIn');
-          } else {
-            alerta.style.display = 'none';
-          }
-        } catch (error) {
-          console.log('[Anomalias] Erro ao carregar:', error);
-        }
-      }
-
-      // Inicializa
-      initWebSocket();
-      carregarStats();
-      carregarGrafico();
-      carregarStatusDispositivos();
-      carregarDadosBancoHoras();
-      carregarDadosAfastamentos();
-      carregarGraficoHorasExtras();
-      carregarAnomalias();
-
-      // Atualiza a cada 30 segundos (fallback caso WS falhe)
-      setInterval(carregarStats, 30000);
-
-      // Atualiza status dos dispositivos a cada 60 segundos
-      setInterval(carregarStatusDispositivos, 60000);
-
-      // Carrega dados do banco de horas
-      async function carregarDadosBancoHoras() {
-        try {
-          const res = await fetch('/api/dashboard/banco-horas');
-          const data = await res.json();
-          
-          document.getElementById('statBancoCreditos').textContent = minutosParaHoras(data.creditos || 0);
-          document.getElementById('statBancoDebitos').textContent = minutosParaHoras(data.debitos || 0);
-          document.getElementById('statBancoSaldo').textContent = minutosParaHoras(data.saldo || 0);
-          document.getElementById('statFuncsNegativos').textContent = data.funcionarios_negativos || 0;
-        } catch (e) {
-          console.error('Erro ao carregar banco de horas:', e);
-        }
-      }
-
-      // Carrega dados de afastamentos
-      async function carregarDadosAfastamentos() {
-        try {
-          const res = await fetch('/api/dashboard/afastamentos');
-          const data = await res.json();
-          
-          document.getElementById('statAfastFerias').textContent = data.ferias || 0;
-          document.getElementById('statAfastAtestados').textContent = data.atestados || 0;
-          document.getElementById('statAfastLicencas').textContent = data.licencas || 0;
-          document.getElementById('statAfastPendentes').textContent = data.pendentes || 0;
-
-          const lista = document.getElementById('listaAfastamentosHoje');
-          if (data.afastamentos_hoje && data.afastamentos_hoje.length > 0) {
-            lista.innerHTML = data.afastamentos_hoje.slice(0, 5).map(a => `
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <span>${a.funcionario_nome}</span>
-                <span class="badge bg-light text-dark">${a.tipo}</span>
-              </div>
-            `).join('');
-          } else {
-            lista.innerHTML = '<div class="text-center text-muted py-2">Nenhum afastamento hoje</div>';
-          }
-        } catch (e) {
-          console.error('Erro ao carregar afastamentos:', e);
-          document.getElementById('listaAfastamentosHoje').innerHTML = '<div class="text-center text-muted py-2">Nenhum afastamento hoje</div>';
-        }
-      }
-
-      // Gráfico de horas extras
-      let chartHorasExtras = null;
-      async function carregarGraficoHorasExtras() {
-        try {
-          const res = await fetch('/api/dashboard/horas-extras');
-          const dados = await res.json();
-
-          const ctx = document.getElementById('chartHorasExtras').getContext('2d');
-          const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-          const textColor = isDark ? '#a8b3c5' : '#666';
-          const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-
-          if (chartHorasExtras) {
-            chartHorasExtras.destroy();
-          }
-
-          chartHorasExtras = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: dados.map(d => d.semana),
-              datasets: [{
-                label: 'Horas Extras (min)',
-                data: dados.map(d => d.minutos),
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 2
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
-                x: { ticks: { color: textColor }, grid: { color: gridColor } }
-              }
-            }
-          });
-        } catch (e) {
-          console.error('Erro ao carregar gráfico horas extras:', e);
-        }
-      }
-
-      function minutosParaHoras(minutos) {
-        const horas = Math.floor(Math.abs(minutos) / 60);
-        const mins = Math.abs(minutos) % 60;
-        const sinal = minutos < 0 ? '-' : '';
-        return `${sinal}${horas}h${mins.toString().padStart(2, '0')}m`;
-      }
-
-      // Sincroniza digitais do Futronic local para o servidor
-      async function sincronizarDigitaisLocais() {
-        const btn = document.getElementById('btnSyncDigitais');
-        const originalHtml = btn.innerHTML;
-
-        try {
-          btn.disabled = true;
-          btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-          // 1. Busca digitais da API Futronic local
-          const listarResponse = await fetch('http://localhost:5001/listar', {
-            method: 'GET',
-            signal: AbortSignal.timeout(5000)
-          });
-          const listarData = await listarResponse.json();
-
-          if (!listarData.success || !listarData.digitais || listarData.digitais.length === 0) {
-            toastr.warning('Nenhuma digital encontrada no cache local');
-            return;
-          }
-
-          // 2. Envia para o servidor
-          const syncResponse = await fetch('/api/digitais/sincronizar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              digitais: listarData.digitais.map(d => ({
-                funcionario_id: d.funcionario_id,
-                nome: d.nome,
-                pis: d.pis,
-                template: d.template || d.template_base64
-              }))
-            })
-          });
-
-          const syncData = await syncResponse.json();
-
-          if (syncData.success) {
-            toastr.success(`${syncData.salvos} digitais sincronizadas com sucesso!`);
-            if (syncData.erros > 0) {
-              toastr.warning(`${syncData.erros} digitais com erro`);
-            }
-            // Atualiza o status
-            carregarStatusDispositivos();
-          } else {
-            toastr.error(syncData.error || 'Erro ao sincronizar');
-          }
-
-        } catch (e) {
-          console.error('Erro ao sincronizar digitais:', e);
-          toastr.error('Erro ao sincronizar: ' + e.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalHtml;
-        }
-      }
-    </script>
+        {{-- Links Úteis --}}
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="mb-0"><i class="bi bi-link-45deg text-secondary me-2"></i>Acesso Rápido</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <a href="/votacao/sessoes" class="btn btn-outline-primary text-start">
+                <i class="bi bi-calendar-event me-2"></i>Todas as Sessões
+              </a>
+              <a href="/votacao/legislaturas" class="btn btn-outline-secondary text-start">
+                <i class="bi bi-calendar3 me-2"></i>Legislaturas
+              </a>
+              <a href="/votacao/partidos" class="btn btn-outline-secondary text-start">
+                <i class="bi bi-flag me-2"></i>Partidos
+              </a>
+              @if(tenant && tenant.isSuperAdmin)
+              <hr class="my-2">
+              <a href="/admin/municipios" class="btn btn-outline-danger text-start">
+                <i class="bi bi-buildings me-2"></i>Gerenciar Câmaras
+              </a>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   @end
 @end

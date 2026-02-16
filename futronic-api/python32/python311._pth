@@ -1,7 +1,0 @@
-python311.zip
-.
-Lib
-Lib/site-packages
-
-# Enable site.main() for pip
-import site

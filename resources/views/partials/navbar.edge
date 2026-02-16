@@ -1,0 +1,41 @@
+<nav class="navbar navbar-top navbar-expand-lg px-4 py-2">
+  {{-- Botao de menu mobile --}}
+  <button class="btn btn-link d-lg-none p-0 me-3" type="button" onclick="toggleSidebar()">
+    <i class="bi bi-list fs-4"></i>
+  </button>
+
+  {{-- Botao de recolher sidebar (desktop) --}}
+  <button class="btn btn-link d-none d-lg-flex p-0 me-3 sidebar-toggle-header" type="button" onclick="toggleSidebarCollapse()" title="Recolher/Expandir menu">
+    <i class="bi bi-list fs-4"></i>
+  </button>
+
+  <div class="ms-auto d-flex align-items-center gap-3">
+    @if(tenant && tenant.municipio)
+      <span class="text-muted d-none d-md-inline">
+        <i class="bi bi-building me-1"></i>{{ tenant.municipio.nome }} - {{ tenant.municipio.uf }}
+      </span>
+    @end
+
+    {{-- Dark Mode Toggle --}}
+    <button class="btn btn-link text-muted p-0" onclick="toggleDarkMode()" title="Alternar tema">
+      <i class="bi bi-moon-stars fs-5" id="darkModeIcon"></i>
+    </button>
+
+    <div class="dropdown">
+      <button class="btn btn-link text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-person-circle me-1"></i>
+        {{ tenant?.usuario?.nome || 'Usuario' }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        @if(tenant && tenant.isSuperAdmin)
+          <li><a class="dropdown-item" href="/trocar-municipio"><i class="bi bi-building me-2"></i>Trocar Camara</a></li>
+          <li><hr class="dropdown-divider"></li>
+        @end
+        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{{-- Overlay para mobile --}}
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>

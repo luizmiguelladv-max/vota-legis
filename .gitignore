@@ -9,11 +9,8 @@ tmp
 .env.production.local
 .env.development.local
 
-# Frontend assets compiled code (Vite)
-# Portal assets are allowed (index-*, face-profile-*)
-public/assets/.vite
-public/assets/app-*.js
-public/assets/app-*.css
+# Frontend assets compiled code
+public/assets
 
 # Build tools specific
 npm-debug.log
@@ -26,19 +23,3 @@ yarn-error.log
 
 # Platform specific
 .DS_Store
-deepface-api/nul
-nul
-deepface-api/nul
-nul
-
-# Virtual environments
-venv/
-deepface-api/venv/
-futronic-api/venv/
-deepface-api/nul
-nul
-__pycache__/
-*.pyc
-
-# Claude Code
-.claude/
