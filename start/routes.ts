@@ -9336,3 +9336,17 @@ router.group(() => {
   router.get('/configuracoes',           [VotaAdminCtrl, 'configuracoes']).as('votacao.admin.configuracoes')
   router.put('/configuracoes',           [VotaAdminCtrl, 'updateConfiguracoes']).as('votacao.admin.configuracoes.update')
 }).prefix('/admin/votacao').use([middleware.auth(), middleware.requireSuperAdmin()])
+
+router.get("/debug/controle", async ({ session, response }) => {
+  try {
+    const db = (await import("@adonisjs/lucid/services/db")).default
+    const mId = session.get("municipioId")
+    const s = `camara_${mId}`
+    const sessao = await db.from(`${s}.sessoes`).where("status", "em_andamento").first()
+    return response.json({ ok: true, municipioId: mId, schema: s, sessao })
+  } catch(e) {
+    return response.json({ error: e.message, stack: e.stack?.split("
+").slice(0,5) })
+  }
+}).use(middleware.auth())
+
