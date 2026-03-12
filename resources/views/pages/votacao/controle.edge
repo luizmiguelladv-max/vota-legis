@@ -1,18 +1,159 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>VotaLegis — Controle</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-white p-4">
-  <h1>✅ Controle funcionando!</h1>
-  <p>municipioId na sessão: {{ sessaoMunicipioId }}</p>
-  <p>Sessão ativa: {{ sessao ? sessao.tipo + ' — ' + sessao.data_sessao : 'Nenhuma' }}</p>
-  <p>Total vereadores: {{ totalVereadores }}</p>
-  <p>Total sessões: {{ totalSessoes }}</p>
-  <hr>
-  <a href="/logout" class="btn btn-danger">Sair</a>
-</body>
-</html>
+@layout('layouts/votacao')
+
+@section('title')Controle — VotaLegis@end
+
+@section('sidebar')
+  <div class="nav-section">Sessão</div>
+  <a href="/controle/votacao" class="nav-link active"><i class="bi bi-house-fill"></i>Painel</a>
+  <a href="/controle/votacao/sessoes" class="nav-link"><i class="bi bi-calendar-event"></i>Sessões</a>
+  <a href="/controle/votacao/materias" class="nav-link"><i class="bi bi-file-text"></i>Matérias</a>
+  <div class="nav-section">Plenário</div>
+  <a href="/controle/votacao/quorum" class="nav-link"><i class="bi bi-people"></i>Quórum / Presença</a>
+  <a href="/controle/votacao/vereadores" class="nav-link"><i class="bi bi-person-badge"></i>Vereadores</a>
+  <div class="nav-section">Painel</div>
+  <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link">
+    <i class="bi bi-display"></i>Painel TV <i class="bi bi-box-arrow-up-right ms-1" style="font-size:.65rem"></i>
+  </a>
+@end
+
+@section('content')
+<div class="row g-3 mb-4">
+  {{-- Sessão atual --}}
+  <div class="col-12">
+    @if(sessao)
+      <div class="alert alert-success d-flex align-items-center gap-3 mb-0">
+        <i class="bi bi-record-circle-fill fs-4 text-success"></i>
+        <div class="flex-grow-1">
+          <strong>Sessão em andamento:</strong>
+          {{ sessao.tipo }} — {{ sessao.data_sessao }}
+          @if(sessao.descricao)<small class="text-muted ms-2">{{ sessao.descricao }}</small>@end
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="encerrarSessao({{ sessao.id }})">
+          <i class="bi bi-stop-circle me-1"></i>Encerrar Sessão
+        </button>
+      </div>
+    @else
+      <div class="alert alert-info d-flex align-items-center gap-3 mb-0">
+        <i class="bi bi-info-circle-fill fs-4"></i>
+        <div class="flex-grow-1">Nenhuma sessão em andamento.</div>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaSessao">
+          <i class="bi bi-plus-circle me-1"></i>Iniciar Sessão
+        </button>
+      </div>
+    @end
+  </div>
+
+  {{-- Cards de resumo --}}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary bg-opacity-25 p-3">
+            <i class="bi bi-calendar-check text-primary fs-5"></i>
+          </div>
+          <div>
+            <div class="fs-3 fw-bold text-white">{{ totalSessoes }}</div>
+            <div class="text-secondary small">Sessões realizadas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-success bg-opacity-25 p-3">
+            <i class="bi bi-people text-success fs-5"></i>
+          </div>
+          <div>
+            <div class="fs-3 fw-bold text-white">{{ totalVereadores }}</div>
+            <div class="text-secondary small">Vereadores ativos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-warning bg-opacity-25 p-3">
+            <i class="bi bi-file-text text-warning fs-5"></i>
+          </div>
+          <div>
+            <div class="fs-3 fw-bold text-white">0</div>
+            <div class="text-secondary small">Matérias pendentes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- Modal Nova Sessão --}}
+<div class="modal fade" id="modalNovaSessao" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-white"><i class="bi bi-calendar-plus me-2"></i>Nova Sessão</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Tipo de Sessão</label>
+          <select id="tipo" class="form-select">
+            <option value="ordinaria">Ordinária</option>
+            <option value="extraordinaria">Extraordinária</option>
+            <option value="solene">Solene</option>
+            <option value="especial">Especial</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Data</label>
+          <input type="date" id="data_sessao" class="form-control" value="{{ new Date().toISOString().split('T')[0] }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Local</label>
+          <input type="text" id="local" class="form-control" placeholder="Plenário da Câmara" value="Plenário da Câmara">
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-secondary small">Descrição (opcional)</label>
+          <input type="text" id="descricao" class="form-control" placeholder="Pauta da sessão...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="criarSessao()">
+          <i class="bi bi-play-circle me-1"></i>Criar e Iniciar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+@end
+
+@section('scripts')
+<script>
+async function criarSessao() {
+  const body = {
+    tipo: document.getElementById('tipo').value,
+    data_sessao: document.getElementById('data_sessao').value,
+    local: document.getElementById('local').value,
+    descricao: document.getElementById('descricao').value,
+  }
+  const r = await fetch('/controle/votacao/sessoes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '' },
+    body: JSON.stringify(body)
+  })
+  if (r.ok) location.reload()
+}
+
+async function encerrarSessao(id) {
+  if (!confirm('Encerrar a sessão atual?')) return
+  await fetch(`/controle/votacao/sessoes/${id}/encerrar`, { method: 'POST' })
+  location.reload()
+}
+</script>
+@end
