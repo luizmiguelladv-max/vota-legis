@@ -1,9 +1,5 @@
 @layout('layouts/votacao')
 
-@section('title')
-Controle — VotaLegis
-@end
-
 @section('sidebar')
   <div class="nav-section">Sessão</div>
   <a href="/controle/votacao" class="nav-link active"><i class="bi bi-house-fill"></i>Painel</a>
@@ -113,7 +109,7 @@ Controle — VotaLegis
         </div>
         <div class="mb-3">
           <label class="form-label text-secondary small">Data</label>
-          <input type="date" id="data_sessao" class="form-control" value="{{ new Date().toISOString().split('T')[0] }}">
+          <input type="date" id="data_sessao" class="form-control" >
         </div>
         <div class="mb-3">
           <label class="form-label text-secondary small">Local</label>

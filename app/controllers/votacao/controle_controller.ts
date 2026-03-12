@@ -13,6 +13,7 @@ export default class ControleController {
     const totalVereadores = await db.from(`${s}.vereadores`).where('ativo', true).count('* as total').first()
 
     return view.render('pages/votacao/controle', {
+      pageTitle: 'Controle — VotaLegis',
       sessaoMunicipioId: session.get('municipioId'),
       sessao,
       totalSessoes: (totalSessoes as any)?.total || 0,
