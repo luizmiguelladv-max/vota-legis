@@ -1,0 +1,88 @@
+@layout('layouts/minimal')
+@slot('title')
+  VotaLegis — {{ vereador?.nome_parlamentar || usuario.nome }}
+@end
+@slot('content')
+
+<div id="votalegis-app" 
+     data-cargo="{{ vereador?.cargo || 'vereador' }}"
+     data-sessao-id="{{ sessao?.id || '' }}">
+
+  @if(sessao)
+    {{-- PRESIDENTE: botão disparar quórum --}}
+    @if(vereador?.cargo === 'presidente')
+      <div id="quorum-section">
+        @if(sessao.status_quorum === 'fechado')
+          <form action="/app/votacao/quorum/abrir" method="POST">
+            {{ csrfField() }}
+            <button type="submit" class="btn btn-success btn-lg w-100">
+              📡 Disparar Quórum
+            </button>
+          </form>
+        @end
+      </div>
+    @end
+
+    {{-- ESTADO: QUÓRUM ABERTO --}}
+    @if(estadoAtual === 'quorum')
+      <div id="estado-quorum">
+        <h4>Quórum Aberto</h4>
+        <form action="/app/votacao/quorum/presenca" method="POST">
+          {{ csrfField() }}
+          <button type="submit" class="btn btn-success w-100">✓ Confirmar Presença</button>
+        </form>
+      </div>
+    @end
+
+    {{-- ESTADO: LEITURA --}}
+    @if(estadoAtual === 'leitura')
+      <div id="estado-leitura">
+        <span class="badge bg-warning text-dark">Em Leitura</span>
+        <h5>{{ materiaAtual?.ementa }}</h5>
+        <small>{{ materiaAtual?.tipo }} · Nº {{ materiaAtual?.numero }}</small>
+      </div>
+    @end
+
+    {{-- ESTADO: VOTAÇÃO --}}
+    @if(estadoAtual === 'votacao')
+      <div id="estado-votacao">
+        <h5>{{ materiaAtual?.ementa }}</h5>
+        @if(votacaoAtual?.meuVoto)
+          <div class="alert alert-success">
+            ✅ Voto registrado: <strong>{{ votacaoAtual.meuVoto.opcao }}</strong>
+          </div>
+        @else
+          <form action="/app/votacao/votar" method="POST">
+            {{ csrfField() }}
+            <button name="opcao" value="favor"    class="btn btn-success  w-100 mb-2">👍 A FAVOR</button>
+            <button name="opcao" value="contra"   class="btn btn-danger   w-100 mb-2">👎 CONTRA</button>
+            <button name="opcao" value="abstencao" class="btn btn-info    w-100">◎ ABSTENÇÃO</button>
+          </form>
+        @end
+      </div>
+    @end
+
+    {{-- ESTADO: AGUARDANDO --}}
+    @if(estadoAtual === 'aguardando')
+      <div id="estado-aguardando" class="text-center py-5">
+        <p class="text-muted">Aguardando próxima atividade...</p>
+      </div>
+    @end
+
+  @else
+    <div class="text-center py-5">
+      <p class="text-muted">Nenhuma sessão em andamento.</p>
+    </div>
+  @end
+
+</div>
+
+<script>
+  const evtSource = new EventSource('/app/votacao/events')
+  evtSource.onmessage = (e) => {
+    const data = JSON.parse(e.data)
+    // TODO: atualizar estado da UI via SSE
+    console.log('[App SSE]', data)
+  }
+</script>
+@end

@@ -1,0 +1,24 @@
+@layout('layouts/admin')
+@slot('title')VotaLegis Admin@end
+@slot('content')
+
+<div id="votacao-admin">
+  <h4 class="mb-4">⚡ VotaLegis — Super Admin</h4>
+  
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h2>{{ totalCamaras }}</h2><p class="text-muted mb-0">Câmaras</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="/admin/votacao/camaras"      class="btn btn-primary">🏛️ Câmaras</a>
+    <a href="/admin/votacao/planos"       class="btn btn-outline-primary">💳 Planos</a>
+    <a href="/admin/votacao/usuarios"     class="btn btn-outline-secondary">👥 Usuários</a>
+    <a href="/admin/votacao/logs"         class="btn btn-outline-secondary">📋 Logs</a>
+    <a href="/admin/votacao/configuracoes" class="btn btn-outline-secondary">⚙️ Configs</a>
+  </div>
+</div>
+@end

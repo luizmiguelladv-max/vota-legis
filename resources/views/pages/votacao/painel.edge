@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ configuracoes?.nome_camara || 'Câmara Municipal' }} — Painel TV</title>
+  <link rel="stylesheet" href="/css/votacao-painel.css">
+</head>
+<body data-estado="{{ sessao?.status || 'standby' }}">
+
+@if(sessao)
+  <div id="painel-live" 
+       data-sessao-id="{{ sessao.id }}"
+       data-municipio="{{ municipio.slug }}">
+    <div class="estado estado-em_andamento">
+      <h1>Sessão em Andamento</h1>
+      <p>{{ sessao.tipo }} — {{ sessao.data_sessao }}</p>
+    </div>
+  </div>
+@else
+  <div class="estado estado-standby">
+    @if(configuracoes?.brasao_url)
+      <img src="{{ configuracoes.brasao_url }}" alt="Brasão" class="brasao">
+    @end
+    <h1>{{ configuracoes?.nome_camara || 'Câmara Municipal' }}</h1>
+    <p class="subtitulo">{{ municipio.nome }} — {{ municipio.uf }}</p>
+    <p class="aguardando">Aguardando início da sessão</p>
+  </div>
+@end
+
+<script>
+  // SSE — escuta eventos em tempo real
+  const evtSource = new EventSource('/painel/{{ municipio.slug }}/events')
+  evtSource.onmessage = (e) => {
+    const data = JSON.parse(e.data)
+    console.log('[Painel SSE]', data)
+    // TODO: atualizar UI conforme eventos
+  }
+</script>
+</body>
+</html>

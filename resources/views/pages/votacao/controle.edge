@@ -1,0 +1,40 @@
+@layout('layouts/main')
+@slot('title')VotaLegis — Controle@end
+@slot('content')
+
+<div id="votacao-controle">
+  <h4 class="mb-4">🗳️ Controle de Sessão</h4>
+  
+  @if(sessao)
+    <div class="alert alert-success">
+      <strong>Sessão em andamento:</strong> {{ sessao.tipo }} — {{ sessao.data_sessao }}
+      <a href="/controle/votacao/sessoes/{{ sessao.id }}" class="btn btn-sm btn-outline-light ms-3">Gerenciar</a>
+    </div>
+  @else
+    <div class="alert alert-secondary">
+      Nenhuma sessão em andamento.
+      <a href="/controle/votacao/sessoes" class="btn btn-sm btn-primary ms-3">+ Nova Sessão</a>
+    </div>
+  @end
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h2>{{ totalSessoes }}</h2><p class="text-muted mb-0">Sessões</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h2>{{ totalVereadores }}</h2><p class="text-muted mb-0">Vereadores</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/controle/votacao/sessoes"      class="btn btn-outline-primary">📋 Sessões</a>
+    <a href="/controle/votacao/vereadores"   class="btn btn-outline-secondary">👥 Vereadores</a>
+    <a href="/controle/votacao/relatorios"   class="btn btn-outline-secondary">📊 Relatórios</a>
+    <a href="/controle/votacao/configuracoes" class="btn btn-outline-secondary">⚙️ Configurações</a>
+  </div>
+</div>
+@end
