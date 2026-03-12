@@ -191,11 +191,18 @@ export default class AuthController {
               // Registra auditoria
               await AuditService.logLogin(user.id, 'master', ip, userAgent, 'Dispositivo confiável')
 
+              // Se usuário já tem câmara vinculada, seta municipioId na sessão automaticamente
+              if (user.municipioId) {
+                session.put('municipioId', user.municipioId)
+              }
+              const redirectTo = user.municipioId
+                ? (user.perfil === 'vereador' ? '/app/votacao' : user.perfil === 'secretaria' ? '/controle/votacao' : '/dashboard')
+                : '/selecionar-municipio'
               return response.json({
                 success: true,
                 user: masterResult.user,
                 token: masterResult.token,
-                redirectTo: '/selecionar-municipio',
+                redirectTo,
               })
             }
           }
@@ -242,11 +249,18 @@ export default class AuthController {
         // Registra auditoria de login
         await AuditService.logLogin(user.id, 'master', ip, userAgent)
 
+        // Detecta câmara pelo usuário — sem tela de seleção
+        if (user.municipioId) {
+          session.put('municipioId', user.municipioId)
+        }
+        const redirectTo = user.municipioId
+          ? (user.perfil === 'vereador' ? '/app/votacao' : user.perfil === 'secretaria' ? '/controle/votacao' : '/dashboard')
+          : '/selecionar-municipio'
         return response.json({
           success: true,
           user: masterResult.user,
           token: masterResult.token,
-          redirectTo: '/selecionar-municipio',
+          redirectTo,
         })
       }
     }

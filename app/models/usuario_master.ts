@@ -34,6 +34,12 @@ export default class UsuarioMaster extends compose(BaseModel, AuthFinder) {
   declare ativo: boolean
 
   @column()
+  declare municipioId: number | null
+
+  @column()
+  declare perfil: string // 'super_admin' | 'admin_camara' | 'secretaria' | 'vereador'
+
+  @column()
   declare telefone: string | null
 
   @column()
@@ -77,8 +83,8 @@ export default class UsuarioMaster extends compose(BaseModel, AuthFinder) {
     await this.save()
   }
 
-  // Propriedade computada para indicar que é super admin
+  // super_admin não tem municipio_id vinculado
   get isSuperAdmin(): boolean {
-    return true
+    return !this.municipioId || this.perfil === 'super_admin'
   }
 }
