@@ -9295,6 +9295,8 @@ router.group(() => {
   router.post('/voz/:id/conceder',             [VotaControleCtrl, 'concederVoz']).as('votacao.controle.voz.conceder')
   router.post('/voz/:id/cancelar',             [VotaControleCtrl, 'cancelarVozControle']).as('votacao.controle.voz.cancelar')
   router.post('/voz/timer',                    [VotaControleCtrl, 'setTimer']).as('votacao.controle.voz.timer')
+  router.get('/quorum',                        [VotaControleCtrl, 'quorum']).as('votacao.controle.quorum')
+  router.post('/quorum/presenca',              [VotaControleCtrl, 'registrarPresenca']).as('votacao.controle.quorum.presenca')
   router.get('/vereadores',                    [VotaControleCtrl, 'vereadores']).as('votacao.controle.vereadores')
   router.post('/vereadores',                   [VotaControleCtrl, 'storeVereador']).as('votacao.controle.vereadores.store')
   router.put('/vereadores/:id',                [VotaControleCtrl, 'updateVereador']).as('votacao.controle.vereadores.update')

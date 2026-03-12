@@ -16,8 +16,8 @@ export default class ControleController {
       pageTitle: 'Controle — VotaLegis',
       sessaoMunicipioId: session.get('municipioId'),
       sessao,
-      totalSessoes: (totalSessoes as any)?.total || 0,
-      totalVereadores: (totalVereadores as any)?.total || 0,
+      totalSessoes: Number((totalSessoes as any)?.total ?? 0),
+      totalVereadores: Number((totalVereadores as any)?.total ?? 0),
     })
   }
 
