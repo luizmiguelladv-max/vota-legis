@@ -1,0 +1,97 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <a href="/controle/votacao/legislaturas" class="nav-link"><div class="nav-icon"><i class="bi bi-bank"></i></div>Legislaturas</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/controle/votacao/relatorios" class="nav-link active"><div class="nav-icon"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>Relatórios</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Relatório da Sessão</div>
+        <div class="vl-header-meta">
+          <span><i class="bi bi-calendar3"></i>{{ sessao.data_sessao }}</span>
+          <span><i class="bi bi-geo-alt"></i>{{ sessao.local_ || 'Plenário' }}</span>
+        </div>
+      </div>
+      <div class="vl-header-actions">
+        <a href="/controle/votacao/relatorios" class="btn-header"><i class="bi bi-arrow-left"></i>Voltar</a>
+        <a href="/controle/votacao/relatorios/exportar/{{ sessao.id }}" class="btn-header" target="_blank"><i class="bi bi-download"></i>Exportar JSON</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content">
+    {{-- INFO DA SESSÃO --}}
+    <div class="card card-pad">
+      <h4 style="font-weight:800;color:#0f172a;margin-bottom:16px">{{ sessao.descricao || (sessao.tipo + ' Legislativa') }}</h4>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div><div style="font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px">Tipo</div><div style="font-weight:600">{{ sessao.tipo }}</div></div>
+        <div><div style="font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px">Status</div><div><span class="badge-{{ sessao.status === 'encerrada' ? 'encerrada' : 'agendada' }}">{{ sessao.status }}</span></div></div>
+        <div><div style="font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px">Início</div><div style="font-weight:600">{{ sessao.hora_inicio || '—' }}</div></div>
+      </div>
+    </div>
+
+    {{-- PRESENÇAS --}}
+    <div class="card">
+      <div class="card-header-bar">
+        <div class="card-title">Presença</div>
+        <div style="font-size:.8rem;color:#64748b">{{ presencas.filter(p => p.presente).length }} presentes de {{ presencas.length }}</div>
+      </div>
+      @if(presencas.length)
+        <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px">
+          @each(p in presencas)
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;font-size:.82rem;font-weight:600;background:{{ p.presente ? '#dcfce7' : '#f1f5f9' }};color:{{ p.presente ? '#15803d' : '#64748b' }}">
+              <i class="bi bi-{{ p.presente ? 'check-circle-fill' : 'x-circle' }}"></i>
+              {{ p.nome_parlamentar }}
+            </span>
+          @end
+        </div>
+      @else
+        <div class="empty-state" style="padding:24px"><p>Nenhuma presença registrada</p></div>
+      @end
+    </div>
+
+    {{-- MATÉRIAS --}}
+    <div class="card">
+      <div class="card-header-bar">
+        <div class="card-title">Matérias Pautadas</div>
+      </div>
+      @if(materias.length)
+        @each(m in materias)
+        <div class="materia-row">
+          <div class="materia-n">#{{ m.ordem || loop.index + 1 }}</div>
+          <div style="flex:1">
+            <div class="materia-title">{{ m.tipo }} {{ m.numero || '' }}</div>
+            <div class="materia-ementa">{{ m.ementa || '—' }}</div>
+            <span class="badge-{{ m.status === 'aprovada' ? 'aprovada' : m.status === 'rejeitada' ? 'rejeitada' : 'agendada' }}">{{ m.status }}</span>
+          </div>
+          @if(m.status === 'aprovada' || m.status === 'rejeitada')
+          <div>
+            @each(v in votacoes.filter(v => v.materia_id === m.id))
+              <div class="placar">
+                <div class="placar-box placar-sim"><div class="placar-n">{{ v.votos_sim || 0 }}</div><div class="placar-l">SIM</div></div>
+                <div class="placar-box placar-nao"><div class="placar-n">{{ v.votos_nao || 0 }}</div><div class="placar-l">NÃO</div></div>
+                <div class="placar-box placar-abs"><div class="placar-n">{{ v.votos_abstencao || 0 }}</div><div class="placar-l">ABS</div></div>
+              </div>
+            @end
+          </div>
+          @end
+        </div>
+        @end
+      @else
+        <div class="empty-state" style="padding:24px"><p>Nenhuma matéria pautada</p></div>
+      @end
+    </div>
+  </div>
+  @end
+@end

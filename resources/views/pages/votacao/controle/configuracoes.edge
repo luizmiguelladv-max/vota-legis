@@ -1,0 +1,112 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <a href="/controle/votacao/legislaturas" class="nav-link"><div class="nav-icon"><i class="bi bi-bank"></i></div>Legislaturas</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link active"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Configurações da Câmara</div>
+        <div class="vl-header-meta">
+          <span><i class="bi bi-gear"></i>Parâmetros operacionais do sistema</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content">
+    <div class="card card-pad" style="max-width:640px">
+      <h4 style="font-weight:800;color:#0f172a;margin-bottom:20px;font-size:.95rem">Identificação</h4>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Nome da Câmara</label>
+        <input type="text" id="conf-nome-camara" class="form-input" value="{{ conf?.nome_camara || municipio?.nome || '' }}" placeholder="Ex: Câmara Municipal de Poço de José de Moura">
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Nome do Município</label>
+        <input type="text" id="conf-nome-municipio" class="form-input" value="{{ conf?.nome_municipio || '' }}" placeholder="Ex: Poço de José de Moura - PB">
+      </div>
+      <div class="form-group" style="margin-bottom:24px">
+        <label>Cor Principal</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="color" id="conf-cor" class="form-input" value="{{ conf?.cor_primaria || '#2563eb' }}" style="height:42px;width:80px;cursor:pointer;padding:4px">
+          <span id="conf-cor-label" style="font-family:var(--mono);font-size:.85rem;color:#64748b">{{ conf?.cor_primaria || '#2563eb' }}</span>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #f1f5f9;margin:0 0 20px">
+      <h4 style="font-weight:800;color:#0f172a;margin-bottom:20px;font-size:.95rem">Parâmetros de Votação</h4>
+
+      <div class="form-row" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>Quórum Mínimo (vereadores)</label>
+          <input type="number" id="conf-quorum" class="form-input" value="{{ conf?.quorum_minimo || 5 }}" min="1" max="99">
+        </div>
+        <div class="form-group">
+          <label>Tempo de Fala Padrão (min)</label>
+          <input type="number" id="conf-tempo-fala" class="form-input" value="{{ conf?.tempo_fala_padrao || 3 }}" min="1" max="60">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="conf-secreta" style="width:18px;height:18px;cursor:pointer" {{ conf?.votacao_secreta_padrao ? 'checked' : '' }}>
+          Votação secreta por padrão
+        </label>
+      </div>
+      <div class="form-group" style="margin-bottom:24px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="conf-foto-quorum" style="width:18px;height:18px;cursor:pointer" {{ conf?.exibir_foto_quorum ? 'checked' : '' }}>
+          Exibir foto dos vereadores no quórum
+        </label>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn-primary" onclick="salvarConfiguracoes()">
+          <i class="bi bi-check-lg"></i>Salvar Configurações
+        </button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  document.getElementById('conf-cor').addEventListener('input', function() {
+    document.getElementById('conf-cor-label').textContent = this.value
+  })
+
+  async function salvarConfiguracoes() {
+    const body = {
+      nome_camara: document.getElementById('conf-nome-camara').value,
+      nome_municipio: document.getElementById('conf-nome-municipio').value,
+      cor_primaria: document.getElementById('conf-cor').value,
+      quorum_minimo: Number(document.getElementById('conf-quorum').value),
+      tempo_fala_padrao: Number(document.getElementById('conf-tempo-fala').value),
+      votacao_secreta_padrao: document.getElementById('conf-secreta').checked,
+      exibir_foto_quorum: document.getElementById('conf-foto-quorum').checked,
+    }
+    const r = await fetch('/controle/votacao/configuracoes', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    })
+    if (r.ok) {
+      alert('Configurações salvas com sucesso!')
+    } else {
+      const e = await r.json()
+      alert(e.error || 'Erro ao salvar')
+    }
+  }
+  </script>
+  @end
+@end

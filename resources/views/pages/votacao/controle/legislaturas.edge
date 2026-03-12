@@ -1,0 +1,144 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <a href="/controle/votacao/legislaturas" class="nav-link active"><div class="nav-icon"><i class="bi bi-bank"></i></div>Legislaturas</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Legislaturas</div>
+        <div class="vl-header-meta">
+          <span><i class="bi bi-bank"></i>{{ legislaturas.length }} legislatura(s) cadastrada(s)</span>
+        </div>
+      </div>
+      <div class="vl-header-actions">
+        <button class="btn-header btn-header-primary" onclick="document.getElementById('modal-novaLeg').classList.add('open')">
+          <i class="bi bi-plus-lg"></i>Nova Legislatura
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content">
+    <div class="card">
+      @if(legislaturas.length)
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:2px solid #f1f5f9">
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Número</th>
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Período</th>
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Status</th>
+              <th style="padding:12px 20px;text-align:right;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(l in legislaturas)
+            <tr style="border-bottom:1px solid #f8fafc" class="sessao-item">
+              <td style="padding:14px 20px;font-weight:800;color:#0f172a;font-family:var(--mono)">{{ l.numero }}ª Legislatura</td>
+              <td style="padding:14px 20px;color:#64748b">{{ l.ano_inicio }} – {{ l.ano_fim }}</td>
+              <td style="padding:14px 20px">
+                @if(l.ativa)
+                  <span class="badge-live"><i class="bi bi-check-circle-fill me-1"></i>Ativa</span>
+                @else
+                  <span class="badge-encerrada">Encerrada</span>
+                @end
+              </td>
+              <td style="padding:14px 20px;text-align:right">
+                <button class="btn-icon" onclick="editarLegislatura({{ l.id }}, {{ l.numero }}, {{ l.ano_inicio }}, {{ l.ano_fim }}, {{ l.ativa ? 'true' : 'false' }})">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </td>
+            </tr>
+            @end
+          </tbody>
+        </table>
+      @else
+        <div class="empty-state">
+          <i class="bi bi-bank"></i>
+          <h5>Nenhuma legislatura cadastrada</h5>
+          <p>Cadastre a legislatura atual para organizar as sessões.</p>
+        </div>
+      @end
+    </div>
+  </div>
+
+  {{-- MODAL --}}
+  <div id="modal-novaLeg" class="modal-overlay">
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modal-leg-title">Nova Legislatura</h3>
+          <p class="modal-subtitle">Período de mandato dos vereadores</p>
+        </div>
+        <button class="btn-close-modal" onclick="document.getElementById('modal-novaLeg').classList.remove('open')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="leg-id">
+        <div class="form-group">
+          <label>Número *</label>
+          <input type="number" id="leg-numero" class="form-input" placeholder="Ex: 19" min="1">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ano Início *</label>
+            <input type="number" id="leg-inicio" class="form-input" placeholder="2021" min="2000" max="2100">
+          </div>
+          <div class="form-group">
+            <label>Ano Fim *</label>
+            <input type="number" id="leg-fim" class="form-input" placeholder="2024" min="2000" max="2100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="leg-ativa" style="width:18px;height:18px;cursor:pointer">
+            Legislatura ativa (atual)
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="document.getElementById('modal-novaLeg').classList.remove('open')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarLegislatura()"><i class="bi bi-check-lg"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  function editarLegislatura(id, numero, inicio, fim, ativa) {
+    document.getElementById('leg-id').value = id
+    document.getElementById('leg-numero').value = numero
+    document.getElementById('leg-inicio').value = inicio
+    document.getElementById('leg-fim').value = fim
+    document.getElementById('leg-ativa').checked = ativa
+    document.getElementById('modal-leg-title').textContent = 'Editar Legislatura'
+    document.getElementById('modal-novaLeg').classList.add('open')
+  }
+
+  async function salvarLegislatura() {
+    const id = document.getElementById('leg-id').value
+    const body = {
+      numero: Number(document.getElementById('leg-numero').value),
+      ano_inicio: Number(document.getElementById('leg-inicio').value),
+      ano_fim: Number(document.getElementById('leg-fim').value),
+      ativa: document.getElementById('leg-ativa').checked,
+    }
+    const url = id ? `/controle/votacao/legislaturas/${id}` : '/controle/votacao/legislaturas'
+    const method = id ? 'PUT' : 'POST'
+    const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    if (r.ok) location.reload()
+    else { const e = await r.json(); alert(e.error || 'Erro ao salvar') }
+  }
+  </script>
+  @end
+@end

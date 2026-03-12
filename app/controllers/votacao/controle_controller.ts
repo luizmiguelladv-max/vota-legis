@@ -238,4 +238,147 @@ export default class ControleController {
     response.response.write(`data: ${JSON.stringify(data)}\n\n`)
     response.response.end()
   }
+
+  // ===========================================================================
+  // PARTIDOS
+  // ===========================================================================
+
+  async partidos({ session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const partidos = await db.from(`${s}.partidos`).orderBy('sigla')
+    return view.render('pages/votacao/controle/partidos', { ...base, partidos })
+  }
+
+  async storePartido({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['sigla', 'nome', 'cor'])
+    const [p] = await db.table(`${s}.partidos`).insert(data).returning('*')
+    return response.json({ success: true, partido: p })
+  }
+
+  async updatePartido({ params, request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['sigla', 'nome', 'cor'])
+    await db.from(`${s}.partidos`).where('id', params.id).update(data)
+    return response.json({ success: true })
+  }
+
+  async destroyPartido({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.partidos`).where('id', params.id).delete()
+    return response.json({ success: true })
+  }
+
+  // ===========================================================================
+  // LEGISLATURAS
+  // ===========================================================================
+
+  async legislaturas({ session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const legislaturas = await db.from(`${s}.legislaturas`).orderBy('ano_inicio', 'desc')
+    return view.render('pages/votacao/controle/legislaturas', { ...base, legislaturas })
+  }
+
+  async storeLegislatura({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['numero', 'ano_inicio', 'ano_fim', 'ativa'])
+    if (data.ativa) {
+      await db.from(`${s}.legislaturas`).update({ ativa: false })
+    }
+    const [l] = await db.table(`${s}.legislaturas`).insert({ ...data, ativa: data.ativa ?? false }).returning('*')
+    return response.json({ success: true, legislatura: l })
+  }
+
+  async updateLegislatura({ params, request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['numero', 'ano_inicio', 'ano_fim', 'ativa'])
+    if (data.ativa) {
+      await db.from(`${s}.legislaturas`).whereNot('id', params.id).update({ ativa: false })
+    }
+    await db.from(`${s}.legislaturas`).where('id', params.id).update(data)
+    return response.json({ success: true })
+  }
+
+  // ===========================================================================
+  // CONFIGURAÇÕES
+  // ===========================================================================
+
+  async configuracoes({ session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const conf = await db.from(`${s}.configuracoes`).first()
+    return view.render('pages/votacao/controle/configuracoes', { ...base, conf })
+  }
+
+  async updateConfiguracoes({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only([
+      'nome_camara', 'nome_municipio', 'cor_primaria',
+      'quorum_minimo', 'tempo_fala_padrao', 'votacao_secreta_padrao', 'exibir_foto_quorum',
+    ])
+    const existe = await db.from(`${s}.configuracoes`).first()
+    if (existe) {
+      await db.from(`${s}.configuracoes`).where('id', existe.id).update(data)
+    } else {
+      await db.table(`${s}.configuracoes`).insert(data)
+    }
+    return response.json({ success: true })
+  }
+
+  async updateTema({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const { cor_primaria } = request.only(['cor_primaria'])
+    const existe = await db.from(`${s}.configuracoes`).first()
+    if (existe) {
+      await db.from(`${s}.configuracoes`).where('id', existe.id).update({ cor_primaria })
+    }
+    return response.json({ success: true })
+  }
+
+  // ===========================================================================
+  // RELATÓRIOS
+  // ===========================================================================
+
+  async relatorios({ session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const [ultimasSessoes, totalVotacoes] = await Promise.all([
+      db.from(`${s}.sessoes`).orderBy('data_sessao', 'desc').limit(10),
+      db.from(`${s}.votacoes`).count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+    ])
+    return view.render('pages/votacao/controle/relatorios', { ...base, ultimasSessoes, totalVotacoes })
+  }
+
+  async relatorioSessao({ params, session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const [sessao, materias, presencas, votacoes] = await Promise.all([
+      db.from(`${s}.sessoes`).where('id', params.id).firstOrFail(),
+      db.from(`${s}.materias`).where('sessao_id', params.id).orderBy('ordem', 'asc'),
+      db.from(`${s}.presencas`).join(`${s}.vereadores`, `${s}.vereadores.id`, `${s}.presencas.vereador_id`)
+        .select(`${s}.presencas.*`, `${s}.vereadores.nome_parlamentar`)
+        .where(`${s}.presencas.sessao_id`, params.id),
+      db.from(`${s}.votacoes`).where('sessao_id', params.id).orderBy('iniciada_em', 'asc'),
+    ])
+    return view.render('pages/votacao/controle/relatorio-sessao', { ...base, sessao, materias, presencas, votacoes })
+  }
+
+  async exportarRelatorio({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const sessao = await db.from(`${s}.sessoes`).where('id', params.id).first() as any
+    const materias = await db.from(`${s}.materias`).where('sessao_id', params.id).orderBy('ordem', 'asc')
+    return response.json({ sessao, materias })
+  }
+
+  // ===========================================================================
+  // DESTRUIÇÃO DE VEREADOR
+  // ===========================================================================
+
+  async destroyVereador({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.vereadores`).where('id', params.id).update({ ativo: false })
+    return response.json({ success: true })
+  }
 }

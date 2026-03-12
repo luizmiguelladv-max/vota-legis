@@ -5,8 +5,10 @@
     <a href="/controle/votacao/sessoes" class="nav-link active"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões<span class="nav-badge">1</span></a>
     <div class="nav-section">Cadastros</div>
     <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/legislaturas" class="nav-link"><div class="nav-icon"><i class="bi bi-bank"></i></div>Legislaturas</a>
     <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
     <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/relatorios" class="nav-link"><div class="nav-icon"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>Relatórios</a>
     <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
   @end
 
@@ -37,7 +39,8 @@
     </div>
     <div style="display:flex;gap:8px">
       @if(sessao.status === 'em_andamento')
-        <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="btn-ghost btn-sm"><i class="bi bi-display"></i>Painel TV</a>
+        <a href="/controle/votacao/relatorios" class="nav-link"><div class="nav-icon"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>Relatórios</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="btn-ghost btn-sm"><i class="bi bi-display"></i>Painel TV</a>
         <button class="btn-danger btn-sm" onclick="acao('/controle/votacao/sessoes/{{ sessao.id }}/encerrar','Encerrar a sessão?')"><i class="bi bi-stop-fill"></i>Encerrar Sessão</button>
       @elseif(sessao.status === 'agendada')
         <button class="btn-primary btn-sm" onclick="acao('/controle/votacao/sessoes/{{ sessao.id }}/iniciar','Iniciar a sessão agora?')"><i class="bi bi-play-fill"></i>Iniciar Sessão</button>

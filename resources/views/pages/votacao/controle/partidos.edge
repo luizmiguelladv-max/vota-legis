@@ -1,0 +1,152 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link active"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <a href="/controle/votacao/legislaturas" class="nav-link"><div class="nav-icon"><i class="bi bi-bank"></i></div>Legislaturas</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Partidos Políticos</div>
+        <div class="vl-header-meta">
+          <span><i class="bi bi-flag3"></i>{{ partidos.length }} partido(s) cadastrado(s)</span>
+        </div>
+      </div>
+      <div class="vl-header-actions">
+        <button class="btn-header btn-header-primary" onclick="document.getElementById('modal-novoPartido').classList.add('open')">
+          <i class="bi bi-plus-lg"></i>Novo Partido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content">
+    <div class="card">
+      @if(partidos.length)
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:2px solid #f1f5f9">
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Sigla</th>
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Nome</th>
+              <th style="padding:12px 20px;text-align:left;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Cor</th>
+              <th style="padding:12px 20px;text-align:right;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(p in partidos)
+            <tr style="border-bottom:1px solid #f8fafc" class="sessao-item">
+              <td style="padding:14px 20px">
+                <span class="partido-tag" style="background:{{ p.cor }}22;color:{{ p.cor }};border:1px solid {{ p.cor }}44;font-size:.85rem;font-weight:800;padding:4px 12px">{{ p.sigla }}</span>
+              </td>
+              <td style="padding:14px 20px;font-weight:600;color:#0f172a">{{ p.nome }}</td>
+              <td style="padding:14px 20px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:24px;height:24px;border-radius:6px;background:{{ p.cor }};border:2px solid #e2e8f0"></div>
+                  <code style="font-size:.78rem;color:#64748b">{{ p.cor }}</code>
+                </div>
+              </td>
+              <td style="padding:14px 20px;text-align:right">
+                <div style="display:flex;justify-content:flex-end;gap:6px">
+                  <button class="btn-icon" title="Editar" onclick="editarPartido({{ p.id }}, '{{ p.sigla }}', '{{ p.nome }}', '{{ p.cor }}')">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn-icon danger" title="Excluir" onclick="excluirPartido({{ p.id }})">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            @end
+          </tbody>
+        </table>
+      @else
+        <div class="empty-state">
+          <i class="bi bi-flag"></i>
+          <h5>Nenhum partido cadastrado</h5>
+          <p>Cadastre os partidos políticos da câmara.</p>
+        </div>
+      @end
+    </div>
+  </div>
+
+  {{-- MODAL NOVO PARTIDO --}}
+  <div id="modal-novoPartido" class="modal-overlay">
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modal-partido-title">Novo Partido</h3>
+          <p class="modal-subtitle">Cadastre um partido político</p>
+        </div>
+        <button class="btn-close-modal" onclick="document.getElementById('modal-novoPartido').classList.remove('open')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="partido-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sigla *</label>
+            <input type="text" id="partido-sigla" class="form-input" placeholder="PT, PSD, MDB..." maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>Cor *</label>
+            <input type="color" id="partido-cor" class="form-input" value="#2563eb" style="height:42px;cursor:pointer">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nome completo *</label>
+          <input type="text" id="partido-nome" class="form-input" placeholder="Ex: Partido dos Trabalhadores">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="document.getElementById('modal-novoPartido').classList.remove('open')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarPartido()"><i class="bi bi-check-lg"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  function editarPartido(id, sigla, nome, cor) {
+    document.getElementById('partido-id').value = id
+    document.getElementById('partido-sigla').value = sigla
+    document.getElementById('partido-nome').value = nome
+    document.getElementById('partido-cor').value = cor
+    document.getElementById('modal-partido-title').textContent = 'Editar Partido'
+    document.getElementById('modal-novoPartido').classList.add('open')
+  }
+
+  async function salvarPartido() {
+    const id = document.getElementById('partido-id').value
+    const body = {
+      sigla: document.getElementById('partido-sigla').value,
+      nome: document.getElementById('partido-nome').value,
+      cor: document.getElementById('partido-cor').value,
+    }
+    const url = id ? `/controle/votacao/partidos/${id}` : '/controle/votacao/partidos'
+    const method = id ? 'PUT' : 'POST'
+    const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    if (r.ok) { location.reload() }
+    else { const e = await r.json(); alert(e.error || 'Erro ao salvar') }
+  }
+
+  async function excluirPartido(id) {
+    if (!confirm('Excluir este partido? Vereadores vinculados perderão a referência.')) return
+    const r = await fetch(`/controle/votacao/partidos/${id}`, { method: 'DELETE' })
+    if (r.ok) location.reload()
+  }
+
+  document.getElementById('modal-novoPartido').addEventListener('click', function(e) {
+    if (e.target === this) { this.classList.remove('open'); document.getElementById('partido-id').value = ''; document.getElementById('modal-partido-title').textContent = 'Novo Partido' }
+  })
+  </script>
+  @end
+@end
