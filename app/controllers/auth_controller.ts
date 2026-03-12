@@ -539,35 +539,13 @@ export default class AuthController {
       return response.redirect('/login')
     }
 
-    // Busca municípios ativos ordenados por nome
+    // Busca câmaras ativas ordenadas por nome
     const municipios = await Municipio.query()
       .where('ativo', true)
       .where('status', 'ATIVO')
       .orderBy('nome', 'asc')
 
-    // Calcula total de funcionários para cada município
-    const { dbManager } = await import('#services/database_manager_service')
-    const municipiosComFuncionarios = await Promise.all(
-      municipios.map(async (m) => {
-        try {
-          const [result] = await dbManager.queryMunicipio(
-            m.id,
-            'SELECT COUNT(*) as total FROM funcionarios WHERE ativo = true'
-          )
-          return {
-            ...m.toJSON(),
-            totalFuncionarios: parseInt(result?.total || 0)
-          }
-        } catch {
-          return {
-            ...m.toJSON(),
-            totalFuncionarios: 0
-          }
-        }
-      })
-    )
-
-    return view.render('pages/selecionar-municipio', { municipios: municipiosComFuncionarios })
+    return view.render('pages/selecionar-municipio', { municipios: municipios.map(m => m.toJSON()) })
   }
 
   /**
