@@ -13,16 +13,20 @@ export default class PainelController {
     let presentes = 0, materiasPendentes: any[] = [], votacaoAtiva = null, falando = null
 
     if (sessao) {
-      const presencas = await db.from(`${s}.presencas`).where('sessao_id', sessao.id).where('presente', true)
+      // presencas: sem coluna 'presente', qualquer registro = presente
+      const presencas = await db.from(`${s}.presencas`).where('sessao_id', sessao.id)
       presentes = (presencas as any[]).length
       const presencasIds = new Set((presencas as any[]).map((p: any) => p.vereador_id))
       for (const v of vereadores as any[]) { v.presente = presencasIds.has(v.id) }
 
       materiasPendentes = await db.from(`${s}.materias`).where('sessao_id', sessao.id).orderBy('ordem','asc').orderBy('created_at','asc')
-      votacaoAtiva = await db.from(`${s}.votacoes as vo`)
+      // materias não tem coluna 'titulo', usar ementa como titulo
+      const va = await db.from(`${s}.votacoes as vo`)
         .join(`${s}.materias as m`, 'm.id', 'vo.materia_id')
-        .select('vo.*', 'm.titulo', 'm.ementa', 'm.tipo')
-        .where('vo.sessao_id', sessao.id).where('vo.status','em_andamento').first()
+        .select('vo.*', 'm.ementa', 'm.tipo')
+        .where('vo.sessao_id', sessao.id).where('vo.status','em_andamento').first() as any
+      if (va) va.titulo = va.ementa
+      votacaoAtiva = va
       falando = await db.from(`${s}.tempo_fala`).join(`${s}.vereadores`,`${s}.vereadores.id`,`${s}.tempo_fala.vereador_id`).select(`${s}.tempo_fala.*`,`${s}.vereadores.nome_parlamentar`,`${s}.vereadores.cargo`).where(`${s}.tempo_fala.sessao_id`, sessao.id).where(`${s}.tempo_fala.status`,'em_andamento').first()
     }
 
@@ -35,8 +39,8 @@ export default class PainelController {
     const s = `camara_${municipio.id}`
     const sessao = await db.from(`${s}.sessoes`).where('status','em_andamento').first() as any
     if (!sessao) return response.json({ sessao: null })
-    const presentes = await db.from(`${s}.presencas`).where('sessao_id', sessao.id).where('presente',true).count('* as total').first().then(r => Number((r as any)?.total ?? 0))
-    const votacao = await db.from(`${s}.votacoes as vo`).join(`${s}.materias as m`,'m.id','vo.materia_id').select('vo.*','m.titulo','m.ementa').where('vo.sessao_id', sessao.id).where('vo.status','em_andamento').first()
+    const presentes = await db.from(`${s}.presencas`).where('sessao_id', sessao.id).count('* as total').first().then(r => Number((r as any)?.total ?? 0))
+    const votacao = await db.from(`${s}.votacoes as vo`).join(`${s}.materias as m`,'m.id','vo.materia_id').select('vo.*','m.ementa').where('vo.sessao_id', sessao.id).where('vo.status','em_andamento').first()
     return response.json({ sessao, presentes, votacao, ts: Date.now() })
   }
 }
