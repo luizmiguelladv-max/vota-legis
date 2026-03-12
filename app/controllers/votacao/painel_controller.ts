@@ -22,7 +22,7 @@ export default class PainelController {
       .where('v.ativo', true)
       .orderBy('v.cargo', 'asc')
       .orderBy('v.nome_parlamentar', 'asc')
-      .select('v.*', 'p.sigla as partido_sigla')
+      .select('v.*', 'p.sigla as partido_sigla', 'p.cor as partido_cor')
 
     // Votação ativa (se houver sessão)
     let votacaoAtiva = null

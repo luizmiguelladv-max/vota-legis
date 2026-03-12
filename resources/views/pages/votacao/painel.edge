@@ -130,12 +130,8 @@
         <div class="vereadores-grid">
           @each(v in vereadores)
             <div class="vereador-card {{ presencasIds && presencasIds.includes(v.id) ? 'presente' : 'ausente' }}">
-              <div class="vereador-foto">
-                @if(v.foto_url)
-                  <img src="{{ v.foto_url }}" alt="{{ v.nome_parlamentar }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
-                @else
-                  <i class="bi bi-person-fill"></i>
-                @end
+              <div class="vereador-foto" style="background:{{ v.partido_cor || '#1d4ed8' }}22; border:2px solid {{ v.partido_cor || '#1d4ed8' }}; color:{{ v.partido_cor || '#1d4ed8' }}; font-weight:700; font-size:.9rem;">
+                {{ (v.nome_parlamentar || v.nome || 'V').substring(0,1).toUpperCase() }}
               </div>
               <div>
                 <div class="vereador-nome">{{ v.nome_parlamentar || v.nome }}</div>
