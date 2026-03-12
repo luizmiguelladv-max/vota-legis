@@ -3,172 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="10">
-  <title>{{ configuracoes?.nome_camara || municipio?.nome || 'Câmara Municipal' }} — Painel TV</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <title>{{ municipio?.nome || 'Câmara Municipal' }} — Painel TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
-    body { background: #0a0f1e; color: #e2e8f0; min-height: 100vh; margin: 0; display: flex; flex-direction: column; }
+    :root{ --p:#1d4ed8; --p2:#1e40af; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+    body{background:#0f172a;color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+    @keyframes pulseRing{0%{transform:scale(.85);opacity:1}100%{transform:scale(2.2);opacity:0}}
+    .live-dot{position:relative;display:inline-flex;width:10px;height:10px}
+    .live-dot::before{content:'';position:absolute;inset:0;border-radius:50%;background:#22c55e;animation:pulseRing 1.5s infinite}
+    .live-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#22c55e}
 
-    /* Header */
-    .painel-header { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #3b82f6; }
-    .painel-header h1 { font-size: 1.5rem; font-weight: 800; margin: 0; letter-spacing: -.5px; }
-    .painel-header .brasao { font-size: 2rem; }
-    .relogio { font-size: 1.8rem; font-weight: 700; color: #93c5fd; font-variant-numeric: tabular-nums; }
+    /* HEADER */
+    .tv-header{background:linear-gradient(135deg,var(--p),var(--p2));padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;flex-shrink:0}
+    .tv-header::before{content:'';position:absolute;top:-60%;right:-5%;width:400px;height:400px;background:rgba(255,255,255,.05);border-radius:50%}
+    .tv-header-left{position:relative;display:flex;align-items:center;gap:18px}
+    .tv-brasao{width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900}
+    .tv-camara{font-size:1.5rem;font-weight:900;letter-spacing:-.02em}
+    .tv-subtitulo{font-size:.85rem;opacity:.75;margin-top:3px}
+    .tv-header-right{position:relative;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+    .tv-clock{font-size:2.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+    .tv-date{font-size:.82rem;opacity:.65}
+    .tv-live{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:99px;font-size:.8rem;font-weight:700;backdrop-filter:blur(6px)}
 
-    /* Estado atual */
-    .estado-badge { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem 1.2rem; border-radius: 50px; font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .estado-aguardando { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
-    .estado-sessao { background: #14532d; color: #4ade80; border: 1px solid #16a34a; animation: pulsar 2s infinite; }
-    .estado-votacao { background: #7c2d12; color: #fb923c; border: 1px solid #ea580c; animation: pulsar 1s infinite; }
-    @keyframes pulsar { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+    /* BODY */
+    .tv-body{flex:1;padding:20px 24px;display:flex;gap:18px;overflow:hidden}
+    .tv-left{flex:1;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+    .tv-right{width:300px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex-shrink:0}
 
-    /* Main */
-    .painel-main { flex: 1; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; }
+    /* SESSÃO */
+    .sessao-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px 22px}
+    .sessao-tipo{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#60a5fa;margin-bottom:6px}
+    .sessao-nome{font-size:1.3rem;font-weight:800;color:#f8fafc}
+    .sessao-meta{display:flex;gap:16px;margin-top:8px;font-size:.8rem;color:#94a3b8}
 
-    /* Sessão info */
-    .sessao-info { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem 2rem; }
-    .sessao-info h2 { font-size: 2rem; font-weight: 800; margin: 0 0 .25rem; color: #f1f5f9; }
-    .sessao-info p { margin: 0; color: #94a3b8; font-size: 1rem; }
+    /* QUORUM BAR */
+    .quorum-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 20px}
+    .quorum-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:10px}
+    .quorum-nums{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
+    .quorum-n{font-size:2.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:#22c55e;line-height:1}
+    .quorum-total{font-size:1rem;color:#475569}
+    .progress-track{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:99px;transition:width .6s}
 
-    /* Votação em andamento */
-    .votacao-card { background: linear-gradient(135deg, #1c1917, #292524); border: 2px solid #f97316; border-radius: 16px; padding: 1.5rem 2rem; }
-    .votacao-card h3 { color: #fb923c; font-weight: 800; font-size: 1.2rem; margin: 0 0 .5rem; }
-    .votacao-card .ementa { font-size: 1.3rem; font-weight: 600; color: #f1f5f9; }
-    .placar { display: flex; gap: 1rem; margin-top: 1rem; }
-    .placar-item { flex: 1; border-radius: 12px; padding: 1rem; text-align: center; }
-    .placar-sim { background: #14532d; border: 1px solid #16a34a; }
-    .placar-nao { background: #450a0a; border: 1px solid #dc2626; }
-    .placar-abs { background: #1c1917; border: 1px solid #78716c; }
-    .placar-item .numero { font-size: 3rem; font-weight: 800; line-height: 1; }
-    .placar-item .label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: .7; margin-top: .25rem; }
+    /* VOTAÇÃO */
+    .votacao-card{background:linear-gradient(135deg,rgba(29,78,216,.2),rgba(30,64,175,.1));border:2px solid rgba(37,99,235,.5);border-radius:16px;padding:20px 22px}
+    .votacao-titulo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#60a5fa;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    .votacao-titulo{font-size:1.1rem;font-weight:800;color:#f8fafc;margin-bottom:14px}
+    .placar-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .placar-box{border-radius:12px;padding:14px;text-align:center;color:#fff}
+    .p-sim{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 4px 20px rgba(34,197,94,.3)}
+    .p-nao{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 20px rgba(239,68,68,.3)}
+    .p-abs{background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 4px 20px rgba(6,182,212,.3)}
+    .placar-n{font-size:2.4rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+    .placar-l{font-size:.7rem;font-weight:700;opacity:.85;margin-top:3px}
 
-    /* Vereadores presentes */
-    .vereadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem; }
-    .vereador-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: .75rem 1rem; display: flex; align-items: center; gap: .75rem; }
-    .vereador-card.presente { border-color: #16a34a; background: #0f2d1a; }
-    .vereador-card.ausente { opacity: .4; }
-    .vereador-foto { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #334155; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.2rem; }
-    .vereador-nome { font-size: .8rem; font-weight: 600; line-height: 1.2; }
-    .vereador-partido { font-size: .7rem; color: #64748b; }
+    /* VEREADORES GRID */
+    .vereadores-section{flex:1;overflow:hidden}
+    .vereadores-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin-bottom:10px}
+    .vereadores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+    .v-card{border-radius:11px;padding:12px 10px;text-align:center;border:2px solid transparent;transition:all .3s}
+    .v-presente{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25)}
+    .v-ausente{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);opacity:.55}
+    .v-favor{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.5)}
+    .v-contra{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5)}
+    .v-abstencao{background:rgba(6,182,212,.15);border-color:rgba(6,182,212,.5)}
+    .v-aguardando{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35)}
+    .v-av{width:44px;height:44px;border-radius:10px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;border:2px solid}
+    .v-name{font-size:.72rem;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .v-partido{font-size:.62rem;color:#64748b;margin-top:2px}
+    .v-voto-icon{font-size:1.1rem;margin-bottom:4px}
 
-    /* Footer */
-    .painel-footer { background: #111827; border-top: 1px solid #1f2937; padding: .75rem 2rem; display: flex; align-items: center; justify-content: space-between; font-size: .8rem; color: #475569; }
+    /* SIDEBAR DIREITA */
+    .side-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px}
+    .side-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin-bottom:10px}
 
-    /* Standby */
-    .standby { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-    .standby .logo { font-size: 5rem; margin-bottom: 1rem; }
-    .standby h2 { font-size: 2.5rem; font-weight: 800; color: #1d4ed8; margin: 0 0 .5rem; }
-    .standby p { color: #475569; font-size: 1.1rem; }
+    /* IDLE */
+    .idle-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.3}
+    .idle-state i{font-size:4rem}
+    .idle-state p{font-size:1rem;font-weight:700}
+
+    @keyframes vFlash{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+    .v-flash{animation:vFlash .35s ease}
   </style>
 </head>
 <body>
 
-{{-- Header sempre visível --}}
-<div class="painel-header">
-  <div class="d-flex align-items-center gap-3">
-    <span class="brasao"><i class="bi bi-building-fill"></i></span>
+<div class="tv-header">
+  <div class="tv-header-left">
+    <div class="tv-brasao">{{ (municipio?.nome || 'C').substring(0,1).toUpperCase() }}</div>
     <div>
-      <h1>{{ configuracoes?.nome_camara || municipio?.nome || 'Câmara Municipal' }}</h1>
-      <small style="color:#93c5fd;font-size:.85rem">{{ municipio?.nome || '' }} — {{ municipio?.uf || '' }}</small>
+      <div class="tv-camara">Câmara Municipal de {{ municipio?.nome || 'Nova Floresta' }}</div>
+      <div class="tv-subtitulo">{{ municipio?.uf || 'PB' }} · {{ legislatura?.descricao || 'Legislatura Ativa' }}</div>
     </div>
   </div>
-  <div class="d-flex align-items-center gap-3">
+  <div class="tv-header-right">
+    <div class="tv-clock" id="clock">--:--:--</div>
+    <div class="tv-date" id="dateTxt"></div>
     @if(sessao)
-      <span class="estado-badge estado-sessao"><i class="bi bi-record-circle-fill"></i>Sessão em Andamento</span>
-    @else
-      <span class="estado-badge estado-aguardando"><i class="bi bi-clock"></i>Aguardando</span>
+      <div class="tv-live"><span class="live-dot"></span>Sessão em andamento</div>
     @end
-    <div class="relogio" id="relogio">--:--:--</div>
   </div>
 </div>
 
-@if(sessao)
-  {{-- SESSÃO ATIVA --}}
-  <div class="painel-main">
-    <div class="sessao-info">
-      <div class="d-flex align-items-center gap-3 mb-2">
-        <span class="badge bg-primary">{{ sessao.tipo | capitalize }}</span>
-        <span class="text-secondary small">{{ sessao.data_sessao }}</span>
-        @if(sessao.local_)
-          <span class="text-secondary small"><i class="bi bi-geo-alt me-1"></i>{{ sessao.local_ }}</span>
-        @end
+<div class="tv-body">
+  <div class="tv-left">
+
+    @if(sessao)
+    <div class="sessao-card">
+      <div class="sessao-tipo">{{ sessao.tipo }} · Em andamento</div>
+      <div class="sessao-nome">{{ sessao.descricao || sessao.tipo }}</div>
+      <div class="sessao-meta">
+        <span>{{ sessao.data_sessao }}</span>
+        @if(sessao.hora_inicio)<span>Iniciada às {{ sessao.hora_inicio }}</span>@end
+        @if(sessao.local_)<span>{{ sessao.local_ }}</span>@end
       </div>
-      <h2>{{ sessao.descricao || 'Sessão Plenária' }}</h2>
+    </div>
+    @end
+
+    {{-- QUÓRUM --}}
+    <div class="quorum-card">
+      <div class="quorum-title">Quórum</div>
+      <div class="quorum-nums">
+        <div class="quorum-n" id="tv-presentes">{{ presentes }}</div>
+        <div class="quorum-total">/ {{ totalVereadores }}</div>
+        <div style="margin-left:auto;font-size:.82rem;color:{{ presentes >= (totalVereadores / 2 + 1) ? '#22c55e' : '#f59e0b' }};font-weight:700">
+          {{ presentes >= (totalVereadores / 2 + 1) ? 'Quórum atingido' : 'Abaixo do quórum' }}
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="tv-quorum-bar" style="width:{{ totalVereadores > 0 ? (presentes / totalVereadores * 100) : 0 }}%"></div></div>
     </div>
 
+    {{-- VOTAÇÃO ATIVA --}}
     @if(votacaoAtiva)
-      {{-- VOTAÇÃO EM ANDAMENTO --}}
-      <div class="votacao-card">
-        <h3><i class="bi bi-broadcast me-2"></i>Votação em Andamento</h3>
-        <div class="ementa">{{ votacaoAtiva.ementa || votacaoAtiva.tipo }}</div>
-        <div class="placar">
-          <div class="placar-item placar-sim">
-            <div class="numero text-success">{{ votacaoAtiva.votos_sim || 0 }}</div>
-            <div class="label text-success">Sim</div>
-          </div>
-          <div class="placar-item placar-nao">
-            <div class="numero text-danger">{{ votacaoAtiva.votos_nao || 0 }}</div>
-            <div class="label text-danger">Não</div>
-          </div>
-          <div class="placar-item placar-abs">
-            <div class="numero text-secondary">{{ votacaoAtiva.votos_abstencao || 0 }}</div>
-            <div class="label text-secondary">Abstenção</div>
-          </div>
-        </div>
+    <div class="votacao-card">
+      <div class="votacao-titulo-tag"><span class="live-dot"></span>VOTAÇÃO EM ANDAMENTO</div>
+      <div class="votacao-titulo">{{ votacaoAtiva.titulo || votacaoAtiva.ementa || 'Matéria em votação' }}</div>
+      <div class="placar-row">
+        <div class="placar-box p-sim"><div class="placar-n" id="tv-sim">{{ votacaoAtiva.votos_sim || 0 }}</div><div class="placar-l">A FAVOR</div></div>
+        <div class="placar-box p-nao"><div class="placar-n" id="tv-nao">{{ votacaoAtiva.votos_nao || 0 }}</div><div class="placar-l">CONTRA</div></div>
+        <div class="placar-box p-abs"><div class="placar-n" id="tv-abs">{{ votacaoAtiva.votos_abstencao || 0 }}</div><div class="placar-l">ABSTENÇÃO</div></div>
       </div>
+    </div>
     @end
 
-    @if(vereadores && vereadores.length)
-      <div>
-        <h6 class="text-secondary mb-2 small text-uppercase" style="letter-spacing:1px">
-          <i class="bi bi-people me-1"></i>Vereadores ({{ presentes }}/{{ vereadores.length }} presentes)
-        </h6>
-        <div class="vereadores-grid">
-          @each(v in vereadores)
-            <div class="vereador-card {{ presencasIds && presencasIds.includes(v.id) ? 'presente' : 'ausente' }}">
-              <div class="vereador-foto" style="background:{{ v.partido_cor || '#1d4ed8' }}22; border:2px solid {{ v.partido_cor || '#1d4ed8' }}; color:{{ v.partido_cor || '#1d4ed8' }}; font-weight:700; font-size:.9rem;">
-                {{ (v.nome_parlamentar || v.nome || 'V').substring(0,1).toUpperCase() }}
-              </div>
-              <div>
-                <div class="vereador-nome">{{ v.nome_parlamentar || v.nome }}</div>
-                <div class="vereador-partido">{{ v.partido_sigla || '' }}</div>
-              </div>
-            </div>
-          @end
+    {{-- GRID VEREADORES --}}
+    <div class="vereadores-section">
+      <div class="vereadores-title">Vereadores</div>
+      <div class="vereadores-grid" id="tv-vereadores">
+        @each(v in vereadores)
+        <div class="v-card {{ v.presente ? 'v-presente' : 'v-ausente' }}" id="tv-v-{{ v.id }}">
+          <div class="v-av" style="background:{{ v.partido_cor ? (v.partido_cor+'22') : '#1d4ed8aa' }};color:{{ v.partido_cor||'#60a5fa' }};border-color:{{ v.partido_cor||'#1d4ed8' }}">
+            {{ v.nome_parlamentar.substring(0,1).toUpperCase() }}
+          </div>
+          <div class="v-name">{{ v.nome_parlamentar.split(' ')[0] }}</div>
+          <div class="v-partido">{{ v.partido_sigla || '' }}</div>
+        </div>
+        @end
+      </div>
+    </div>
+
+  </div>
+
+  {{-- SIDEBAR DIREITA --}}
+  <div class="tv-right">
+    @if(!sessao)
+    <div class="idle-state">
+      <i style="font-size:3rem">🏛️</i>
+      <p>Sem sessão em andamento</p>
+    </div>
+    @else
+
+    {{-- PRÓXIMAS MATÉRIAS --}}
+    @if(materiasPendentes && materiasPendentes.length)
+    <div class="side-card">
+      <div class="side-title">Pauta</div>
+      @each(m in materiasPendentes.slice(0, 6))
+      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px">
+        <span style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:#475569;flex-shrink:0">{{ String(loop.index+1).padStart(2,'0') }}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.78rem;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.titulo || m.ementa }}</div>
+          <div style="font-size:.67rem;color:#475569;margin-top:1px">{{ m.tipo }}</div>
+        </div>
+        @if(m.status === 'em_votacao')
+          <span style="width:7px;height:7px;background:var(--p);border-radius:50%;flex-shrink:0"></span>
+        @elseif(m.status === 'aprovada')
+          <span style="color:#22c55e;font-size:.85rem">✓</span>
+        @elseif(m.status === 'rejeitada')
+          <span style="color:#ef4444;font-size:.85rem">✗</span>
+        @end
+      </div>
+      @end
+    </div>
+    @end
+
+    {{-- TEMPO DE FALA --}}
+    @if(falando)
+    <div class="side-card" style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(217,119,6,.1));border-color:rgba(245,158,11,.35)">
+      <div class="side-title" style="color:#f59e0b">Usando a palavra</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:40px;height:40px;border-radius:9px;background:rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0">{{ falando.nome_parlamentar.substring(0,1).toUpperCase() }}</div>
+        <div>
+          <div style="font-weight:700;font-size:.9rem">{{ falando.nome_parlamentar }}</div>
+          <div style="font-size:.72rem;color:#94a3b8">{{ falando.cargo }}</div>
         </div>
       </div>
+      <div style="font-size:2.2rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:#f59e0b;margin-top:10px;text-align:center" id="tv-timer">{{ falando.tempo_minutos || 3 }}:00</div>
+    </div>
+    @end
+
     @end
   </div>
-
-@else
-  {{-- STANDBY --}}
-  <div class="standby">
-    <div class="logo mb-3"><i class="bi bi-building-fill" style="font-size:5rem;color:#1d4ed8"></i></div>
-    <h2>VotaLegis</h2>
-    <p>{{ configuracoes?.nome_camara || municipio?.nome || 'Câmara Municipal' }}</p>
-    <p class="mt-2" style="color:#64748b">Aguardando início da sessão</p>
-  </div>
-@end
-
-<div class="painel-footer">
-  <span>VotaLegis — Sistema de Votação Eletrônica Legislativa</span>
-  <span id="data-footer"></span>
 </div>
 
 <script>
-function tick() {
-  const now = new Date()
-  const r = document.getElementById('relogio')
-  if (r) r.textContent = now.toLocaleTimeString('pt-BR')
-  const d = document.getElementById('data-footer')
-  if (d) d.textContent = now.toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
-}
-tick()
-setInterval(tick, 1000)
+// RELÓGIO
+function tick(){ const n=new Date(); document.getElementById('clock').textContent=n.toLocaleTimeString('pt-BR'); document.getElementById('dateTxt').textContent=n.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) }
+tick(); setInterval(tick,1000)
+
+// AUTO-REFRESH
+setTimeout(()=>location.reload(), 15000)
 </script>
 </body>
 </html>

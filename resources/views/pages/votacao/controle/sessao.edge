@@ -1,0 +1,464 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link active"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões<span class="nav-badge">1</span></a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  {{-- SUBHEADER FIXO --}}
+  <div class="subheader" style="position:sticky;top:0;z-index:90;background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="/controle/votacao/sessoes" style="background:#f1f5f9;border:none;padding:8px 10px;border-radius:8px;color:#475569;cursor:pointer;display:flex;align-items:center;text-decoration:none;transition:background .15s" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="subheader-title">{{ sessao.descricao || (sessao.tipo + ' · ' + sessao.data_sessao) }}</span>
+          @if(sessao.status === 'em_andamento')
+            <span class="badge-live"><span class="live-dot" style="width:6px;height:6px"></span>AO VIVO</span>
+          @elseif(sessao.status === 'encerrada')
+            <span class="badge-encerrada">ENCERRADA</span>
+          @else
+            <span class="badge-agendada">AGENDADA</span>
+          @end
+        </div>
+        <div style="font-size:.75rem;color:#64748b;margin-top:2px;display:flex;gap:12px">
+          <span>{{ sessao.data_sessao }}</span>
+          @if(sessao.hora_inicio)<span>{{ sessao.hora_inicio }}</span>@end
+          @if(sessao.local_)<span><i class="bi bi-geo-alt"></i> {{ sessao.local_ }}</span>@end
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      @if(sessao.status === 'em_andamento')
+        <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="btn-ghost btn-sm"><i class="bi bi-display"></i>Painel TV</a>
+        <button class="btn-danger btn-sm" onclick="acao('/controle/votacao/sessoes/{{ sessao.id }}/encerrar','Encerrar a sessão?')"><i class="bi bi-stop-fill"></i>Encerrar Sessão</button>
+      @elseif(sessao.status === 'agendada')
+        <button class="btn-primary btn-sm" onclick="acao('/controle/votacao/sessoes/{{ sessao.id }}/iniciar','Iniciar a sessão agora?')"><i class="bi bi-play-fill"></i>Iniciar Sessão</button>
+      @end
+    </div>
+  </div>
+
+  <div class="vl-content fade-up">
+    {{-- QUICK ACTIONS (só em andamento) --}}
+    @if(sessao.status === 'em_andamento')
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      {{-- QUÓRUM --}}
+      <button class="card card-pad" style="text-align:left;cursor:pointer;border:2px solid transparent" onclick="document.getElementById('modal-quorum').classList.add('open')" onmouseover="this.style.borderColor='var(--p)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="stat-icon si-blue" style="width:44px;height:44px;border-radius:11px"><i class="bi bi-person-check-fill" style="font-size:1.1rem"></i></div>
+          <span style="font-size:1.3rem;font-weight:800;font-family:var(--mono);color:var(--p)">{{ presentes }}/{{ totalVereadores }}</span>
+        </div>
+        <div style="font-weight:700;font-size:.88rem;color:#0f172a">Quórum</div>
+        <div style="font-size:.73rem;color:#64748b;margin-top:2px">{{ presentes }} presentes</div>
+      </button>
+      {{-- NOVA MATÉRIA --}}
+      <button class="card card-pad" style="text-align:left;cursor:pointer;border:2px solid transparent" onclick="document.getElementById('modal-novaMateria').classList.add('open')" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='transparent'">
+        <div style="margin-bottom:12px">
+          <div class="stat-icon si-blue" style="width:44px;height:44px;border-radius:11px"><i class="bi bi-file-earmark-plus-fill" style="font-size:1.1rem"></i></div>
+        </div>
+        <div style="font-weight:700;font-size:.88rem;color:#0f172a">Nova Matéria</div>
+        <div style="font-size:.73rem;color:#64748b;margin-top:2px">Adicionar à pauta</div>
+      </button>
+      {{-- TEMPO DE FALA --}}
+      <button class="card card-pad" style="text-align:left;cursor:pointer;border:2px solid transparent" onclick="document.getElementById('modal-tempoFala').classList.add('open')" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='transparent'">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="stat-icon si-amber" style="width:44px;height:44px;border-radius:11px"><i class="bi bi-mic-fill" style="font-size:1.1rem"></i></div>
+          @if(filaFala && filaFala.length)
+            <span style="background:#fef3c7;color:#92400e;font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:99px">{{ filaFala.length }} na fila</span>
+          @end
+        </div>
+        <div style="font-weight:700;font-size:.88rem;color:#0f172a">Tempo de Fala</div>
+        <div style="font-size:.73rem;color:#64748b;margin-top:2px">Controlar inscrições</div>
+      </button>
+      {{-- COMUNICADO --}}
+      <button class="card card-pad" style="text-align:left;cursor:pointer;border:2px solid transparent" onclick="document.getElementById('modal-comunicado').classList.add('open')" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='transparent'">
+        <div style="margin-bottom:12px">
+          <div class="stat-icon si-purple" style="width:44px;height:44px;border-radius:11px"><i class="bi bi-megaphone-fill" style="font-size:1.1rem"></i></div>
+        </div>
+        <div style="font-weight:700;font-size:.88rem;color:#0f172a">Comunicado</div>
+        <div style="font-size:.73rem;color:#64748b;margin-top:2px">Enviar ao painel TV</div>
+      </button>
+    </div>
+    @end
+
+    {{-- PAUTA --}}
+    <div class="card">
+      <div class="card-header-bar">
+        <div>
+          <div class="card-title">Pauta da Sessão</div>
+          <div class="card-subtitle">{{ materias ? materias.length : 0 }} matérias</div>
+        </div>
+        @if(sessao.status === 'em_andamento')
+          <button class="btn-primary btn-sm" onclick="document.getElementById('modal-novaMateria').classList.add('open')"><i class="bi bi-plus-lg"></i>Adicionar</button>
+        @end
+      </div>
+
+      @if(materias && materias.length)
+        @each(m in materias)
+        <div class="materia-row {{ m.status === 'em_votacao' ? 'em-votacao' : m.status === 'em_leitura' ? 'em-leitura' : '' }}">
+          <div class="materia-n">{{ String(loop.index + 1).padStart(2,'0') }}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              @if(m.status === 'em_votacao')
+                <span class="badge-live"><span class="live-dot" style="width:6px;height:6px"></span>EM VOTAÇÃO</span>
+              @elseif(m.status === 'em_leitura')
+                <span style="background:#fef3c7;color:#92400e;padding:2px 10px;border-radius:99px;font-size:.72rem;font-weight:700">EM LEITURA</span>
+              @elseif(m.status === 'aprovada')
+                <span class="badge-aprovada"><i class="bi bi-check-lg"></i>APROVADA</span>
+              @elseif(m.status === 'rejeitada')
+                <span class="badge-rejeitada"><i class="bi bi-x-lg"></i>REJEITADA</span>
+              @else
+                <span class="badge-encerrada">PENDENTE</span>
+              @end
+              <span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:600">{{ m.tipo }}</span>
+              @if(m.numero)<span style="font-size:.75rem;color:#94a3b8;font-family:var(--mono)">{{ m.numero }}</span>@end
+            </div>
+            <div class="materia-title">{{ m.titulo || m.ementa }}</div>
+            @if(m.ementa && m.titulo)
+              <div class="materia-ementa">{{ m.ementa }}</div>
+            @end
+
+            {{-- PLACAR se em votação --}}
+            @if(m.status === 'em_votacao' && votacaoAtiva && votacaoAtiva.materia_id == m.id)
+            <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:11px;padding:12px;margin:8px 0">
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:8px">
+                <span style="font-weight:600;color:#475569">Placar em tempo real</span>
+                <span style="color:#94a3b8" id="aguardando-txt">Aguardando votos...</span>
+              </div>
+              <div class="placar">
+                <div class="placar-box placar-sim">
+                  <div class="placar-n" id="placar-sim">{{ votacaoAtiva.votos_sim || 0 }}</div>
+                  <div class="placar-l">A FAVOR</div>
+                </div>
+                <div class="placar-box placar-nao">
+                  <div class="placar-n" id="placar-nao">{{ votacaoAtiva.votos_nao || 0 }}</div>
+                  <div class="placar-l">CONTRA</div>
+                </div>
+                <div class="placar-box placar-abs">
+                  <div class="placar-n" id="placar-abs">{{ votacaoAtiva.votos_abstencao || 0 }}</div>
+                  <div class="placar-l">ABSTENÇÃO</div>
+                </div>
+              </div>
+            </div>
+            @end
+
+            {{-- RESULTADO se concluída --}}
+            @if(m.status === 'aprovada' || m.status === 'rejeitada')
+            <div style="display:flex;gap:12px;font-size:.8rem;margin-top:6px">
+              <span style="color:#16a34a;font-weight:600"><i class="bi bi-hand-thumbs-up-fill"></i> {{ m.votos_sim || 0 }} a favor</span>
+              <span style="color:#dc2626;font-weight:600"><i class="bi bi-hand-thumbs-down-fill"></i> {{ m.votos_nao || 0 }} contra</span>
+              @if(m.votos_abstencao)<span style="color:#64748b"><i class="bi bi-dash-circle"></i> {{ m.votos_abstencao }} abstenção</span>@end
+            </div>
+            @end
+
+            {{-- AÇÕES --}}
+            @if(sessao.status === 'em_andamento')
+            <div style="display:flex;gap:8px;margin-top:10px">
+              @if(m.status === 'pendente')
+                <button class="btn-ghost btn-sm" onclick="acao('/controle/votacao/materias/{{ m.id }}/leitura/iniciar','Iniciar leitura?')"><i class="bi bi-book"></i>Leitura</button>
+                <button class="btn-primary btn-sm" onclick="abrirVotacao({{ m.id }},false)"><i class="bi bi-check2-square"></i>Votação</button>
+                <button class="btn-ghost btn-sm" onclick="abrirVotacao({{ m.id }},true)" style="color:#475569"><i class="bi bi-lock"></i>Secreta</button>
+              @elseif(m.status === 'em_leitura')
+                <button class="btn-primary btn-sm" onclick="acao('/controle/votacao/materias/{{ m.id }}/leitura/encerrar','Encerrar leitura?')"><i class="bi bi-check-lg"></i>Encerrar Leitura</button>
+                <button class="btn-primary btn-sm" onclick="abrirVotacao({{ m.id }},false)"><i class="bi bi-check2-square"></i>Votação</button>
+              @elseif(m.status === 'em_votacao')
+                <button class="btn-primary btn-sm" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="acao('/controle/votacao/materias/{{ m.id }}/votacao/encerrar','Encerrar votação e apurar resultado?')"><i class="bi bi-check-circle-fill"></i>Encerrar Votação</button>
+                <button class="btn-ghost btn-sm" onclick="acao('/controle/votacao/materias/{{ m.id }}/votacao/encerrar','Cancelar votação?')"><i class="bi bi-x-lg"></i>Cancelar</button>
+              @end
+            </div>
+            @end
+          </div>
+          @if(sessao.status !== 'encerrada')
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <button class="btn-icon danger" onclick="acao('/controle/votacao/materias/{{ m.id }}','Excluir esta matéria?','DELETE')" title="Excluir"><i class="bi bi-trash"></i></button>
+          </div>
+          @end
+        </div>
+        @end
+      @else
+        <div class="empty-state">
+          <i class="bi bi-file-earmark-x"></i>
+          <h5>Nenhuma matéria na pauta</h5>
+          @if(sessao.status === 'em_andamento')
+            <p>Adicione matérias para votar.</p>
+            <button class="btn-primary" style="margin-top:14px" onclick="document.getElementById('modal-novaMateria').classList.add('open')"><i class="bi bi-plus-lg"></i>Adicionar Matéria</button>
+          @end
+        </div>
+      @end
+    </div>
+  </div>
+
+  {{-- MODAL QUÓRUM --}}
+  <div id="modal-quorum" class="modal-overlay">
+    <div class="modal-box" style="max-width:700px">
+      <div class="modal-header">
+        <div><div class="modal-title">Quórum</div><div class="modal-subtitle">{{ presentes }} de {{ totalVereadores }} presentes</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('quorum')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="quorum-grid">
+          @each(v in vereadores)
+          <div class="quorum-card {{ presencasMap[v.id] === 'presente' ? 'quorum-presente' : presencasMap[v.id] === 'justificado' ? 'quorum-aj' : 'quorum-ausente' }}">
+            <div class="quorum-av" style="background:{{ v.partido_cor ? (v.partido_cor + '22') : '#dbeafe' }};color:{{ v.partido_cor || '#1d4ed8' }};border:2px solid {{ v.partido_cor || '#1d4ed8' }}">
+              {{ v.nome_parlamentar.substring(0,1).toUpperCase() }}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:.82rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.nome_parlamentar }}</div>
+              <div style="font-size:.7rem;color:#64748b">{{ v.cargo }}</div>
+            </div>
+            @if(presencasMap[v.id] === 'presente')
+              <div style="width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-check-lg" style="color:#fff;font-size:.8rem"></i>
+              </div>
+            @elseif(presencasMap[v.id] === 'justificado')
+              <button style="background:#fef3c7;color:#92400e;border:none;border-radius:6px;padding:4px 8px;font-size:.68rem;font-weight:700;cursor:pointer" onclick="togglePresenca({{ v.id }},{{ sessao.id }},'ausente')">AJ</button>
+            @else
+              <button style="background:#e2e8f0;color:#475569;border:none;border-radius:6px;padding:4px 8px;font-size:.68rem;font-weight:700;cursor:pointer" onclick="togglePresenca({{ v.id }},{{ sessao.id }},'presente')">Marcar</button>
+            @end
+          </div>
+          @end
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('quorum')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL NOVA MATÉRIA --}}
+  <div id="modal-novaMateria" class="modal-overlay">
+    <div class="modal-box" style="max-width:540px">
+      <div class="modal-header">
+        <div><div class="modal-title">Nova Matéria</div><div class="modal-subtitle">Adicionar à pauta</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('novaMateria')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select id="nm-tipo" class="form-input">
+              <option value="ata">Ata</option>
+              <option value="requerimento">Requerimento</option>
+              <option value="projeto_lei">Projeto de Lei</option>
+              <option value="projeto_resolucao">Projeto de Resolução</option>
+              <option value="moca">Moção</option>
+              <option value="indicacao">Indicação</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Número</label><input id="nm-numero" class="form-input" placeholder="001/2026"></div>
+        </div>
+        <div class="form-group"><label>Título *</label><input id="nm-titulo" class="form-input" placeholder="Ex: Projeto de Lei nº 001/2026"></div>
+        <div class="form-group"><label>Ementa</label><textarea id="nm-ementa" class="form-input" rows="3" placeholder="Descreva o conteúdo..."></textarea></div>
+        <div class="form-group">
+          <label>Autores</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            @each(v in vereadores)
+            <label style="display:flex;align-items:center;gap:7px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:9px;cursor:pointer;transition:all .15s">
+              <input type="checkbox" name="autores" value="{{ v.id }}" style="accent-color:var(--p);width:14px;height:14px">
+              <div class="vereador-av" style="width:26px;height:26px;border-radius:6px;font-size:.72rem;background:{{ v.partido_cor ? (v.partido_cor+'22') : '#dbeafe' }};color:{{ v.partido_cor||'#1d4ed8' }};border:1px solid {{ v.partido_cor||'#1d4ed8' }}">{{ v.nome_parlamentar.substring(0,1).toUpperCase() }}</div>
+              <span style="font-size:.8rem;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.nome_parlamentar.split(' ')[0] }}</span>
+            </label>
+            @end
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('novaMateria')">Cancelar</button>
+        <button class="btn-primary" onclick="criarMateria()"><i class="bi bi-plus-lg"></i>Salvar Matéria</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL TEMPO DE FALA --}}
+  <div id="modal-tempoFala" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px">
+      <div class="modal-header">
+        <div><div class="modal-title">Tempo de Fala</div><div class="modal-subtitle">Gerenciar inscrições</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('tempoFala')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        {{-- FALANDO AGORA --}}
+        @if(falando)
+        <div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:18px;color:#fff;margin-bottom:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">
+                {{ falando.nome_parlamentar.substring(0,1).toUpperCase() }}
+              </div>
+              <div>
+                <div style="font-weight:800">{{ falando.nome_parlamentar }}</div>
+                <div style="font-size:.78rem;opacity:.8">{{ falando.cargo }}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="timer-big" id="timer-display">{{ falando.tempo_minutos || 3 }}:00</div>
+              <div style="font-size:.7rem;opacity:.7">restantes</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="addMinuto()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:.8rem;font-weight:600;cursor:pointer"><i class="bi bi-plus-lg"></i>+1 min</button>
+            <button onclick="togglePause()" id="btn-pause" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:.8rem;font-weight:600;cursor:pointer"><i class="bi bi-pause-fill"></i>Pausar</button>
+            <button onclick="acao('/controle/votacao/voz/{{ falando.id }}/cancelar','Encerrar fala?')" style="background:#dc2626;border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:.8rem;font-weight:700;cursor:pointer;margin-left:auto"><i class="bi bi-x-lg"></i>Encerrar</button>
+          </div>
+        </div>
+        @end
+
+        {{-- FILA --}}
+        @if(filaFala && filaFala.length)
+        <div>
+          <div style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Fila</div>
+          @each(f in filaFala)
+          <div style="display:flex;align-items:center;gap:10px;background:#f8fafc;border-radius:9px;padding:10px 12px;margin-bottom:6px">
+            <span style="width:26px;height:26px;background:#e2e8f0;color:#475569;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">{{ loop.index + 1 }}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.83rem;color:#0f172a">{{ f.nome_parlamentar }}</div>
+              <div style="font-size:.7rem;color:#64748b">{{ f.tempo_minutos || 3 }} minutos</div>
+            </div>
+            <button class="btn-primary btn-sm" onclick="acao('/controle/votacao/voz/{{ f.id }}/conceder','Conceder a voz?')">Iniciar</button>
+            <button class="btn-icon danger" onclick="acao('/controle/votacao/voz/{{ f.id }}/cancelar','Remover da fila?')"><i class="bi bi-x-lg"></i></button>
+          </div>
+          @end
+        </div>
+        @end
+
+        {{-- ADICIONAR --}}
+        <div style="border-top:1px solid #f1f5f9;padding-top:12px">
+          <div style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Adicionar à fila</div>
+          <div style="display:flex;gap:8px">
+            <select id="fala-vereador" class="form-input" style="flex:1">
+              <option value="">Selecione o vereador...</option>
+              @each(v in vereadores)
+                <option value="{{ v.id }}">{{ v.nome_parlamentar }}</option>
+              @end
+            </select>
+            <select id="fala-tempo" class="form-input" style="width:100px">
+              <option value="3">3 min</option>
+              <option value="5">5 min</option>
+              <option value="10">10 min</option>
+              <option value="15">15 min</option>
+            </select>
+            <button class="btn-primary" onclick="adicionarFila()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('tempoFala')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL COMUNICADO --}}
+  <div id="modal-comunicado" class="modal-overlay">
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header">
+        <div><div class="modal-title">Comunicado</div><div class="modal-subtitle">Exibir no Painel TV</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('comunicado')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>Título</label><input id="com-titulo" class="form-input" placeholder="Atenção"></div>
+        <div class="form-group"><label>Mensagem</label><textarea id="com-msg" class="form-input" rows="4" placeholder="Mensagem para o painel..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('comunicado')">Cancelar</button>
+        <button class="btn-primary" onclick="enviarComunicado()"><i class="bi bi-megaphone-fill"></i>Enviar</button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  const SESSAO_ID = {{ sessao.id }}
+
+  document.querySelectorAll('.modal-overlay').forEach(m =>
+    m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open') })
+  )
+  function fecharModal(id){ document.getElementById('modal-'+id).classList.remove('open') }
+
+  async function acao(url, msg, method='POST'){
+    if(!confirm(msg)) return
+    await fetch(url, {method})
+    location.reload()
+  }
+
+  async function abrirVotacao(materiaId, secreta){
+    if(!confirm(secreta?'Iniciar votação SECRETA?':'Iniciar votação nominal?')) return
+    const r = await fetch('/controle/votacao/materias/'+materiaId+'/votacao/abrir',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sessao_id: SESSAO_ID, tipo_votacao: secreta?'secreta':'nominal' })
+    })
+    if(r.ok) location.reload()
+    else { const e=await r.json(); alert(e.error||'Erro') }
+  }
+
+  async function criarMateria(){
+    const autores = [...document.querySelectorAll('input[name="autores"]:checked')].map(c=>c.value)
+    const r = await fetch('/controle/votacao/materias',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sessao_id: SESSAO_ID,
+        tipo: document.getElementById('nm-tipo').value,
+        numero: document.getElementById('nm-numero').value,
+        titulo: document.getElementById('nm-titulo').value,
+        ementa: document.getElementById('nm-ementa').value,
+        autores,
+      })
+    })
+    if(r.ok){ fecharModal('novaMateria'); location.reload() }
+    else { const e=await r.json(); alert(e.error||'Erro') }
+  }
+
+  async function togglePresenca(vereadorId, sessaoId, status){
+    await fetch('/controle/votacao/quorum/presenca',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ vereador_id: vereadorId, sessao_id: sessaoId, status })
+    })
+    location.reload()
+  }
+
+  async function adicionarFila(){
+    const v = document.getElementById('fala-vereador').value
+    if(!v) return alert('Selecione um vereador')
+    await fetch('/controle/votacao/voz/timer',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ vereador_id:v, sessao_id:SESSAO_ID, tempo_minutos:parseInt(document.getElementById('fala-tempo').value) })
+    })
+    location.reload()
+  }
+
+  async function enviarComunicado(){
+    // TODO: integrar SSE
+    alert('Comunicado: ' + document.getElementById('com-titulo').value)
+    fecharModal('comunicado')
+  }
+
+  // Timer de fala
+  @if(falando)
+  let timerSecs = {{ (falando.tempo_minutos || 3) * 60 }}, pausado = false
+  function renderTimer(){ const m=String(Math.floor(timerSecs/60)).padStart(2,'0'), s=String(timerSecs%60).padStart(2,'0'); document.getElementById('timer-display').textContent=m+':'+s }
+  setInterval(()=>{ if(!pausado && timerSecs>0){ timerSecs--; renderTimer() } }, 1000)
+  let addMin=()=>{ timerSecs+=60; renderTimer() }
+  function togglePause(){
+    pausado=!pausado
+    document.getElementById('btn-pause').innerHTML = pausado ? '<i class="bi bi-play-fill"></i>Retomar' : '<i class="bi bi-pause-fill"></i>Pausar'
+  }
+  @end
+
+  // Polling placar em votação
+  @if(votacaoAtiva)
+  setInterval(async()=>{
+    const r = await fetch('/controle/votacao/events/{{ sessao.id }}')
+    if(!r.ok) return
+    // TODO: consumir SSE para atualizar placar
+  }, 3000)
+  @end
+  </script>
+  @end
+@end

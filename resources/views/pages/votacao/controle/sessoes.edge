@@ -1,0 +1,219 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link active"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões@if(sessaoAtiva)<span class="nav-badge">1</span>@end</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Sessões Legislativas</div>
+        <div class="vl-header-meta">
+          <span><i class="bi bi-calendar3"></i>{{ totalSessoes }} sessões cadastradas</span>
+        </div>
+      </div>
+      <div class="vl-header-actions">
+        @if(sessaoAtiva)<div class="live-badge"><span class="live-dot"></span>Sessão ao vivo</div>@end
+        <button class="btn-header btn-header-primary" onclick="document.getElementById('modal-novaSessao').classList.add('open')">
+          <i class="bi bi-plus-lg"></i>Nova Sessão
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content fade-up">
+    <div class="stats-row">
+      <div class="stat-card primary">
+        <div class="stat-icon si-white"><i class="bi bi-play-circle-fill"></i></div>
+        <div><div class="stat-n">{{ sessaoAtiva ? 1 : 0 }}</div><div class="stat-l">Em andamento</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-blue"><i class="bi bi-calendar-plus-fill"></i></div>
+        <div><div class="stat-n">{{ contAgendadas }}</div><div class="stat-l">Agendadas</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-green"><i class="bi bi-check-circle-fill"></i></div>
+        <div><div class="stat-n">{{ contEncerradas }}</div><div class="stat-l">Encerradas</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-purple"><i class="bi bi-file-earmark-check-fill"></i></div>
+        <div><div class="stat-n">{{ totalMaterias }}</div><div class="stat-l">Matérias votadas</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header-bar">
+        <div><div class="card-title">Todas as Sessões</div></div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" style="width:220px" placeholder="Buscar..." oninput="filtrar(this.value)">
+        </div>
+      </div>
+
+      @if(sessoes && sessoes.length)
+        <div id="lista-sessoes">
+          @each(s in sessoes)
+          <div class="sessao-item" data-busca="{{ (s.descricao || s.tipo || '').toLowerCase() }}">
+            <div class="sessao-stripe {{ s.status === 'em_andamento' ? 'stripe-live' : s.status === 'agendada' ? 'stripe-agendada' : 'stripe-encerrada' }}"></div>
+            <div class="sessao-body">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                  @if(s.status === 'em_andamento')
+                    <span class="badge-live"><span class="live-dot" style="width:6px;height:6px"></span>AO VIVO</span>
+                  @elseif(s.status === 'agendada')
+                    <span class="badge-agendada"><i class="bi bi-calendar-clock"></i>AGENDADA</span>
+                  @else
+                    <span class="badge-encerrada"><i class="bi bi-check-circle"></i>ENCERRADA</span>
+                  @end
+                  <span style="font-size:.78rem;color:#64748b">{{ s.tipo }}</span>
+                </div>
+                <div class="sessao-title">{{ s.descricao || (s.tipo + ' · ' + s.data_sessao) }}</div>
+                <div class="sessao-meta">
+                  <span><i class="bi bi-calendar3"></i>{{ s.data_sessao }}</span>
+                  @if(s.hora_inicio)<span><i class="bi bi-clock"></i>{{ s.hora_inicio }}</span>@end
+                  @if(s.local_)<span><i class="bi bi-geo-alt"></i>{{ s.local_ }}</span>@end
+                  @if(s.total_materias)<span><i class="bi bi-file-earmark-text"></i>{{ s.total_materias }} matérias</span>@end
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0">
+                @if(s.status === 'em_andamento')
+                  <a href="/controle/votacao/sessoes/{{ s.id }}" class="btn-primary btn-sm"><i class="bi bi-play-fill"></i>Acessar Sessão</a>
+                  <button class="btn-icon danger" onclick="acao('/controle/votacao/sessoes/{{ s.id }}/encerrar','Encerrar esta sessão?')" title="Encerrar"><i class="bi bi-stop-fill"></i></button>
+                @elseif(s.status === 'agendada')
+                  <button class="btn-ghost btn-sm" onclick="acao('/controle/votacao/sessoes/{{ s.id }}/iniciar','Iniciar esta sessão agora?')"><i class="bi bi-play-fill"></i>Iniciar</button>
+                  <button class="btn-icon" onclick="editarSessao({{ s.id }},'{{ s.descricao }}','{{ s.data_sessao }}','{{ s.hora_inicio }}','{{ s.local_ }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                  <button class="btn-icon danger" onclick="acao('/controle/votacao/sessoes/{{ s.id }}','Excluir esta sessão?','DELETE')" title="Excluir"><i class="bi bi-trash"></i></button>
+                @else
+                  <a href="/controle/votacao/sessoes/{{ s.id }}" class="btn-ghost btn-sm"><i class="bi bi-eye"></i>Ver detalhes</a>
+                @end
+              </div>
+            </div>
+          </div>
+          @end
+        </div>
+      @else
+        <div class="empty-state">
+          <i class="bi bi-calendar-x"></i>
+          <h5>Nenhuma sessão cadastrada</h5>
+          <p>Crie a primeira sessão para começar.</p>
+          <button class="btn-primary" style="margin-top:14px" onclick="document.getElementById('modal-novaSessao').classList.add('open')"><i class="bi bi-plus-lg"></i>Nova Sessão</button>
+        </div>
+      @end
+    </div>
+  </div>
+
+  {{-- MODAL NOVA SESSÃO --}}
+  <div id="modal-novaSessao" class="modal-overlay">
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header">
+        <div><div class="modal-title">Nova Sessão</div><div class="modal-subtitle">Agende uma sessão legislativa</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('novaSessao')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select id="ns-tipo" class="form-input">
+              <option value="ordinaria">Ordinária</option>
+              <option value="extraordinaria">Extraordinária</option>
+              <option value="solene">Solene</option>
+              <option value="especial">Especial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Número</label>
+            <input id="ns-numero" class="form-input" placeholder="001/2026">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <input id="ns-descricao" class="form-input" placeholder="1ª Sessão Ordinária de Março">
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Data *</label><input id="ns-data" type="date" class="form-input"></div>
+          <div class="form-group"><label>Horário</label><input id="ns-hora" type="time" class="form-input" value="10:00"></div>
+        </div>
+        <div class="form-group"><label>Local</label><input id="ns-local" class="form-input" value="Plenário da Câmara"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('novaSessao')">Cancelar</button>
+        <button class="btn-primary" onclick="criarSessao()"><i class="bi bi-plus-lg"></i>Criar Sessão</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL EDITAR SESSÃO --}}
+  <div id="modal-editarSessao" class="modal-overlay">
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header">
+        <div><div class="modal-title">Editar Sessão</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('editarSessao')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="es-id">
+        <div class="form-group"><label>Descrição</label><input id="es-descricao" class="form-input"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Data</label><input id="es-data" type="date" class="form-input"></div>
+          <div class="form-group"><label>Horário</label><input id="es-hora" type="time" class="form-input"></div>
+        </div>
+        <div class="form-group"><label>Local</label><input id="es-local" class="form-input"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('editarSessao')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarEdicao()"><i class="bi bi-check-lg"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  document.getElementById('ns-data').value = new Date().toISOString().split('T')[0]
+  document.querySelectorAll('.modal-overlay').forEach(m =>
+    m.addEventListener('click', e => { if(e.target===m){m.classList.remove('open')} })
+  )
+  function fecharModal(id){ document.getElementById('modal-'+id).classList.remove('open') }
+  function filtrar(q){ document.querySelectorAll('#lista-sessoes .sessao-item').forEach(el=>{ el.style.display=el.dataset.busca.includes(q.toLowerCase())?'':'none' }) }
+
+  async function criarSessao(){
+    const r = await fetch('/controle/votacao/sessoes',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ tipo:document.getElementById('ns-tipo').value, numero:document.getElementById('ns-numero').value, descricao:document.getElementById('ns-descricao').value, data_sessao:document.getElementById('ns-data').value, hora_inicio:document.getElementById('ns-hora').value, local:document.getElementById('ns-local').value })
+    })
+    if(r.ok){ fecharModal('novaSessao'); location.reload() }
+    else { const e=await r.json(); alert(e.error||'Erro') }
+  }
+
+  function editarSessao(id, desc, data, hora, local){
+    document.getElementById('es-id').value = id
+    document.getElementById('es-descricao').value = desc||''
+    document.getElementById('es-data').value = data||''
+    document.getElementById('es-hora').value = hora||''
+    document.getElementById('es-local').value = local||''
+    document.getElementById('modal-editarSessao').classList.add('open')
+  }
+
+  async function salvarEdicao(){
+    const id = document.getElementById('es-id').value
+    const r = await fetch('/controle/votacao/sessoes/'+id, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ descricao:document.getElementById('es-descricao').value, data_sessao:document.getElementById('es-data').value, hora_inicio:document.getElementById('es-hora').value, local:document.getElementById('es-local').value })
+    })
+    if(r.ok){ fecharModal('editarSessao'); location.reload() }
+  }
+
+  async function acao(url, msg, method='POST'){
+    if(!confirm(msg)) return
+    await fetch(url, {method})
+    location.reload()
+  }
+  </script>
+  @end
+@end

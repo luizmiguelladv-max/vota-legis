@@ -1,0 +1,187 @@
+@component('layouts/votacao')
+  @slot('sidebar')
+    <div class="nav-section">Principal</div>
+    <a href="/controle/votacao" class="nav-link"><div class="nav-icon"><i class="bi bi-grid-fill"></i></div>Dashboard</a>
+    <a href="/controle/votacao/sessoes" class="nav-link"><div class="nav-icon"><i class="bi bi-calendar-event-fill"></i></div>Sessões</a>
+    <div class="nav-section">Cadastros</div>
+    <a href="/controle/votacao/vereadores" class="nav-link active"><div class="nav-icon"><i class="bi bi-people-fill"></i></div>Vereadores</a>
+    <a href="/controle/votacao/partidos" class="nav-link"><div class="nav-icon"><i class="bi bi-flag-fill"></i></div>Partidos</a>
+    <div class="nav-section">Sistema</div>
+    <a href="/controle/votacao/configuracoes" class="nav-link"><div class="nav-icon"><i class="bi bi-gear-fill"></i></div>Configurações</a>
+    <a href="/painel/{{ municipio?.slug || 'camara' }}" target="_blank" class="nav-link"><div class="nav-icon"><i class="bi bi-display-fill"></i></div>Painel TV<i class="bi bi-box-arrow-up-right" style="margin-left:auto;font-size:.65rem;opacity:.4"></i></a>
+  @end
+
+  @slot('content')
+  <div class="vl-header">
+    <div class="vl-header-inner">
+      <div>
+        <div class="vl-header-title">Vereadores</div>
+        <div class="vl-header-meta"><span>{{ totalVereadores }} parlamentares · Legislatura ativa</span></div>
+      </div>
+      <div class="vl-header-actions">
+        <button class="btn-header btn-header-primary" onclick="document.getElementById('modal-novoVereador').classList.add('open')">
+          <i class="bi bi-person-plus-fill"></i>Novo Vereador
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vl-content fade-up">
+    <div class="card">
+      <div class="card-header-bar">
+        <div><div class="card-title">Vereadores Cadastrados</div></div>
+        <input class="form-input" style="width:220px" placeholder="Buscar..." oninput="filtrarV(this.value)">
+      </div>
+      @if(vereadores && vereadores.length)
+        <div class="vereador-grid" id="grid-vereadores" style="padding:16px 20px">
+          @each(v in vereadores)
+          <div class="vereador-card" data-busca="{{ v.nome_parlamentar.toLowerCase() }}">
+            <div class="vereador-av" style="background:{{ v.partido_cor ? (v.partido_cor+'22') : '#dbeafe' }};color:{{ v.partido_cor||'#1d4ed8' }};border:2px solid {{ v.partido_cor||'#1d4ed8' }}">
+              {{ v.nome_parlamentar.substring(0,1).toUpperCase() }}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="vereador-name">{{ v.nome_parlamentar }}</div>
+              <div class="vereador-cargo">{{ v.cargo }}</div>
+              <div class="vereador-partido">
+                <span class="partido-tag" style="background:{{ v.partido_cor ? (v.partido_cor+'22') : '#dbeafe' }};color:{{ v.partido_cor||'#1d4ed8' }}">{{ v.partido_sigla || 'SEM PARTIDO' }}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <button class="btn-icon" onclick="editarVereador({{ v.id }},'{{ v.nome_parlamentar }}','{{ v.cargo }}','{{ v.partido_id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+              <button class="btn-icon danger" onclick="acoDelete('/controle/votacao/vereadores/{{ v.id }}','Desativar este vereador?')" title="Remover"><i class="bi bi-person-dash"></i></button>
+            </div>
+          </div>
+          @end
+        </div>
+      @else
+        <div class="empty-state">
+          <i class="bi bi-people"></i>
+          <h5>Nenhum vereador cadastrado</h5>
+          <p>Adicione os parlamentares da legislatura atual.</p>
+          <button class="btn-primary" style="margin-top:14px" onclick="document.getElementById('modal-novoVereador').classList.add('open')"><i class="bi bi-person-plus-fill"></i>Novo Vereador</button>
+        </div>
+      @end
+    </div>
+  </div>
+
+  {{-- MODAL NOVO VEREADOR --}}
+  <div id="modal-novoVereador" class="modal-overlay">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-header">
+        <div><div class="modal-title">Novo Vereador</div><div class="modal-subtitle">Cadastrar parlamentar</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('novoVereador')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>Nome completo *</label><input id="nv-nome" class="form-input" placeholder="Ex: João da Silva"></div>
+        <div class="form-group"><label>Nome parlamentar *</label><input id="nv-nome-parl" class="form-input" placeholder="Ex: João Silva"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cargo *</label>
+            <select id="nv-cargo" class="form-input">
+              <option value="vereador">Vereador(a)</option>
+              <option value="presidente">Presidente</option>
+              <option value="vice-presidente">Vice-Presidente</option>
+              <option value="secretario">Secretário(a)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Partido</label>
+            <select id="nv-partido" class="form-input">
+              <option value="">-- Sem partido --</option>
+              @each(p in partidos)
+                <option value="{{ p.id }}">{{ p.sigla }} – {{ p.nome }}</option>
+              @end
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>CPF</label><input id="nv-cpf" class="form-input" placeholder="000.000.000-00"></div>
+          <div class="form-group"><label>E-mail</label><input id="nv-email" class="form-input" type="email" placeholder="email@camara.leg.br"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('novoVereador')">Cancelar</button>
+        <button class="btn-primary" onclick="criarVereador()"><i class="bi bi-person-plus-fill"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL EDITAR VEREADOR --}}
+  <div id="modal-editarVereador" class="modal-overlay">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-header">
+        <div><div class="modal-title">Editar Vereador</div></div>
+        <button class="btn-close-modal" onclick="fecharModal('editarVereador')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ev-id">
+        <div class="form-group"><label>Nome parlamentar</label><input id="ev-nome" class="form-input"></div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <select id="ev-cargo" class="form-input">
+            <option value="vereador">Vereador(a)</option>
+            <option value="presidente">Presidente</option>
+            <option value="vice-presidente">Vice-Presidente</option>
+            <option value="secretario">Secretário(a)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Partido</label>
+          <select id="ev-partido" class="form-input">
+            <option value="">-- Sem partido --</option>
+            @each(p in partidos)
+              <option value="{{ p.id }}">{{ p.sigla }} – {{ p.nome }}</option>
+            @end
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="fecharModal('editarVereador')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarVereador()"><i class="bi bi-check-lg"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+  @end
+
+  @slot('scripts')
+  <script>
+  document.querySelectorAll('.modal-overlay').forEach(m =>
+    m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open') })
+  )
+  function fecharModal(id){ document.getElementById('modal-'+id).classList.remove('open') }
+  function filtrarV(q){ document.querySelectorAll('#grid-vereadores .vereador-card').forEach(el=>{ el.style.display=el.dataset.busca.includes(q.toLowerCase())?'':'none' }) }
+
+  async function criarVereador(){
+    const r = await fetch('/controle/votacao/vereadores',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ nome:document.getElementById('nv-nome').value, nome_parlamentar:document.getElementById('nv-nome-parl').value, cargo:document.getElementById('nv-cargo').value, partido_id:document.getElementById('nv-partido').value||null, cpf:document.getElementById('nv-cpf').value, email:document.getElementById('nv-email').value })
+    })
+    if(r.ok){ fecharModal('novoVereador'); location.reload() }
+    else { const e=await r.json(); alert(e.error||'Erro ao salvar') }
+  }
+
+  function editarVereador(id, nome, cargo, partidoId){
+    document.getElementById('ev-id').value=id
+    document.getElementById('ev-nome').value=nome
+    document.getElementById('ev-cargo').value=cargo
+    document.getElementById('ev-partido').value=partidoId||''
+    document.getElementById('modal-editarVereador').classList.add('open')
+  }
+
+  async function salvarVereador(){
+    const id = document.getElementById('ev-id').value
+    const r = await fetch('/controle/votacao/vereadores/'+id,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ nome_parlamentar:document.getElementById('ev-nome').value, cargo:document.getElementById('ev-cargo').value, partido_id:document.getElementById('ev-partido').value||null })
+    })
+    if(r.ok){ fecharModal('editarVereador'); location.reload() }
+  }
+
+  async function acoDelete(url, msg){
+    if(!confirm(msg)) return
+    await fetch(url,{method:'DELETE'})
+    location.reload()
+  }
+  </script>
+  @end
+@end

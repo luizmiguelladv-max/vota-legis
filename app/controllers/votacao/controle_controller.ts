@@ -3,39 +3,86 @@ import db from '@adonisjs/lucid/services/db'
 
 export default class ControleController {
   private schema(session: any) {
-    return `camara_${session.get('municipioId')}`
+    const mid = session.get('municipioId')
+    return `camara_${mid}`
+  }
+
+  private async baseData(session: any) {
+    const mid = session.get('municipioId')
+    const s = `camara_${mid}`
+    const [municipio, totalSessoes, totalVereadores, totalMaterias] = await Promise.all([
+      db.from('municipios').where('id', mid).first(),
+      db.from(`${s}.sessoes`).count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+      db.from(`${s}.vereadores`).where('ativo', true).count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+      db.from(`${s}.materias`).whereIn('status',['aprovada','rejeitada']).count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+    ])
+    return { municipio, totalSessoes, totalVereadores, totalMaterias }
   }
 
   async index({ session, view }: HttpContext) {
     const s = this.schema(session)
-    const sessao = await db.from(`${s}.sessoes`).where('status', 'em_andamento').orderBy('created_at', 'desc').first()
-    const totalSessoes = await db.from(`${s}.sessoes`).count('* as total').first()
-    const totalVereadores = await db.from(`${s}.vereadores`).where('ativo', true).count('* as total').first()
-
-    return view.render('pages/votacao/controle', {
-      pageTitle: 'Controle — VotaLegis',
-      sessaoMunicipioId: session.get('municipioId'),
-      sessao,
-      totalSessoes: Number((totalSessoes as any)?.total ?? 0),
-      totalVereadores: Number((totalVereadores as any)?.total ?? 0),
-    })
+    const base = await this.baseData(session)
+    const [sessao, vereadores, proximasSessoes] = await Promise.all([
+      db.from(`${s}.sessoes`).where('status', 'em_andamento').orderBy('created_at','desc').first(),
+      db.from(`${s}.vereadores`).join(`${s}.partidos`,`${s}.partidos.id`,`${s}.vereadores.partido_id`).select(`${s}.vereadores.*`,`${s}.partidos.sigla as partido_sigla`,`${s}.partidos.cor as partido_cor`).where(`${s}.vereadores.ativo`,true).orderBy(`${s}.vereadores.nome_parlamentar`).limit(9),
+      db.from(`${s}.sessoes`).whereIn('status',['agendada','em_andamento']).orderBy('data_sessao','asc').limit(5),
+    ])
+    return view.render('pages/votacao/controle/index', { ...base, sessao, vereadores, proximasSessoes })
   }
 
   async sessoes({ session, view }: HttpContext) {
     const s = this.schema(session)
-    const sessoes = await db.from(`${s}.sessoes`).orderBy('data_sessao', 'desc').limit(50)
-    return view.render('pages/votacao/controle', { sessoes, secao: 'sessoes' })
+    const base = await this.baseData(session)
+    const [sessoes, sessaoAtiva, contAgendadas, contEncerradas] = await Promise.all([
+      db.from(`${s}.sessoes`).orderBy('data_sessao','desc').limit(100),
+      db.from(`${s}.sessoes`).where('status','em_andamento').first(),
+      db.from(`${s}.sessoes`).where('status','agendada').count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+      db.from(`${s}.sessoes`).where('status','encerrada').count('* as total').first().then(r => Number((r as any)?.total ?? 0)),
+    ])
+    return view.render('pages/votacao/controle/sessoes', { ...base, sessoes, sessaoAtiva, contAgendadas, contEncerradas })
+  }
+
+  async showSessao({ params, session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const [sessao, materias, vereadores, presencas] = await Promise.all([
+      db.from(`${s}.sessoes`).where('id', params.id).firstOrFail(),
+      db.from(`${s}.materias`).where('sessao_id', params.id).orderBy('ordem','asc').orderBy('created_at','asc'),
+      db.from(`${s}.vereadores`).join(`${s}.partidos`,`${s}.partidos.id`,`${s}.vereadores.partido_id`).select(`${s}.vereadores.*`,`${s}.partidos.sigla as partido_sigla`,`${s}.partidos.cor as partido_cor`).where(`${s}.vereadores.ativo`,true).orderBy(`${s}.vereadores.nome_parlamentar`),
+      db.from(`${s}.presencas`).where('sessao_id', params.id),
+    ])
+    const presencasMap: Record<number,string> = {}
+    for (const p of presencas as any[]) presencasMap[p.vereador_id] = p.presente ? 'presente' : 'justificado'
+    const presentes = Object.values(presencasMap).filter(v => v === 'presente').length
+    const votacaoAtiva = await db.from(`${s}.votacoes`).where('sessao_id', params.id).where('status','em_andamento').first()
+    const filaFala = await db.from(`${s}.tempo_fala`).join(`${s}.vereadores`,`${s}.vereadores.id`,`${s}.tempo_fala.vereador_id`).select(`${s}.tempo_fala.*`,`${s}.vereadores.nome_parlamentar`,`${s}.vereadores.cargo`).where(`${s}.tempo_fala.sessao_id`, params.id).where(`${s}.tempo_fala.status`,'aguardando').orderBy(`${s}.tempo_fala.created_at`)
+    const falando = await db.from(`${s}.tempo_fala`).join(`${s}.vereadores`,`${s}.vereadores.id`,`${s}.tempo_fala.vereador_id`).select(`${s}.tempo_fala.*`,`${s}.vereadores.nome_parlamentar`,`${s}.vereadores.cargo`).where(`${s}.tempo_fala.sessao_id`, params.id).where(`${s}.tempo_fala.status`,'em_andamento').first()
+    return view.render('pages/votacao/controle/sessao', { ...base, sessao, materias, vereadores, presencasMap, presentes, votacaoAtiva, filaFala, falando })
   }
 
   async storeSessao({ request, session, response }: HttpContext) {
     const s = this.schema(session)
-    const data = request.only(['tipo', 'descricao', 'local', 'data_sessao', 'legislatura_id'])
+    const data = request.only(['tipo','descricao','local','data_sessao','hora_inicio','numero'])
     const [sessao] = await db.table(`${s}.sessoes`).insert({ ...data, status: 'agendada' }).returning('*')
     return response.json({ success: true, sessao })
   }
 
+  async updateSessao({ params, request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['descricao','local','data_sessao','hora_inicio'])
+    await db.from(`${s}.sessoes`).where('id', params.id).update(data)
+    return response.json({ success: true })
+  }
+
+  async destroySessao({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.sessoes`).where('id', params.id).delete()
+    return response.json({ success: true })
+  }
+
   async iniciarSessao({ params, session, response }: HttpContext) {
     const s = this.schema(session)
+    await db.from(`${s}.sessoes`).where('status','em_andamento').update({ status: 'suspensa' })
     await db.from(`${s}.sessoes`).where('id', params.id).update({ status: 'em_andamento', iniciada_em: new Date() })
     return response.json({ success: true })
   }
@@ -46,80 +93,149 @@ export default class ControleController {
     return response.json({ success: true })
   }
 
+  async suspenderSessao({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.sessoes`).where('id', params.id).update({ status: 'suspensa' })
+    return response.json({ success: true })
+  }
+
+  async vereadores({ session, view }: HttpContext) {
+    const s = this.schema(session)
+    const base = await this.baseData(session)
+    const [vereadores, partidos] = await Promise.all([
+      db.from(`${s}.vereadores`).join(`${s}.partidos`,`${s}.partidos.id`,`${s}.vereadores.partido_id`).select(`${s}.vereadores.*`,`${s}.partidos.sigla as partido_sigla`,`${s}.partidos.cor as partido_cor`).where(`${s}.vereadores.ativo`,true).orderBy(`${s}.vereadores.nome_parlamentar`),
+      db.from(`${s}.partidos`).orderBy('sigla'),
+    ])
+    return view.render('pages/votacao/controle/vereadores', { ...base, vereadores, partidos })
+  }
+
+  async storeVereador({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['nome','nome_parlamentar','cargo','partido_id','cpf','email'])
+    const [v] = await db.table(`${s}.vereadores`).insert({ ...data, ativo: true }).returning('*')
+    return response.json({ success: true, vereador: v })
+  }
+
+  async updateVereador({ params, request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const data = request.only(['nome_parlamentar','cargo','partido_id'])
+    await db.from(`${s}.vereadores`).where('id', params.id).update(data)
+    return response.json({ success: true })
+  }
+
+  // Matérias
   async materias({ session, view }: HttpContext) {
     const s = this.schema(session)
-    const materias = await db.from(`${s}.materias`).orderBy('created_at', 'desc').limit(50)
-    return view.render('pages/votacao/controle', { materias, secao: 'materias' })
+    const base = await this.baseData(session)
+    const materias = await db.from(`${s}.materias`).orderBy('created_at','desc').limit(50)
+    return view.render('pages/votacao/controle/index', { ...base, materias })
   }
 
   async storemateria({ request, session, response }: HttpContext) {
     const s = this.schema(session)
-    const data = request.only(['sessao_id', 'tipo', 'numero', 'ementa', 'autor'])
-    const [materia] = await db.table(`${s}.materias`).insert({ ...data, status: 'pendente' }).returning('*')
-    return response.json({ success: true, materia })
+    const data = request.only(['sessao_id','tipo','numero','titulo','ementa','autores'])
+    const [m] = await db.table(`${s}.materias`).insert({ sessao_id:data.sessao_id, tipo:data.tipo, numero:data.numero, titulo:data.titulo, ementa:data.ementa, status:'pendente' }).returning('*')
+    return response.json({ success: true, materia: m })
   }
 
-  async iniciarVotacao({ request, session, response }: HttpContext) {
+  async updateMateria({ params, request, session, response }: HttpContext) {
     const s = this.schema(session)
-    const { materia_id, sessao_id, tipo_votacao } = request.only(['materia_id', 'sessao_id', 'tipo_votacao'])
-    const [votacao] = await db.table(`${s}.votacoes`).insert({
-      materia_id, sessao_id,
-      tipo: tipo_votacao || 'nominal',
-      status: 'em_andamento',
-      iniciada_em: new Date(),
-    }).returning('*')
+    const data = request.only(['titulo','ementa','tipo','numero'])
+    await db.from(`${s}.materias`).where('id', params.id).update(data)
+    return response.json({ success: true })
+  }
+
+  async destroyMateria({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.materias`).where('id', params.id).delete()
+    return response.json({ success: true })
+  }
+
+  async iniciarLeitura({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.materias`).where('id', params.id).update({ status: 'em_leitura' })
+    return response.json({ success: true })
+  }
+
+  async encerrarLeitura({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    await db.from(`${s}.materias`).where('id', params.id).update({ status: 'pendente' })
+    return response.json({ success: true })
+  }
+
+  async abrirVotacao({ params, request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const { sessao_id, tipo_votacao } = request.only(['sessao_id','tipo_votacao'])
+    await db.from(`${s}.votacoes`).where('sessao_id', sessao_id).where('status','em_andamento').update({ status: 'cancelada' })
+    await db.from(`${s}.materias`).where('sessao_id', sessao_id).where('status','em_votacao').update({ status: 'pendente' })
+    const [votacao] = await db.table(`${s}.votacoes`).insert({ materia_id:params.id, sessao_id, tipo:tipo_votacao||'nominal', status:'em_andamento', iniciada_em:new Date() }).returning('*')
+    await db.from(`${s}.materias`).where('id', params.id).update({ status: 'em_votacao' })
     return response.json({ success: true, votacao })
   }
 
   async encerrarVotacao({ params, session, response }: HttpContext) {
     const s = this.schema(session)
+    const votacao = await db.from(`${s}.votacoes`).where('id', params.id).firstOrFail() as any
     const votos = await db.from(`${s}.votos`).where('votacao_id', params.id)
-    const sim = votos.filter((v: any) => v.voto === 'sim').length
-    const nao = votos.filter((v: any) => v.voto === 'nao').length
-    const abstencao = votos.filter((v: any) => v.voto === 'abstencao').length
+    const sim = (votos as any[]).filter(v => v.voto==='sim').length
+    const nao = (votos as any[]).filter(v => v.voto==='nao').length
+    const abstencao = (votos as any[]).filter(v => v.voto==='abstencao').length
     const aprovada = sim > nao
-    await db.from(`${s}.votacoes`).where('id', params.id).update({
-      status: 'encerrada', encerrada_em: new Date(),
-      votos_sim: sim, votos_nao: nao, votos_abstencao: abstencao, aprovada,
-    })
+    await db.from(`${s}.votacoes`).where('id', params.id).update({ status:'encerrada', encerrada_em:new Date(), votos_sim:sim, votos_nao:nao, votos_abstencao:abstencao, aprovada })
+    await db.from(`${s}.materias`).where('id', votacao.materia_id).update({ status: aprovada?'aprovada':'rejeitada', votos_sim:sim, votos_nao:nao, votos_abstencao:abstencao })
     return response.json({ success: true, resultado: { sim, nao, abstencao, aprovada } })
   }
 
-  async vereadores({ session, view }: HttpContext) {
-    const s = this.schema(session)
-    const vereadores = await db.from(`${s}.vereadores`).where('ativo', true).orderBy('nome')
-    return view.render('pages/votacao/controle', { vereadores, secao: 'vereadores' })
-  }
-
-  async pedirVoz({ request, session, response }: HttpContext) {
-    const s = this.schema(session)
-    const { vereador_id, sessao_id } = request.only(['vereador_id', 'sessao_id'])
-    await db.table(`${s}.tempo_fala`).insert({ vereador_id, sessao_id, status: 'aguardando' })
-    return response.json({ success: true })
-  }
-
+  // Voz
   async concederVoz({ params, session, response }: HttpContext) {
     const s = this.schema(session)
-    await db.from(`${s}.tempo_fala`).where('id', params.id).update({ status: 'em_andamento', iniciado_em: new Date() })
+    await db.from(`${s}.tempo_fala`).where('status','em_andamento').whereNot('id',params.id).update({ status:'encerrado', encerrado_em:new Date() })
+    await db.from(`${s}.tempo_fala`).where('id', params.id).update({ status:'em_andamento', iniciado_em:new Date() })
     return response.json({ success: true })
   }
 
-  async encerrarVoz({ params, session, response }: HttpContext) {
+  async cancelarVozControle({ params, session, response }: HttpContext) {
     const s = this.schema(session)
-    await db.from(`${s}.tempo_fala`).where('id', params.id).update({ status: 'encerrado', encerrado_em: new Date() })
+    await db.from(`${s}.tempo_fala`).where('id', params.id).update({ status:'cancelado' })
     return response.json({ success: true })
   }
 
+  async setTimer({ request, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const { vereador_id, sessao_id, tempo_minutos } = request.only(['vereador_id','sessao_id','tempo_minutos'])
+    await db.table(`${s}.tempo_fala`).insert({ vereador_id, sessao_id, tempo_minutos:tempo_minutos||3, status:'aguardando' })
+    return response.json({ success: true })
+  }
+
+  // Quórum
   async quorum({ session, view }: HttpContext) {
     const s = this.schema(session)
-    const presencas = await db.from(`${s}.presencas`).join(`${s}.vereadores`, `${s}.vereadores.id`, `${s}.presencas.vereador_id`).select(`${s}.presencas.*`, `${s}.vereadores.nome_parlamentar`)
-    return view.render('pages/votacao/controle', { presencas, secao: 'quorum' })
+    const base = await this.baseData(session)
+    const presencas = await db.from(`${s}.presencas`).join(`${s}.vereadores`,`${s}.vereadores.id`,`${s}.presencas.vereador_id`).select(`${s}.presencas.*`,`${s}.vereadores.nome_parlamentar`)
+    return view.render('pages/votacao/controle/index', { ...base, presencas })
   }
 
   async registrarPresenca({ request, session, response }: HttpContext) {
     const s = this.schema(session)
-    const { vereador_id, sessao_id } = request.only(['vereador_id', 'sessao_id'])
-    await db.table(`${s}.presencas`).insert({ vereador_id, sessao_id, presente: true, chegada_em: new Date() })
+    const { vereador_id, sessao_id, status } = request.only(['vereador_id','sessao_id','status'])
+    const existe = await db.from(`${s}.presencas`).where({ vereador_id, sessao_id }).first()
+    if (existe) {
+      await db.from(`${s}.presencas`).where({ vereador_id, sessao_id }).update({ presente: status==='presente', chegada_em:new Date() })
+    } else {
+      await db.table(`${s}.presencas`).insert({ vereador_id, sessao_id, presente: status==='presente', chegada_em:new Date() })
+    }
     return response.json({ success: true })
+  }
+
+  async events({ params, session, response }: HttpContext) {
+    const s = this.schema(session)
+    const sessaoId = params.sessaoId
+    response.header('Content-Type','text/event-stream')
+    response.header('Cache-Control','no-cache')
+    response.header('Connection','keep-alive')
+    const votacao = await db.from(`${s}.votacoes`).where('sessao_id',sessaoId).where('status','em_andamento').first()
+    const data = { votacao, ts: Date.now() }
+    response.response.write(`data: ${JSON.stringify(data)}\n\n`)
+    response.response.end()
   }
 }
