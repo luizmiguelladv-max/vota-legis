@@ -86,19 +86,19 @@ router.get('/downloads/agente/atualizar.bat', async ({ response }) => {
 
 // API do App Mobile PWA
 const AppController = () => import('#controllers/api/app_controller')
-router.post('/api/app/login', [AppController, 'login']).use(middleware.rateLimit())
-router.get('/api/app/me', [AppController, 'me'])
-router.get('/api/app/status', [AppController, 'status'])
-router.post('/api/app/registrar', [AppController, 'registrar'])
-router.get('/api/app/registros-hoje', [AppController, 'registrosHoje'])
-router.post('/api/app/logout', [AppController, 'logout'])
-router.post('/api/app/alterar-senha', [AppController, 'alterarSenha'])
-router.get('/api/app/historico', [AppController, 'historico'])
-router.get('/api/app/banco-horas', [AppController, 'bancoHoras'])
-router.get('/api/app/perfil', [AppController, 'perfil'])
-router.get('/api/app/dia-info', [AppController, 'diaInfo'])
-router.get('/api/app/jornada', [AppController, 'jornada'])
-router.get('/api/app/espelho/:mes/:ano', [AppController, 'espelho'])
+router.post('/api/app/login', [VotaAppController, 'login']).use(middleware.rateLimit())
+router.get('/api/app/me', [VotaAppController, 'me'])
+router.get('/api/app/status', [VotaAppController, 'status'])
+router.post('/api/app/registrar', [VotaAppController, 'registrar'])
+router.get('/api/app/registros-hoje', [VotaAppController, 'registrosHoje'])
+router.post('/api/app/logout', [VotaAppController, 'logout'])
+router.post('/api/app/alterar-senha', [VotaAppController, 'alterarSenha'])
+router.get('/api/app/historico', [VotaAppController, 'historico'])
+router.get('/api/app/banco-horas', [VotaAppController, 'bancoHoras'])
+router.get('/api/app/perfil', [VotaAppController, 'perfil'])
+router.get('/api/app/dia-info', [VotaAppController, 'diaInfo'])
+router.get('/api/app/jornada', [VotaAppController, 'jornada'])
+router.get('/api/app/espelho/:mes/:ano', [VotaAppController, 'espelho'])
 
 // Limpar mensagens de teste do funcionário
 router.delete('/api/app/mensagens/limpar-testes', async ({ response, session }) => {
@@ -143,27 +143,27 @@ router.delete('/api/app/mensagens/limpar-testes', async ({ response, session }) 
   }
 })
 
-router.get('/api/app/mensagens', [AppController, 'mensagens'])
-router.post('/api/app/mensagens/:id/lida', [AppController, 'marcarMensagemLida'])
-router.delete('/api/app/mensagens/:id', [AppController, 'excluirMensagem'])
-router.post('/api/app/mensagens/excluir-lote', [AppController, 'excluirMensagensLote'])
+router.get('/api/app/mensagens', [VotaAppController, 'mensagens'])
+router.post('/api/app/mensagens/:id/lida', [VotaAppController, 'marcarMensagemLida'])
+router.delete('/api/app/mensagens/:id', [VotaAppController, 'excluirMensagem'])
+router.post('/api/app/mensagens/excluir-lote', [VotaAppController, 'excluirMensagensLote'])
 
 // API Presenca (rondas, vigilancia)
-router.get('/api/app/presenca-config', [AppController, 'presencaConfig'])
-router.get('/api/app/ultima-presenca', [AppController, 'ultimaPresenca'])
-router.post('/api/app/sync-offline', [AppController, 'syncOffline'])
-router.post('/api/app/marcar-presenca', [AppController, 'marcarPresenca'])
-router.get('/api/app/presencas-hoje', [AppController, 'presencasHoje'])
-router.post('/api/app/presencas/registrar-falta', [AppController, 'registrarFaltaPresenca'])
+router.get('/api/app/presenca-config', [VotaAppController, 'presencaConfig'])
+router.get('/api/app/ultima-presenca', [VotaAppController, 'ultimaPresenca'])
+router.post('/api/app/sync-offline', [VotaAppController, 'syncOffline'])
+router.post('/api/app/marcar-presenca', [VotaAppController, 'marcarPresenca'])
+router.get('/api/app/presencas-hoje', [VotaAppController, 'presencasHoje'])
+router.post('/api/app/presencas/registrar-falta', [VotaAppController, 'registrarFaltaPresenca'])
 
 // API Atendimentos (agentes de saúde, visitas domiciliares)
-router.get('/api/app/atendimentos/config', [AppController, 'atendimentosConfig'])
-router.get('/api/app/atendimentos/em-andamento', [AppController, 'atendimentoEmAndamento'])
-router.get('/api/app/atendimentos/resumo', [AppController, 'resumoAtendimentos'])
-router.get('/api/app/atendimentos', [AppController, 'listarAtendimentos'])
-router.post('/api/app/atendimentos/iniciar', [AppController, 'iniciarAtendimento'])
-router.post('/api/app/atendimentos/:id/finalizar', [AppController, 'finalizarAtendimento'])
-router.post('/api/app/atendimentos/:id/cancelar', [AppController, 'cancelarAtendimento'])
+router.get('/api/app/atendimentos/config', [VotaAppController, 'atendimentosConfig'])
+router.get('/api/app/atendimentos/em-andamento', [VotaAppController, 'atendimentoEmAndamento'])
+router.get('/api/app/atendimentos/resumo', [VotaAppController, 'resumoAtendimentos'])
+router.get('/api/app/atendimentos', [VotaAppController, 'listarAtendimentos'])
+router.post('/api/app/atendimentos/iniciar', [VotaAppController, 'iniciarAtendimento'])
+router.post('/api/app/atendimentos/:id/finalizar', [VotaAppController, 'finalizarAtendimento'])
+router.post('/api/app/atendimentos/:id/cancelar', [VotaAppController, 'cancelarAtendimento'])
 
 /*
 |--------------------------------------------------------------------------
@@ -9250,41 +9250,41 @@ router.group(() => {
 */
 
 // ── Controllers VotaLegis ──
-const PainelController     = () => import('#controllers/votacao/painel_controller')
-const AppController        = () => import('#controllers/votacao/app_controller')
-const ControleController   = () => import('#controllers/votacao/controle_controller')
-const AdminVotaController  = () => import('#controllers/votacao/admin_controller')
+const VotaPainelController   = () => import('#controllers/votacao/painel_controller')
+const VotaAppController      = () => import('#controllers/votacao/app_controller')
+const VotaControleController = () => import('#controllers/votacao/controle_controller')
+const VotaAdminController    = () => import('#controllers/votacao/admin_controller')
 
 // ─────────────────────────────────────────────────────────────
 //  PAINEL TV — público, identificado por slug
 // ─────────────────────────────────────────────────────────────
 router.group(() => {
-  router.get('/:slug',        [PainelController, 'show']).as('votacao.painel.show')
-  router.get('/:slug/events', [PainelController, 'events']).as('votacao.painel.events')
+  router.get('/:slug',        [VotaPainelController, 'show']).as('votacao.painel.show')
+  router.get('/:slug/events', [VotaPainelController, 'events']).as('votacao.painel.events')
 }).prefix('/painel')
 
 // ─────────────────────────────────────────────────────────────
 //  APP VEREADOR / PRESIDENTE  (guard: vereador)
 // ─────────────────────────────────────────────────────────────
 router.group(() => {
-  router.get('/',                [AppController, 'index']).as('votacao.app.index')
-  router.get('/ordens',          [AppController, 'ordens']).as('votacao.app.ordens')
-  router.get('/perfil',          [AppController, 'perfil']).as('votacao.app.perfil')
-  router.put('/perfil',          [AppController, 'updatePerfil']).as('votacao.app.perfil.update')
-  router.put('/perfil/senha',    [AppController, 'updateSenha']).as('votacao.app.perfil.senha')
-  router.get('/events',          [AppController, 'events']).as('votacao.app.events')
+  router.get('/',                [VotaAppController, 'index']).as('votacao.app.index')
+  router.get('/ordens',          [VotaAppController, 'ordens']).as('votacao.app.ordens')
+  router.get('/perfil',          [VotaAppController, 'perfil']).as('votacao.app.perfil')
+  router.put('/perfil',          [VotaAppController, 'updatePerfil']).as('votacao.app.perfil.update')
+  router.put('/perfil/senha',    [VotaAppController, 'updateSenha']).as('votacao.app.perfil.senha')
+  router.get('/events',          [VotaAppController, 'events']).as('votacao.app.events')
 
   // Quórum (presidente detectado via cargo no controller)
-  router.post('/quorum/abrir',    [AppController, 'abrirQuorum']).as('votacao.app.quorum.abrir')
-  router.post('/quorum/encerrar', [AppController, 'encerrarQuorum']).as('votacao.app.quorum.encerrar')
-  router.post('/quorum/presenca', [AppController, 'confirmarPresenca']).as('votacao.app.presenca')
+  router.post('/quorum/abrir',    [VotaAppController, 'abrirQuorum']).as('votacao.app.quorum.abrir')
+  router.post('/quorum/encerrar', [VotaAppController, 'encerrarQuorum']).as('votacao.app.quorum.encerrar')
+  router.post('/quorum/presenca', [VotaAppController, 'confirmarPresenca']).as('votacao.app.presenca')
 
   // Votação
-  router.post('/votar', [AppController, 'votar']).as('votacao.app.votar')
+  router.post('/votar', [VotaAppController, 'votar']).as('votacao.app.votar')
 
   // Voz / Tribuna
-  router.post('/voz/pedir',    [AppController, 'pedirVoz']).as('votacao.app.voz.pedir')
-  router.post('/voz/cancelar', [AppController, 'cancelarVoz']).as('votacao.app.voz.cancelar')
+  router.post('/voz/pedir',    [VotaAppController, 'pedirVoz']).as('votacao.app.voz.pedir')
+  router.post('/voz/cancelar', [VotaAppController, 'cancelarVoz']).as('votacao.app.voz.cancelar')
 })
   .prefix('/app/votacao')
   .use(middleware.auth())
@@ -9293,61 +9293,66 @@ router.group(() => {
 //  CONTROLE — secretaria / mesa / admin câmara
 // ─────────────────────────────────────────────────────────────
 router.group(() => {
-  router.get('/',   [ControleController, 'index']).as('votacao.controle.index')
-  router.get('/events/:sessaoId', [ControleController, 'events']).as('votacao.controle.events')
+  router.get('/',   [VotaControleController, 'index']).as('votacao.controle.index')
+  router.get('/events/:sessaoId', [VotaControleController, 'events']).as('votacao.controle.events')
 
   // Sessões
   router.group(() => {
-    router.get('/',              [ControleController, 'sessoes']).as('votacao.controle.sessoes')
-    router.post('/',             [ControleController, 'storeSessao']).as('votacao.controle.sessoes.store')
-    router.get('/:id',           [ControleController, 'showSessao']).as('votacao.controle.sessoes.show')
-    router.put('/:id',           [ControleController, 'updateSessao']).as('votacao.controle.sessoes.update')
-    router.delete('/:id',        [ControleController, 'destroySessao']).as('votacao.controle.sessoes.destroy')
-    router.post('/:id/iniciar',  [ControleController, 'iniciarSessao']).as('votacao.controle.sessoes.iniciar')
-    router.post('/:id/encerrar', [ControleController, 'encerrarSessao']).as('votacao.controle.sessoes.encerrar')
-    router.post('/:id/suspender',[ControleController, 'suspenderSessao']).as('votacao.controle.sessoes.suspender')
+    router.get('/',              [VotaControleController, 'sessoes']).as('votacao.controle.sessoes')
+    router.post('/',             [VotaControleController, 'storeSessao']).as('votacao.controle.sessoes.store')
+    router.get('/:id',           [VotaControleController, 'showSessao']).as('votacao.controle.sessoes.show')
+    router.put('/:id',           [VotaControleController, 'updateSessao']).as('votacao.controle.sessoes.update')
+    router.delete('/:id',        [VotaControleController, 'destroySessao']).as('votacao.controle.sessoes.destroy')
+    router.post('/:id/iniciar',  [VotaControleController, 'iniciarSessao']).as('votacao.controle.sessoes.iniciar')
+    router.post('/:id/encerrar', [VotaControleController, 'encerrarSessao']).as('votacao.controle.sessoes.encerrar')
+    router.post('/:id/suspender',[VotaControleController, 'suspenderSessao']).as('votacao.controle.sessoes.suspender')
   }).prefix('/sessoes')
 
   // Matérias
   router.group(() => {
-    router.get('/',                      [ControleController, 'materias']).as('votacao.controle.materias')
-    router.post('/',                     [ControleController, 'storemateria']).as('votacao.controle.materias.store')
-    router.put('/:id',                   [ControleController, 'updateMateria']).as('votacao.controle.materias.update')
-    router.delete('/:id',                [ControleController, 'destroyMateria']).as('votacao.controle.materias.destroy')
-    router.post('/:id/leitura/iniciar',  [ControleController, 'iniciarLeitura']).as('votacao.controle.materias.leitura.iniciar')
-    router.post('/:id/leitura/encerrar', [ControleController, 'encerrarLeitura']).as('votacao.controle.materias.leitura.encerrar')
-    router.post('/:id/votacao/abrir',    [ControleController, 'abrirVotacao']).as('votacao.controle.materias.votacao.abrir')
-    router.post('/:id/votacao/encerrar', [ControleController, 'encerrarVotacao']).as('votacao.controle.materias.votacao.encerrar')
+    router.get('/',                      [VotaControleController, 'materias']).as('votacao.controle.materias')
+    router.post('/',                     [VotaControleController, 'storemateria']).as('votacao.controle.materias.store')
+    router.put('/:id',                   [VotaControleController, 'updateMateria']).as('votacao.controle.materias.update')
+    router.delete('/:id',                [VotaControleController, 'destroyMateria']).as('votacao.controle.materias.destroy')
+    router.post('/:id/leitura/iniciar',  [VotaControleController, 'iniciarLeitura']).as('votacao.controle.materias.leitura.iniciar')
+    router.post('/:id/leitura/encerrar', [VotaControleController, 'encerrarLeitura']).as('votacao.controle.materias.leitura.encerrar')
+    router.post('/:id/votacao/abrir',    [VotaControleController, 'abrirVotacao']).as('votacao.controle.materias.votacao.abrir')
+    router.post('/:id/votacao/encerrar', [VotaControleController, 'encerrarVotacao']).as('votacao.controle.materias.votacao.encerrar')
   }).prefix('/materias')
 
   // Voz / Timer
   router.group(() => {
-    router.post('/:id/conceder', [ControleController, 'concederVoz']).as('votacao.controle.voz.conceder')
-    router.post('/:id/cancelar', [ControleController, 'cancelarVozControle']).as('votacao.controle.voz.cancelar')
-    router.post('/timer',        [ControleController, 'setTimer']).as('votacao.controle.voz.timer')
+    router.post('/:id/conceder', [VotaControleController, 'concederVoz']).as('votacao.controle.voz.conceder')
+    router.post('/:id/cancelar', [VotaControleController, 'cancelarVozControle']).as('votacao.controle.voz.cancelar')
+    router.post('/timer',        [VotaControleController, 'setTimer']).as('votacao.controle.voz.timer')
   }).prefix('/voz')
 
   // Vereadores
   router.group(() => {
-    router.get('/',            [ControleController, 'vereadores']).as('votacao.controle.vereadores')
-    router.post('/',           [ControleController, 'storeVereador']).as('votacao.controle.vereadores.store')
-    router.put('/:id',         [ControleController, 'updateVereador']).as('votacao.controle.vereadores.update')
-    router.delete('/:id',      [ControleController, 'destroyVereador']).as('votacao.controle.vereadores.destroy')
+    router.get('/',            [VotaControleController, 'vereadores']).as('votacao.controle.vereadores')
+    router.post('/',           [VotaControleController, 'storeVereador']).as('votacao.controle.vereadores.store')
+    router.put('/:id',         [VotaControleController, 'updateVereador']).as('votacao.controle.vereadores.update')
+    router.delete('/:id',      [VotaControleController, 'destroyVereador']).as('votacao.controle.vereadores.destroy')
   }).prefix('/vereadores')
 
-  // Partidos e Legislaturas
-  router.resource('/partidos',    ControleController).except(['show', 'create', 'edit'])
-  router.resource('/legislaturas', ControleController).except(['show', 'create', 'edit'])
+  // Partidos e Legislaturas — gerenciados via endpoints REST simples no VotaControleController
+  router.get('/partidos',       [VotaControleController, 'partidos']).as('votacao.controle.partidos')
+  router.post('/partidos',      [VotaControleController, 'storePartido']).as('votacao.controle.partidos.store')
+  router.put('/partidos/:id',   [VotaControleController, 'updatePartido']).as('votacao.controle.partidos.update')
+  router.delete('/partidos/:id',[VotaControleController, 'destroyPartido']).as('votacao.controle.partidos.destroy')
+  router.get('/legislaturas',       [VotaControleController, 'legislaturas']).as('votacao.controle.legislaturas')
+  router.post('/legislaturas',      [VotaControleController, 'storeLegislatura']).as('votacao.controle.legislaturas.store')
+  router.put('/legislaturas/:id',   [VotaControleController, 'updateLegislatura']).as('votacao.controle.legislaturas.update')
 
   // Configurações da câmara
-  router.get('/configuracoes',     [ControleController, 'configuracoes']).as('votacao.controle.configuracoes')
-  router.put('/configuracoes',     [ControleController, 'updateConfiguracoes']).as('votacao.controle.configuracoes.update')
-  router.put('/configuracoes/tema',[ControleController, 'updateTema']).as('votacao.controle.configuracoes.tema')
+  router.get('/configuracoes',     [VotaControleController, 'configuracoes']).as('votacao.controle.configuracoes')
+  router.put('/configuracoes',     [VotaControleController, 'updateConfiguracoes']).as('votacao.controle.configuracoes.update')
+  router.put('/configuracoes/tema',[VotaControleController, 'updateTema']).as('votacao.controle.configuracoes.tema')
 
   // Relatórios
-  router.get('/relatorios',         [ControleController, 'relatorios']).as('votacao.controle.relatorios')
-  router.get('/relatorios/sessao/:id', [ControleController, 'relatorioSessao']).as('votacao.controle.relatorios.sessao')
-  router.get('/relatorios/exportar/:id',[ControleController, 'exportarRelatorio']).as('votacao.controle.relatorios.exportar')
+  router.get('/relatorios',         [VotaControleController, 'relatorios']).as('votacao.controle.relatorios')
+  router.get('/relatorios/sessao/:id', [VotaControleController, 'relatorioSessao']).as('votacao.controle.relatorios.sessao')
+  router.get('/relatorios/exportar/:id',[VotaControleController, 'exportarRelatorio']).as('votacao.controle.relatorios.exportar')
 })
   .prefix('/controle/votacao')
   .use(middleware.auth())
@@ -9356,40 +9361,40 @@ router.group(() => {
 //  SUPER ADMIN VOTALEGIS  (guard: master + superAdmin)
 // ─────────────────────────────────────────────────────────────
 router.group(() => {
-  router.get('/', [AdminVotaController, 'index']).as('votacao.admin.index')
+  router.get('/', [VotaAdminController, 'index']).as('votacao.admin.index')
 
   // Câmaras
   router.group(() => {
-    router.get('/',               [AdminVotaController, 'camaras']).as('votacao.admin.camaras')
-    router.post('/',              [AdminVotaController, 'storeCamara']).as('votacao.admin.camaras.store')
-    router.get('/:id/editar',     [AdminVotaController, 'editCamara']).as('votacao.admin.camaras.edit')
-    router.put('/:id',            [AdminVotaController, 'updateCamara']).as('votacao.admin.camaras.update')
-    router.delete('/:id',         [AdminVotaController, 'destroyCamara']).as('votacao.admin.camaras.destroy')
-    router.post('/:id/suspender', [AdminVotaController, 'suspenderCamara']).as('votacao.admin.camaras.suspender')
-    router.post('/:id/reativar',  [AdminVotaController, 'reativarCamara']).as('votacao.admin.camaras.reativar')
-    router.post('/:id/impersonar',[AdminVotaController, 'impersonarCamara']).as('votacao.admin.camaras.impersonar')
+    router.get('/',               [VotaAdminController, 'camaras']).as('votacao.admin.camaras')
+    router.post('/',              [VotaAdminController, 'storeCamara']).as('votacao.admin.camaras.store')
+    router.get('/:id/editar',     [VotaAdminController, 'editCamara']).as('votacao.admin.camaras.edit')
+    router.put('/:id',            [VotaAdminController, 'updateCamara']).as('votacao.admin.camaras.update')
+    router.delete('/:id',         [VotaAdminController, 'destroyCamara']).as('votacao.admin.camaras.destroy')
+    router.post('/:id/suspender', [VotaAdminController, 'suspenderCamara']).as('votacao.admin.camaras.suspender')
+    router.post('/:id/reativar',  [VotaAdminController, 'reativarCamara']).as('votacao.admin.camaras.reativar')
+    router.post('/:id/impersonar',[VotaAdminController, 'impersonarCamara']).as('votacao.admin.camaras.impersonar')
   }).prefix('/camaras')
 
   // Planos
   router.group(() => {
-    router.get('/',       [AdminVotaController, 'planos']).as('votacao.admin.planos')
-    router.post('/',      [AdminVotaController, 'storePlano']).as('votacao.admin.planos.store')
-    router.put('/:id',    [AdminVotaController, 'updatePlano']).as('votacao.admin.planos.update')
-    router.delete('/:id', [AdminVotaController, 'destroyPlano']).as('votacao.admin.planos.destroy')
+    router.get('/',       [VotaAdminController, 'planos']).as('votacao.admin.planos')
+    router.post('/',      [VotaAdminController, 'storePlano']).as('votacao.admin.planos.store')
+    router.put('/:id',    [VotaAdminController, 'updatePlano']).as('votacao.admin.planos.update')
+    router.delete('/:id', [VotaAdminController, 'destroyPlano']).as('votacao.admin.planos.destroy')
   }).prefix('/planos')
 
   // Usuários master
   router.group(() => {
-    router.get('/',         [AdminVotaController, 'usuarios']).as('votacao.admin.usuarios')
-    router.post('/',        [AdminVotaController, 'storeUsuario']).as('votacao.admin.usuarios.store')
-    router.put('/:id',      [AdminVotaController, 'updateUsuario']).as('votacao.admin.usuarios.update')
-    router.delete('/:id',   [AdminVotaController, 'destroyUsuario']).as('votacao.admin.usuarios.destroy')
+    router.get('/',         [VotaAdminController, 'usuarios']).as('votacao.admin.usuarios')
+    router.post('/',        [VotaAdminController, 'storeUsuario']).as('votacao.admin.usuarios.store')
+    router.put('/:id',      [VotaAdminController, 'updateUsuario']).as('votacao.admin.usuarios.update')
+    router.delete('/:id',   [VotaAdminController, 'destroyUsuario']).as('votacao.admin.usuarios.destroy')
   }).prefix('/usuarios')
 
   // Logs e configs globais
-  router.get('/logs',          [AdminVotaController, 'logs']).as('votacao.admin.logs')
-  router.get('/configuracoes', [AdminVotaController, 'configuracoes']).as('votacao.admin.configuracoes')
-  router.put('/configuracoes', [AdminVotaController, 'updateConfiguracoes']).as('votacao.admin.configuracoes.update')
+  router.get('/logs',          [VotaAdminController, 'logs']).as('votacao.admin.logs')
+  router.get('/configuracoes', [VotaAdminController, 'configuracoes']).as('votacao.admin.configuracoes')
+  router.put('/configuracoes', [VotaAdminController, 'updateConfiguracoes']).as('votacao.admin.configuracoes.update')
 })
   .prefix('/admin/votacao')
   .use([middleware.auth(), middleware.requireSuperAdmin()])
