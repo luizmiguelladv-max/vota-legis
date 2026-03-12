@@ -3,7 +3,7 @@ import db from '@adonisjs/lucid/services/db'
 
 export default class ControleController {
   private schema(session: any) {
-    return `camara_${session.get('municipio_id')}`
+    return `camara_${session.get('municipioId')}`
   }
 
   async index({ session, view }: HttpContext) {

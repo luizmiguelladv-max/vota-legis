@@ -9,7 +9,7 @@ export default class AppVereadorController {
 
   async index({ auth, view, session }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     // Vereador vinculado ao usuário master
@@ -97,7 +97,7 @@ export default class AppVereadorController {
 
   async abrirQuorum({ auth, session, response }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     // Garante que é presidente
@@ -118,7 +118,7 @@ export default class AppVereadorController {
   }
 
   async encerrarQuorum({ auth, session, response }: HttpContext) {
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
     const sessao = await db.from(`${s}.sessoes`).where('status', 'em_andamento').first()
     if (!sessao) return response.badRequest({ error: 'Nenhuma sessão em andamento' })
@@ -129,7 +129,7 @@ export default class AppVereadorController {
 
   async confirmarPresenca({ auth, session, response }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const vereador = await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).first()
@@ -158,7 +158,7 @@ export default class AppVereadorController {
   async votar({ request, auth, session, response }: HttpContext) {
     const { opcao } = request.only(['opcao']) // 'favor' | 'contra' | 'abstencao'
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const vereador = await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).first()
@@ -191,7 +191,7 @@ export default class AppVereadorController {
 
   async pedirVoz({ auth, session, response }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const vereador = await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).first()
@@ -226,7 +226,7 @@ export default class AppVereadorController {
 
   async cancelarVoz({ auth, session, response }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const vereador = await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).first()
@@ -244,7 +244,7 @@ export default class AppVereadorController {
   }
 
   async ordens({ auth, session, view }: HttpContext) {
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const sessoes = await db
@@ -258,7 +258,7 @@ export default class AppVereadorController {
 
   async perfil({ auth, session, view }: HttpContext) {
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     const vereador = await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).first()
@@ -268,7 +268,7 @@ export default class AppVereadorController {
   async updatePerfil({ request, auth, session, response }: HttpContext) {
     const dados = request.only(['nome_parlamentar','email','whatsapp','telefone','facebook','instagram','trajetoria'])
     const usuario = auth.user!
-    const municipioId = session.get('municipio_id')
+    const municipioId = session.get('municipioId')
     const s = this.schema(municipioId)
 
     await db.from(`${s}.vereadores`).where('usuario_id', usuario.id).update(dados)
