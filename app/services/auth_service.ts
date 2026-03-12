@@ -79,9 +79,9 @@ export default class AuthService {
         login: user.login,
         nome: user.nome,
         email: user.email,
-        perfil: 'SUPER_ADMIN',
-        is_super_admin: true,
-        municipio_id: null,
+        perfil: user.perfil || 'SUPER_ADMIN',
+        is_super_admin: !user.municipioId,
+        municipio_id: user.municipioId || null,
       }
 
       const token = this.generateToken(payload)
