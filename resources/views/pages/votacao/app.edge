@@ -49,7 +49,7 @@
         <h5>{{ materiaAtual?.ementa }}</h5>
         @if(votacaoAtual?.meuVoto)
           <div class="alert alert-success">
-            ✅ Voto registrado: <strong>{{ votacaoAtual.meuVoto.opcao }}</strong>
+            <i class="bi bi-check-circle-fill text-success"></i> Voto registrado: <strong>{{ votacaoAtual.meuVoto.opcao }}</strong>
           </div>
         @else
           <form action="/app/votacao/votar" method="POST">

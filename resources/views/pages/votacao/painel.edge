@@ -70,7 +70,7 @@
 {{-- Header sempre visível --}}
 <div class="painel-header">
   <div class="d-flex align-items-center gap-3">
-    <span class="brasao">🏛️</span>
+    <span class="brasao"><i class="bi bi-building-fill"></i></span>
     <div>
       <h1>{{ configuracoes?.nome_camara || municipio?.nome || 'Câmara Municipal' }}</h1>
       <small style="color:#93c5fd;font-size:.85rem">{{ municipio?.nome || '' }} — {{ municipio?.uf || '' }}</small>
@@ -134,7 +134,7 @@
                 @if(v.foto_url)
                   <img src="{{ v.foto_url }}" alt="{{ v.nome_parlamentar }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
                 @else
-                  👤
+                  <i class="bi bi-person-fill"></i>
                 @end
               </div>
               <div>
@@ -151,7 +151,7 @@
 @else
   {{-- STANDBY --}}
   <div class="standby">
-    <div class="logo">🏛️</div>
+    <div class="logo mb-3"><i class="bi bi-building-fill" style="font-size:5rem;color:#1d4ed8"></i></div>
     <h2>VotaLegis</h2>
     <p>{{ configuracoes?.nome_camara || municipio?.nome || 'Câmara Municipal' }}</p>
     <p class="mt-2" style="color:#64748b">Aguardando início da sessão</p>
